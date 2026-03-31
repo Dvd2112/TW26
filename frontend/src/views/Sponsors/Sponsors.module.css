@@ -70,12 +70,21 @@
     padding: 60px 16px;
   }
 
+  .groups {
+    gap: 36px;
+  }
+
   .logoGrid {
     gap: 8px;
   }
 
   .logoCard {
-    padding: 14px 18px;
-    min-width: 110px;
+    padding: 14px 12px;
+    min-width: 0;
+    flex: 1 1 calc(50% - 4px);
+  }
+
+  .logoName {
+    font-size: 0.82rem;
   }
 }

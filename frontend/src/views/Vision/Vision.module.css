@@ -84,6 +84,12 @@
   }
 
   .quote {
-    padding: 20px;
+    padding: 16px;
+    font-size: 0.88rem;
+    gap: 12px;
+  }
+
+  .quoteBar {
+    min-height: 40px;
   }
 }

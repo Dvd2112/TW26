@@ -131,11 +131,45 @@
 
 @media (max-width: 768px) {
   .section {
-    padding: 100px 16px 80px;
+    min-height: 100svh;
+    padding: 90px 16px 80px;
+  }
+
+  .tag {
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .title {
+    font-size: clamp(2rem, 9vw, 3rem);
+    letter-spacing: -0.03em;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
   }
 
   .actions {
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .actions a {
+    width: 100%;
+  }
+
+  .pills {
+    gap: 8px;
+  }
+
+  .pill {
+    font-size: 0.72rem;
+    padding: 5px 11px;
   }
 }

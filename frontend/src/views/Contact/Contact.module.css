@@ -127,4 +127,18 @@
   .section {
     padding: 60px 16px;
   }
+
+  .formCard {
+    padding: 20px 14px;
+    border-radius: 10px;
+  }
+
+  .callout {
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .calloutText {
+    font-size: 0.85rem;
+  }
 }

@@ -107,6 +107,23 @@
   transition: 0.2s;
 }
 
+.mobileCtaItem {
+  display: none;
+}
+
+.mobileCta {
+  display: block;
+  margin: 8px 16px 4px;
+  padding: 12px 24px;
+  background: #00FF00;
+  color: #000 !important;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
 @media (max-width: 768px) {
   .nav {
     padding: 14px 16px;
@@ -119,15 +136,18 @@
   .links {
     display: none;
     position: fixed;
-    top: 60px;
+    top: 56px;
     left: 0;
     right: 0;
     background: rgba(0, 0, 0, 0.97);
+    backdrop-filter: blur(12px);
     flex-direction: column;
     gap: 0;
-    padding: 16px 0;
+    padding: 8px 0 20px;
     border-bottom: 1px solid #1a1a1a;
     margin: 0;
+    max-height: calc(100vh - 56px);
+    overflow-y: auto;
   }
 
   .links.open {
@@ -136,8 +156,13 @@
 
   .links li a {
     display: block;
-    padding: 12px 24px;
+    padding: 14px 24px;
     font-size: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .mobileCtaItem {
+    display: block;
   }
 
   .burger {

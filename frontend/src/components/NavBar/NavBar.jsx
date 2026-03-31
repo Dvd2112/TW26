@@ -37,6 +37,11 @@ export default function NavBar() {
               </a>
             </li>
           ))}
+          <li className={styles.mobileCtaItem}>
+            <a href="#contact" onClick={() => setMenuOpen(false)} className={styles.mobileCta}>
+              Quero Patrocinar
+            </a>
+          </li>
         </ul>
 
         <a href="#contact">

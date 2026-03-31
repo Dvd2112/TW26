@@ -120,7 +120,25 @@
     padding: 60px 16px;
   }
 
+  .grid {
+    max-width: 100%;
+  }
+
   .card {
-    padding: 28px 20px 20px;
+    padding: 32px 16px 20px;
+  }
+
+  .featuredBadge {
+    font-size: 0.68rem;
+    padding: 4px 12px;
+    top: -12px;
+  }
+
+  .tierName {
+    font-size: 1.2rem;
+  }
+
+  .benefitItem {
+    font-size: 0.82rem;
   }
 }

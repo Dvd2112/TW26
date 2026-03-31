@@ -160,4 +160,25 @@
   .section {
     padding: 60px 16px;
   }
+
+  .timeLabel {
+    font-size: 1rem;
+  }
+
+  .factsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .factCard {
+    padding: 16px 12px;
+  }
+
+  .factIcon {
+    font-size: 1.4rem;
+  }
+
+  .profileBox {
+    padding: 16px;
+  }
 }
