@@ -1,0 +1,130 @@
+.section {
+  padding: 100px 24px;
+  background: #000;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: start;
+}
+
+.leftCol {}
+
+.callout {
+  display: flex;
+  gap: 16px;
+  background: rgba(0, 191, 99, 0.05);
+  border: 1px solid rgba(0, 191, 99, 0.15);
+  border-radius: 10px;
+  padding: 24px;
+  margin-top: 0;
+}
+
+.calloutBar {
+  width: 4px;
+  min-width: 4px;
+  background: linear-gradient(180deg, #00FF00, #00BF63);
+  border-radius: 2px;
+  align-self: stretch;
+}
+
+.calloutText {
+  font-size: 0.9rem;
+  color: #D9D9D9;
+  line-height: 1.65;
+  margin-bottom: 16px;
+}
+
+.calloutEmail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.calloutEmail a {
+  color: #00BF63;
+  transition: color 0.2s;
+}
+
+.calloutEmail a:hover {
+  color: #00FF00;
+}
+
+/* Form card */
+.formCard {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 40px 36px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+/* Antd overrides inside form */
+:global(.ant-form-item-label > label) {
+  color: #D9D9D9 !important;
+  font-size: 0.85rem !important;
+}
+
+:global(.ant-input),
+:global(.ant-input-affix-wrapper),
+:global(.ant-select-selector),
+:global(.ant-input-textarea textarea) {
+  background: #111 !important;
+  border-color: #1a1a1a !important;
+  color: #fff !important;
+}
+
+:global(.ant-input:focus),
+:global(.ant-select-focused .ant-select-selector) {
+  border-color: #00BF63 !important;
+  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.15) !important;
+}
+
+:global(.ant-select-dropdown) {
+  background: #111 !important;
+  border: 1px solid #1a1a1a !important;
+}
+
+:global(.ant-select-item) {
+  color: #D9D9D9 !important;
+}
+
+:global(.ant-select-item-option-active),
+:global(.ant-select-item-option-selected) {
+  background: rgba(0, 191, 99, 0.1) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+
+  .formCard {
+    padding: 28px 20px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 16px;
+  }
+}

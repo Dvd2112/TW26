@@ -1,0 +1,142 @@
+.footer {
+  background: #050505;
+  border-top: 1px solid #1a1a1a;
+  padding: 64px 24px 32px;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.top {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr;
+  gap: 60px;
+  margin-bottom: 48px;
+}
+
+.brand {}
+
+.logoNeon {
+  color: #00FF00;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.logoYear {
+  font-size: 1rem;
+  color: #D9D9D9;
+  font-weight: 400;
+}
+
+.tagline {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: #666;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+/* Info */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.infoItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoLabel {
+  font-size: 0.72rem;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+}
+
+.infoValue {
+  font-size: 0.875rem;
+  color: #D9D9D9;
+}
+
+.infoLink {
+  font-size: 0.875rem;
+  color: #00BF63;
+  transition: color 0.2s;
+}
+
+.infoLink:hover {
+  color: #00FF00;
+}
+
+/* Nav */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.navTitle {
+  font-size: 0.72rem;
+  color: #666;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.navLink {
+  font-size: 0.875rem;
+  color: #D9D9D9;
+  transition: color 0.2s;
+}
+
+.navLink:hover {
+  color: #00FF00;
+}
+
+/* Bottom */
+.divider {
+  height: 1px;
+  background: #1a1a1a;
+  margin-bottom: 24px;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.copy, .built {
+  font-size: 0.78rem;
+  color: #666;
+}
+
+@media (max-width: 900px) {
+  .top {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  .brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .top {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .footer {
+    padding: 48px 16px 28px;
+  }
+}

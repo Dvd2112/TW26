@@ -1,0 +1,163 @@
+.section {
+  padding: 100px 24px;
+  background: #000;
+}
+
+.wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+/* Timeline */
+.timelineCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeItem {
+  display: flex;
+  gap: 20px;
+}
+
+.timeConnector {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #00FF00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+  flex-shrink: 0;
+}
+
+.line {
+  width: 2px;
+  flex: 1;
+  min-height: 60px;
+  background: linear-gradient(180deg, #00FF00, #00BF63);
+  margin: 6px 0;
+  opacity: 0.4;
+}
+
+.timeContent {
+  padding-bottom: 40px;
+}
+
+.timeDate {
+  font-family: 'Courier New', monospace;
+  font-size: 0.78rem;
+  color: #00BF63;
+  letter-spacing: 0.12em;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.timeIcon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.timeLabel {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.timeDesc {
+  font-size: 0.9rem;
+  color: #D9D9D9;
+  line-height: 1.65;
+}
+
+/* Facts */
+.factsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.factsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.factCard {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  padding: 24px 20px;
+  text-align: center;
+  transition: border-color 0.3s;
+}
+
+.factCard:hover {
+  border-color: #00BF63;
+}
+
+.factIcon {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #00FF00;
+  display: block;
+  margin-bottom: 8px;
+  font-family: 'Inter', sans-serif;
+}
+
+.factLabel {
+  font-size: 0.8rem;
+  color: #D9D9D9;
+  line-height: 1.4;
+}
+
+.profileBox {
+  background: rgba(0, 191, 99, 0.05);
+  border: 1px solid rgba(0, 191, 99, 0.2);
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.profileTag {
+  font-family: 'Courier New', monospace;
+  font-size: 0.72rem;
+  color: #00BF63;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.profileDesc {
+  font-size: 0.9rem;
+  color: #D9D9D9;
+  line-height: 1.65;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 60px 16px;
+  }
+}

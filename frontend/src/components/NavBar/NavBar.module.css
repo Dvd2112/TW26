@@ -1,0 +1,150 @@
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  transition: background 0.3s, padding 0.3s, border-bottom 0.3s;
+}
+
+.nav.scrolled {
+  background: rgba(0, 0, 0, 0.92);
+  backdrop-filter: blur(12px);
+  padding: 12px 32px;
+  border-bottom: 1px solid #1a1a1a;
+}
+
+.inner {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.logo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.logoNeon {
+  color: #00FF00;
+}
+
+.logoYear {
+  font-size: 0.9rem;
+  color: #D9D9D9;
+  font-weight: 400;
+}
+
+.links {
+  display: flex;
+  list-style: none;
+  gap: 32px;
+  margin-left: auto;
+  margin-right: 24px;
+}
+
+.links a {
+  color: #D9D9D9;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  transition: color 0.2s;
+  position: relative;
+}
+
+.links a::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #00FF00;
+  transition: width 0.2s;
+}
+
+.links a:hover {
+  color: #00FF00;
+}
+
+.links a:hover::after {
+  width: 100%;
+}
+
+.cta {
+  white-space: nowrap;
+  height: 38px;
+  padding: 0 20px;
+  border-radius: 4px !important;
+}
+
+.burger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+}
+
+.burger span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: 0.2s;
+}
+
+@media (max-width: 768px) {
+  .nav {
+    padding: 14px 16px;
+  }
+
+  .nav.scrolled {
+    padding: 12px 16px;
+  }
+
+  .links {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.97);
+    flex-direction: column;
+    gap: 0;
+    padding: 16px 0;
+    border-bottom: 1px solid #1a1a1a;
+    margin: 0;
+  }
+
+  .links.open {
+    display: flex;
+  }
+
+  .links li a {
+    display: block;
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+
+  .burger {
+    display: flex;
+  }
+
+  .cta {
+    display: none;
+  }
+}
