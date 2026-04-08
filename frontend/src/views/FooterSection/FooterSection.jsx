@@ -1,6 +1,22 @@
 import styles from './FooterSection.module.css';
 
-export default function FooterSection() {
+const defaultSections = [
+  ['#journeys', 'Jornadas'],
+  ['#highlights', 'Destaques'],
+  ['#contact', 'Contato'],
+];
+
+const defaultQuickLinks = [
+  ['?audience=speakers', 'Página para palestrantes'],
+  ['?audience=participants', 'Página para participantes'],
+];
+
+export default function FooterSection({
+  sections = defaultSections,
+  quickLinks = defaultQuickLinks,
+  contactEmail = 'david.junior211204@gmail.com',
+  tagline = 'Conectando Talentos, Tecnologia e o Futuro do Sudoeste',
+}) {
   return (
     <footer className={styles.footer}>
       <div className={styles.wrapper}>
@@ -9,7 +25,7 @@ export default function FooterSection() {
             <span className={styles.logoNeon}>Tech</span>Week
             <span className={styles.logoYear}> 2026</span>
             <p className={styles.tagline}>
-              Conectando Talentos, Tecnologia e o Futuro do Sudoeste
+              {tagline}
             </p>
           </div>
 
@@ -24,22 +40,19 @@ export default function FooterSection() {
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>📧 Contato</span>
-              <a href="mailto:david.junior211204@gmail.com" className={styles.infoLink}>
-                david.junior211204@gmail.com
+              <a href={`mailto:${contactEmail}`} className={styles.infoLink}>
+                {contactEmail}
               </a>
             </div>
           </div>
 
           <nav className={styles.nav}>
             <span className={styles.navTitle}>Seções</span>
-            {[
-              ['#vision', 'A Visão'],
-              ['#numbers', 'Números'],
-              ['#sponsors', 'Patrocinadores'],
-              ['#highlights', 'Destaques'],
-              ['#tiers', 'Cotas'],
-              ['#contact', 'Contato'],
-            ].map(([href, label]) => (
+            {sections.map(([href, label]) => (
+              <a key={href} href={href} className={styles.navLink}>{label}</a>
+            ))}
+            {quickLinks.length > 0 && <span className={styles.navTitle}>Jornadas</span>}
+            {quickLinks.map(([href, label]) => (
               <a key={href} href={href} className={styles.navLink}>{label}</a>
             ))}
           </nav>

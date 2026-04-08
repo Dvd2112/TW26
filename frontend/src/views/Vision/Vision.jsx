@@ -3,7 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from './Vision.module.css';
 
-const pillars = [
+const defaultPillars = [
   {
     icon: '🤖',
     title: 'Inteligência Artificial',
@@ -24,17 +24,24 @@ const pillars = [
   },
 ];
 
-export default function Vision() {
+export default function Vision({
+  id = 'vision',
+  tag = '// 01 — A Visão',
+  title = 'Onde a Inovação Encontra o Mercado',
+  subtitle = 'Mais do que um evento acadêmico, somos a ponte estratégica entre a formação de talentos de elite e as demandas reais do mercado de trabalho no Sudoeste do Paraná.',
+  pillars = defaultPillars,
+  quote = 'Em 2026, nossa missão se expande. Criamos um ecossistema de alto impacto para marcas que desejam liderar a transformação digital e garantir o top of mind perante a nova geração de decisores.',
+}) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <section id="vision" className={styles.section}>
+    <section id={id} className={styles.section}>
       <div className={styles.wrapper}>
         <SectionTitle
-          tag="// 01 — A Visão"
-          title="Onde a Inovação Encontra o Mercado"
-          subtitle="Mais do que um evento acadêmico, somos a ponte estratégica entre a formação de talentos de elite e as demandas reais do mercado de trabalho no Sudoeste do Paraná."
+          tag={tag}
+          title={title}
+          subtitle={subtitle}
         />
 
         <div ref={ref} className={styles.grid}>
@@ -53,18 +60,17 @@ export default function Vision() {
           ))}
         </div>
 
-        <motion.blockquote
-          className={styles.quote}
-          initial={{ opacity: 0 }}
-          animate={inView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.6, delay: 0.6 }}
-        >
-          <span className={styles.quoteBar} />
-          Em 2026, nossa missão se expande. Criamos um ecossistema de alto impacto para marcas
-          que desejam liderar a transformação digital e garantir o{' '}
-          <strong style={{ color: '#00FF00' }}>top of mind</strong> perante a nova geração de
-          decisores.
-        </motion.blockquote>
+        {quote && (
+          <motion.blockquote
+            className={styles.quote}
+            initial={{ opacity: 0 }}
+            animate={inView ? { opacity: 1 } : {}}
+            transition={{ duration: 0.6, delay: 0.6 }}
+          >
+            <span className={styles.quoteBar} />
+            {quote}
+          </motion.blockquote>
+        )}
       </div>
     </section>
   );

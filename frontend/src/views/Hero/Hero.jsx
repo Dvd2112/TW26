@@ -8,9 +8,18 @@ const fadeUp = (delay = 0) => ({
   transition: { duration: 0.7, delay, ease: 'easeOut' },
 });
 
-export default function Hero() {
+export default function Hero({
+  id = 'hero',
+  tag,
+  titleLines = [],
+  highlightLine = 1,
+  subtitle,
+  actions = [],
+  pills = [],
+  showScrollIndicator = true,
+}) {
   return (
-    <section id="hero" className={styles.section}>
+    <section id={id} className={styles.section}>
       <div className={styles.grid}>
         <span className={styles.gridLine} />
         <span className={styles.gridLine} />
@@ -23,77 +32,84 @@ export default function Hero() {
       <div className={styles.glow} />
 
       <div className={styles.content}>
-        <motion.span className={styles.tag} {...fadeUp(0)}>
-          {'> 13 a 18 de outubro de 2026 — Francisco Beltrão, PR'}
-        </motion.span>
+        {tag && (
+          <motion.span className={styles.tag} {...fadeUp(0)}>
+            {tag}
+          </motion.span>
+        )}
 
         <motion.h1 className={styles.title} {...fadeUp(0.15)}>
-          Conectando Talentos,<br />
-          <span className={styles.neon}>Tecnologia</span> e o Futuro<br />
-          do Sudoeste
+          {titleLines.map((line, index) => (
+            <span key={line}>
+              {index === highlightLine ? <span className={styles.neon}>{line}</span> : line}
+              {index < titleLines.length - 1 && <br />}
+            </span>
+          ))}
         </motion.h1>
 
-        <motion.p className={styles.subtitle} {...fadeUp(0.3)}>
-          A TechWeek 2026 é o epicentro da inovação em Francisco Beltrão.
-          500 participantes. 48h de Hackathon. Sua marca no centro da próxima
-          geração de líderes de tecnologia.
-        </motion.p>
+        {subtitle && (
+          <motion.p className={styles.subtitle} {...fadeUp(0.3)}>
+            {subtitle}
+          </motion.p>
+        )}
 
-        <motion.div className={styles.actions} {...fadeUp(0.45)}>
-          <a href="#contact">
-            <Button
-              type="primary"
-              size="large"
-              style={{
-                background: '#00FF00',
-                color: '#000',
-                border: 'none',
-                fontWeight: 700,
-                height: 52,
-                padding: '0 36px',
-                fontSize: '1rem',
-                letterSpacing: '0.04em',
-                borderRadius: 4,
-              }}
-            >
-              Quero Patrocinar
-            </Button>
-          </a>
-          <a href="#tiers">
-            <Button
-              size="large"
-              style={{
-                background: 'transparent',
-                color: '#00FF00',
-                border: '1px solid #00FF00',
-                fontWeight: 600,
-                height: 52,
-                padding: '0 36px',
-                fontSize: '1rem',
-                borderRadius: 4,
-              }}
-            >
-              Ver Cotas
-            </Button>
-          </a>
-        </motion.div>
+        {actions.length > 0 && (
+          <motion.div className={styles.actions} {...fadeUp(0.45)}>
+            {actions.map((action) => (
+              <a key={action.label} href={action.href}>
+                <Button
+                  type={action.variant === 'primary' ? 'primary' : 'default'}
+                  size="large"
+                  style={action.variant === 'primary'
+                    ? {
+                      background: '#00FF00',
+                      color: '#000',
+                      border: 'none',
+                      fontWeight: 700,
+                      height: 52,
+                      padding: '0 36px',
+                      fontSize: '1rem',
+                      letterSpacing: '0.04em',
+                      borderRadius: 4,
+                    }
+                    : {
+                      background: 'transparent',
+                      color: '#00FF00',
+                      border: '1px solid #00FF00',
+                      fontWeight: 600,
+                      height: 52,
+                      padding: '0 36px',
+                      fontSize: '1rem',
+                      borderRadius: 4,
+                    }}
+                >
+                  {action.label}
+                </Button>
+              </a>
+            ))}
+          </motion.div>
+        )}
 
-        <motion.div className={styles.pills} {...fadeUp(0.6)}>
-          {['IA & Machine Learning', 'Games', 'Sustentabilidade & ESG', 'Hackathon 48h'].map((p) => (
+        {pills.length > 0 && (
+          <motion.div className={styles.pills} {...fadeUp(0.6)}>
+            {pills.map((p) => (
             <span key={p} className={styles.pill}>{p}</span>
-          ))}
-        </motion.div>
+            ))}
+          </motion.div>
+        )}
       </div>
 
-      <div className={styles.scrollIndicator}>
-        <motion.div
-          animate={{ y: [0, 8, 0] }}
-          transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }}
-          className={styles.mouse}
-        >
-          <div className={styles.wheel} />
-        </motion.div>
-      </div>
+      {showScrollIndicator && (
+        <div className={styles.scrollIndicator}>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ repeat: Infinity, duration: 1.4, ease: 'easeInOut' }}
+            className={styles.mouse}
+          >
+            <div className={styles.wheel} />
+          </motion.div>
+        </div>
+      )}
     </section>
   );
 }

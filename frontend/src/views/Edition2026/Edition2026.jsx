@@ -3,29 +3,40 @@ import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from './Edition2026.module.css';
 
-const timeline = [
+const defaultTimeline = [
   { date: '13–16 Out', label: 'Evento Principal', desc: 'Palestras, workshops, painéis e networking com líderes de tecnologia da região e do Brasil.', icon: '🎤' },
   { date: '16–18 Out', label: 'Hackathon 48h', desc: 'Maratona de desenvolvimento com desafios reais propostos por empresas parceiras. Recrutamento ao vivo.', icon: '💡' },
 ];
 
-const facts = [
+const defaultFacts = [
   { icon: '500', label: 'participantes diretos esperados' },
   { icon: '80%', label: 'estudantes de TI (maioria 18+)' },
   { icon: '2', label: 'verticais novas: Games & ESG' },
   { icon: '48h', label: 'de Hackathon ininterrupto' },
 ];
 
-export default function Edition2026() {
+export default function Edition2026({
+  id = 'edition2026',
+  tag = '// 05 — A Próxima Fronteira',
+  title = 'TechWeek 2026',
+  subtitle = 'A nova edição será itinerante e ainda mais ambiciosa. Com o lançamento do curso de Games/IA, focamos na vertical de Tecnologia Verde (ESG) e entretenimento digital.',
+  timeline = defaultTimeline,
+  facts = defaultFacts,
+  profile = {
+    tag: 'Perfil do Público',
+    desc: '80% estudantes de TI — jovens talentos em fase de contratação — e decisores da comunidade de inovação. Uma oportunidade única de acesso direto ao maior banco de talentos técnicos da região.',
+  },
+}) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section id="edition2026" className={styles.section}>
+    <section id={id} className={styles.section}>
       <div className={styles.wrapper}>
         <SectionTitle
-          tag="// 05 — A Próxima Fronteira"
-          title="TechWeek 2026"
-          subtitle="A nova edição será itinerante e ainda mais ambiciosa. Com o lançamento do curso de Games/IA, focamos na vertical de Tecnologia Verde (ESG) e entretenimento digital."
+          tag={tag}
+          title={title}
+          subtitle={subtitle}
         />
 
         <div ref={ref} className={styles.layout}>
@@ -68,19 +79,17 @@ export default function Edition2026() {
               ))}
             </div>
 
-            <motion.div
-              className={styles.profileBox}
-              initial={{ opacity: 0, y: 20 }}
-              animate={inView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.55 }}
-            >
-              <span className={styles.profileTag}>Perfil do Público</span>
-              <p className={styles.profileDesc}>
-                80% estudantes de TI — jovens talentos em fase de contratação — e decisores da
-                comunidade de inovação. Uma oportunidade única de acesso direto ao maior banco
-                de talentos técnicos da região.
-              </p>
-            </motion.div>
+            {profile && (
+              <motion.div
+                className={styles.profileBox}
+                initial={{ opacity: 0, y: 20 }}
+                animate={inView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.5, delay: 0.55 }}
+              >
+                <span className={styles.profileTag}>{profile.tag}</span>
+                <p className={styles.profileDesc}>{profile.desc}</p>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>

@@ -3,7 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from './Highlights.module.css';
 
-const highlights = [
+const defaultHighlights = [
   {
     tag: 'Nível Executivo',
     icon: '🌐',
@@ -38,17 +38,23 @@ const highlights = [
   },
 ];
 
-export default function Highlights() {
+export default function Highlights({
+  id = 'highlights',
+  tag = '// 04 — Highlights',
+  title = 'Onde a Inovação Acontece',
+  subtitle = 'O que tornou a TechWeek um marco no calendário regional e o que tornará 2026 ainda maior.',
+  highlights = defaultHighlights,
+}) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section id="highlights" className={styles.section}>
+    <section id={id} className={styles.section}>
       <div className={styles.wrapper}>
         <SectionTitle
-          tag="// 04 — Highlights"
-          title="Onde a Inovação Acontece"
-          subtitle="O que tornou a TechWeek um marco no calendário regional e o que tornará 2026 ainda maior."
+          tag={tag}
+          title={title}
+          subtitle={subtitle}
         />
 
         <div ref={ref} className={styles.grid}>
