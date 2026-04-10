@@ -60,6 +60,15 @@ export default function FooterSection({
 
         <div className={styles.divider} />
 
+        <div className={styles.footerActions}>
+          <a href="?audience=participants" className={styles.footerBtn}>
+            Ir para Participantes
+          </a>
+          <a href="?audience=speakers" className={styles.footerBtn}>
+            Ir para Patrocinadores
+          </a>
+        </div>
+
         <div className={styles.bottom}>
           <p className={styles.copy}>
             © 2026 TechWeek. Comitê Organizador — UTFPR Francisco Beltrão.

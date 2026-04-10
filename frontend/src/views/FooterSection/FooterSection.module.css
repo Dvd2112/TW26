@@ -119,6 +119,31 @@
   color: #666;
 }
 
+.footerActions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+
+.footerBtn {
+  background: #00FF00;
+  color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 28px;
+  font-size: 1rem;
+  text-decoration: none;
+  box-shadow: 0 0 18px rgba(0,255,0,0.10);
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.footerBtn:hover {
+  background: #00BF63;
+  color: #fff;
+  box-shadow: 0 0 32px rgba(0,255,0,0.18);
+}
+
 @media (max-width: 900px) {
   .top {
     grid-template-columns: 1fr 1fr;
