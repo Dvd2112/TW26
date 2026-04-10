@@ -91,7 +91,7 @@ export default function Contact({ audience = 'general' }) {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      await axios.post('/backend/api/contact.php', { ...values, audience });
+      await axios.post('/TW26/backend/api/contact.php', { ...values, audience });
       message.success(config.successMessage);
       form.resetFields();
     } catch {

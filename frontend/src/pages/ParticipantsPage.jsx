@@ -4,6 +4,7 @@ import Vision from '../views/Vision/Vision';
 import Numbers from '../views/Numbers/Numbers';
 import Highlights from '../views/Highlights/Highlights';
 import Edition2026 from '../views/Edition2026/Edition2026';
+import PreSaveBanner from '../views/PreSaveBanner/PreSaveBanner';
 import Contact from '../views/Contact/Contact';
 import FooterSection from '../views/FooterSection/FooterSection';
 
@@ -105,7 +106,7 @@ export default function ParticipantsPage() {
     <>
       <NavBar
         links={navLinks}
-        cta={{ label: 'Quero receber novidades', href: '#contact' }}
+        cta={{ label: 'Fazer pré-save', href: '?page=register' }}
         logoHref="./"
       />
       <main>
@@ -118,7 +119,7 @@ export default function ParticipantsPage() {
           ]}
           subtitle="A TechWeek 2026 foi pensada para quem quer aprender com profundidade, conhecer gente boa, enxergar mercado com mais clareza e viver uma semana tech de verdade."
           actions={[
-            { label: 'Quero receber novidades', href: '#contact', variant: 'primary' },
+            { label: 'Fazer pré-save agora', href: '?page=register', variant: 'primary' },
             { label: 'Ver página para palestrantes', href: '?audience=speakers', variant: 'secondary' },
           ]}
           pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
@@ -161,6 +162,8 @@ export default function ParticipantsPage() {
             desc: 'Se você está estudando, começando carreira, mudando de área ou quer circular com mais intenção dentro da tecnologia, a edição foi pensada para você.',
           }}
         />
+
+        <PreSaveBanner />
 
         <Contact audience="participant" />
       </main>

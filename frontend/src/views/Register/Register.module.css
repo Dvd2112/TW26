@@ -1,0 +1,142 @@
+.section {
+  min-height: 100vh;
+  padding: 120px 24px 80px;
+  background: #000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.wrapper {
+  max-width: 760px;
+  width: 100%;
+}
+
+.formCard {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+  border-radius: 16px;
+  padding: 40px 36px;
+  margin-top: 40px;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+}
+
+/* Antd overrides */
+:global(.ant-form-item-label > label) {
+  color: #D9D9D9 !important;
+  font-size: 0.85rem !important;
+}
+
+:global(.ant-input),
+:global(.ant-input-affix-wrapper),
+:global(.ant-select-selector),
+:global(.ant-input-password) {
+  background: #111 !important;
+  border-color: #1a1a1a !important;
+  color: #fff !important;
+}
+
+:global(.ant-input:focus),
+:global(.ant-input-affix-wrapper-focused),
+:global(.ant-select-focused .ant-select-selector) {
+  border-color: #00BF63 !important;
+  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.15) !important;
+}
+
+:global(.ant-input-password-icon),
+:global(.ant-input-suffix svg) {
+  color: #D9D9D9 !important;
+}
+
+:global(.ant-select-dropdown) {
+  background: #111 !important;
+  border: 1px solid #1a1a1a !important;
+}
+
+:global(.ant-select-item) {
+  color: #D9D9D9 !important;
+}
+
+:global(.ant-select-item-option-active),
+:global(.ant-select-item-option-selected) {
+  background: rgba(0, 191, 99, 0.1) !important;
+  color: #fff !important;
+}
+
+/* Step indicator */
+.stepLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #00BF63;
+  margin: 0 0 20px;
+}
+
+/* Saved info (step 2) */
+.savedInfo {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: rgba(0, 191, 99, 0.05);
+  border: 1px solid rgba(0, 191, 99, 0.15);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+}
+
+.savedInfoItem {
+  font-size: 0.85rem;
+  color: #D9D9D9;
+}
+
+/* Success state */
+.successState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 16px;
+  padding: 24px 0;
+}
+
+.successIcon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.successTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.successText {
+  color: #D9D9D9;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  max-width: 420px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 100px 16px 60px;
+  }
+
+  .formCard {
+    padding: 24px 16px;
+    border-radius: 12px;
+    margin-top: 32px;
+  }
+
+  .row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
