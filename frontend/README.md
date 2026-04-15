@@ -1,16 +1,18 @@
-# React + Vite
+# Frontend TW26
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend React do projeto TechWeek 2026.
 
-Currently, two official plugins are available:
+## Scripts
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `npm start`: inicia o servidor de desenvolvimento.
+- `npm run build`: gera a versao de producao em `build/`.
+- `npm run test`: executa os testes.
+- `npm run lint`: executa o ESLint.
+- `npm run deploy`: publica no GitHub Pages.
 
-## React Compiler
+## Estrutura principal
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `public/index.html`: pagina base da aplicacao.
+- `public/404.html`: fallback para GitHub Pages.
+- `src/index.js`: ponto de entrada do React.
+- `src/App.jsx`: composicao principal das paginas.
