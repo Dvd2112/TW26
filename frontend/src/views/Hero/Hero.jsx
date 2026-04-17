@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from 'antd';
-import styles from './Hero.module.css';
+import styles from '../../styles/Hero.module.css';
+import logoPropNegativo from '../../assets/TW26 BRANCO/tw26-logo-prop-negativo.png';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 40 },
@@ -32,6 +33,13 @@ export default function Hero({
       <div className={styles.glow} />
 
       <div className={styles.content}>
+        <motion.img
+          src={logoPropNegativo}
+          alt="Identidade visual TechWeek 2026"
+          className={styles.heroBanner}
+          {...fadeUp(0.05)}
+        />
+
         {tag && (
           <motion.span className={styles.tag} {...fadeUp(0)}>
             {tag}
@@ -62,8 +70,8 @@ export default function Hero({
                   size="large"
                   style={action.variant === 'primary'
                     ? {
-                      background: '#00FF00',
-                      color: '#000',
+                      background: '#8A00C4',
+                      color: '#FFF',
                       border: 'none',
                       fontWeight: 700,
                       height: 52,
@@ -74,8 +82,8 @@ export default function Hero({
                     }
                     : {
                       background: 'transparent',
-                      color: '#00FF00',
-                      border: '1px solid #00FF00',
+                      color: '#8A00C4',
+                      border: '1px solid #8A00C4',
                       fontWeight: 600,
                       height: 52,
                       padding: '0 36px',
@@ -113,3 +121,4 @@ export default function Hero({
     </section>
   );
 }
+

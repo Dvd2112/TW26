@@ -1,4 +1,4 @@
-import styles from './SectionTitle.module.css';
+import styles from '../../styles/SectionTitle.module.css';
 
 export default function SectionTitle({ tag, title, subtitle, center = false }) {
   return (

@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Sponsors.module.css';
+import styles from '../../styles/Sponsors.module.css';
 
 const sponsorGroups = [
   {
@@ -9,11 +9,11 @@ const sponsorGroups = [
     sponsors: ['Cresol', 'CISS S.A.', 'DEZ Telecom', 'Megasult', 'Maxis Card'],
   },
   {
-    category: 'Apoio Técnico e Governamental',
-    sponsors: ['SEBRAE', 'Prefeitura de Francisco Beltrão', 'Sudovalley & Dev Paraná', 'Sec. de Ciência e Tecnologia'],
+    category: 'Apoio Tï¿½cnico e Governamental',
+    sponsors: ['SEBRAE', 'Prefeitura de Francisco Beltrï¿½o', 'Sudovalley & Dev Paranï¿½', 'Sec. de Ciï¿½ncia e Tecnologia'],
   },
   {
-    category: 'Instituições de Ensino',
+    category: 'Instituiï¿½ï¿½es de Ensino',
     sponsors: ['UTFPR', 'CESUL', 'UNIPAR'],
   },
 ];
@@ -26,9 +26,9 @@ export default function Sponsors() {
     <section id="sponsors" className={styles.section}>
       <div className={styles.wrapper}>
         <SectionTitle
-          tag="// 03 — Chancelas de Sucesso"
+          tag="// 03 ï¿½ Chancelas de Sucesso"
           title="Quem Caminha Conosco"
-          subtitle="Sua marca estará acompanhada pelos líderes que movem a economia e a tecnologia da região."
+          subtitle="Sua marca estarï¿½ acompanhada pelos lï¿½deres que movem a economia e a tecnologia da regiï¿½o."
           center
         />
 

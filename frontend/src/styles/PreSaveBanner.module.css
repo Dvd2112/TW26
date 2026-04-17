@@ -5,8 +5,8 @@
   overflow: hidden;
   display: flex;
   justify-content: center;
-  border-top: 1px solid rgba(0, 255, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 255, 0, 0.08);
+  border-top: 1px solid rgba(138, 0, 196, 0.08);
+  border-bottom: 1px solid rgba(138, 0, 196, 0.08);
 }
 
 /* Grid decorativo de fundo */
@@ -20,7 +20,7 @@
 }
 
 .gridLine {
-  border-right: 1px solid rgba(0, 255, 0, 0.04);
+  border-right: 1px solid rgba(138, 0, 196, 0.04);
   height: 100%;
 }
 
@@ -32,7 +32,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: radial-gradient(ellipse, rgba(0, 255, 0, 0.07) 0%, rgba(0, 191, 99, 0.04) 40%, transparent 70%);
+  background: radial-gradient(ellipse, rgba(138, 0, 196, 0.07) 0%, rgba(191, 64, 255, 0.04) 40%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -52,11 +52,11 @@
 .tag {
   font-family: 'Courier New', monospace;
   font-size: 0.78rem;
-  color: #00FF00;
+  color: #8A00C4;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  background: rgba(0, 255, 0, 0.06);
-  border: 1px solid rgba(0, 255, 0, 0.18);
+  background: rgba(138, 0, 196, 0.06);
+  border: 1px solid rgba(138, 0, 196, 0.18);
   border-radius: 4px;
   padding: 4px 14px;
 }
@@ -71,8 +71,8 @@
 }
 
 .neon {
-  color: #00FF00;
-  text-shadow: 0 0 24px rgba(0, 255, 0, 0.45), 0 0 60px rgba(0, 255, 0, 0.18);
+  color: #8A00C4;
+  text-shadow: 0 0 24px rgba(138, 0, 196, 0.45), 0 0 60px rgba(138, 0, 196, 0.18);
 }
 
 .subtitle {
@@ -95,22 +95,22 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #00BF63;
-  border: 1px solid rgba(0, 191, 99, 0.3);
+  color: #BF40FF;
+  border: 1px solid rgba(191, 64, 255, 0.3);
   border-radius: 100px;
   padding: 5px 16px;
-  background: rgba(0, 191, 99, 0.06);
+  background: rgba(191, 64, 255, 0.06);
 }
 
 .cta {
   border-radius: 6px !important;
-  box-shadow: 0 0 32px rgba(0, 255, 0, 0.25), 0 0 0 1px rgba(0, 255, 0, 0.12) !important;
+  box-shadow: 0 0 32px rgba(138, 0, 196, 0.25), 0 0 0 1px rgba(138, 0, 196, 0.12) !important;
   transition: transform 0.15s, box-shadow 0.15s !important;
 }
 
 .cta:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 0 48px rgba(0, 255, 0, 0.38), 0 0 0 1px rgba(0, 255, 0, 0.2) !important;
+  box-shadow: 0 0 48px rgba(138, 0, 196, 0.38), 0 0 0 1px rgba(138, 0, 196, 0.2) !important;
 }
 
 .note {
@@ -133,3 +133,4 @@
     justify-content: center;
   }
 }
+

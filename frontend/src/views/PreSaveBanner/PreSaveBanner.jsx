@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Button } from 'antd';
-import styles from './PreSaveBanner.module.css';
+import styles from '../../styles/PreSaveBanner.module.css';
 
 export default function PreSaveBanner({ registerHref = '?page=register' }) {
   return (
@@ -69,8 +69,8 @@ export default function PreSaveBanner({ registerHref = '?page=register' }) {
               size="large"
               className={styles.cta}
               style={{
-                background: '#00FF00',
-                color: '#000',
+                background: '#8A00C4',
+                color: '#FFF',
                 border: 'none',
                 fontWeight: 800,
                 letterSpacing: '0.07em',
@@ -97,3 +97,4 @@ export default function PreSaveBanner({ registerHref = '?page=register' }) {
     </section>
   );
 }
+

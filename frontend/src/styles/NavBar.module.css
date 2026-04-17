@@ -1,4 +1,4 @@
-.nav {
+﻿.nav {
   position: fixed;
   top: 0;
   left: 0;
@@ -14,7 +14,7 @@
   background: rgba(0, 0, 0, 0.92);
   backdrop-filter: blur(12px);
   padding: 12px 32px;
-  border-bottom: 1px solid #1a1a1a;
+  border-bottom: 1px solid #8a00c4;
 }
 
 .inner {
@@ -27,21 +27,31 @@
 }
 
 .logo {
+  font-family: var(--font-title);
   font-size: 1.4rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  letter-spacing: 0.02em;
   color: #fff;
   white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.logoImage {
+  display: block;
+  height: 34px;
+  width: auto;
 }
 
 .logoNeon {
-  color: #00FF00;
+  color: #8A00C4;
 }
 
 .logoYear {
+  font-family: var(--font-subtitle);
   font-size: 0.9rem;
   color: #D9D9D9;
   font-weight: 400;
+  font-style: italic;
 }
 
 .links {
@@ -53,6 +63,7 @@
 }
 
 .links a {
+  font-family: var(--font-subtitle);
   color: #D9D9D9;
   font-size: 0.875rem;
   font-weight: 500;
@@ -68,12 +79,12 @@
   left: 0;
   width: 0;
   height: 2px;
-  background: #00FF00;
+  background: #8A00C4;
   transition: width 0.2s;
 }
 
 .links a:hover {
-  color: #00FF00;
+  color: #8A00C4;
 }
 
 .links a:hover::after {
@@ -112,11 +123,12 @@
 }
 
 .mobileCta {
+  font-family: var(--font-subtitle);
   display: block;
   margin: 8px 16px 4px;
   padding: 12px 24px;
-  background: #00FF00;
-  color: #000 !important;
+  background: #8A00C4;
+  color: #FFFFFF !important;
   font-weight: 700;
   font-size: 0.95rem;
   border-radius: 4px;
@@ -144,7 +156,7 @@
     flex-direction: column;
     gap: 0;
     padding: 8px 0 20px;
-    border-bottom: 1px solid #1a1a1a;
+    border-bottom: 1px solid #8a00c4;
     margin: 0;
     max-height: calc(100vh - 56px);
     overflow-y: auto;
@@ -173,3 +185,4 @@
     display: none;
   }
 }
+

@@ -1,36 +1,36 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Vision.module.css';
+import styles from '../../styles/Vision.module.css';
 
 const defaultPillars = [
   {
-    icon: '🤖',
-    title: 'Inteligência Artificial',
+    icon: '??',
+    title: 'Inteligï¿½ncia Artificial',
     description:
-      'Palestras e workshops práticos com profissionais que aplicam IA no mercado real. Do conceito ao deploy.',
+      'Palestras e workshops prï¿½ticos com profissionais que aplicam IA no mercado real. Do conceito ao deploy.',
   },
   {
-    icon: '🎮',
+    icon: '??',
     title: 'Games & Entretenimento Digital',
     description:
-      'Novo curso, nova vertical. O universo de games como vetor de inovação, criatividade e negócios.',
+      'Novo curso, nova vertical. O universo de games como vetor de inovaï¿½ï¿½o, criatividade e negï¿½cios.',
   },
   {
-    icon: '🌱',
+    icon: '??',
     title: 'Sustentabilidade & ESG',
     description:
-      'Tecnologia Verde como diferencial competitivo. Empresas que lideram a agenda ESG constroem o amanhã hoje.',
+      'Tecnologia Verde como diferencial competitivo. Empresas que lideram a agenda ESG constroem o amanhï¿½ hoje.',
   },
 ];
 
 export default function Vision({
   id = 'vision',
-  tag = '// 01 — A Visão',
-  title = 'Onde a Inovação Encontra o Mercado',
-  subtitle = 'Mais do que um evento acadêmico, somos a ponte estratégica entre a formação de talentos de elite e as demandas reais do mercado de trabalho no Sudoeste do Paraná.',
+  tag = '// 01 ï¿½ A Visï¿½o',
+  title = 'Onde a Inovaï¿½ï¿½o Encontra o Mercado',
+  subtitle = 'Mais do que um evento acadï¿½mico, somos a ponte estratï¿½gica entre a formaï¿½ï¿½o de talentos de elite e as demandas reais do mercado de trabalho no Sudoeste do Paranï¿½.',
   pillars = defaultPillars,
-  quote = 'Em 2026, nossa missão se expande. Criamos um ecossistema de alto impacto para marcas que desejam liderar a transformação digital e garantir o top of mind perante a nova geração de decisores.',
+  quote = 'Em 2026, nossa missï¿½o se expande. Criamos um ecossistema de alto impacto para marcas que desejam liderar a transformaï¿½ï¿½o digital e garantir o top of mind perante a nova geraï¿½ï¿½o de decisores.',
 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-100px' });

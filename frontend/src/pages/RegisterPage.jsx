@@ -3,8 +3,8 @@ import Register from '../views/Register/Register';
 import FooterSection from '../views/FooterSection/FooterSection';
 
 const navLinks = [
-  { label: 'Início', href: './' },
-  { label: 'Edição 2026', href: './#edition2026' },
+  { label: 'In?cio', href: './' },
+  { label: 'Edi??o 2026', href: './#edition2026' },
   { label: 'Destaques', href: './#highlights' },
 ];
 

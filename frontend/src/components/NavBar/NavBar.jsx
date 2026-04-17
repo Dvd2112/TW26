@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from 'antd';
-import styles from './NavBar.module.css';
+import styles from '../../styles/NavBar.module.css';
+import logoHorizontalNegativo from '../../assets/TW26 BRANCO/tw26-logo-horizontal-negativo.png';
 
 const defaultLinks = [
   { label: 'Jornadas', href: '#journeys' },
@@ -26,8 +27,7 @@ export default function NavBar({
     <nav className={`${styles.nav} ${scrolled ? styles.scrolled : ''}`}>
       <div className={styles.inner}>
         <a href={logoHref} className={styles.logo}>
-          <span className={styles.logoNeon}>Tech</span>Week
-          <span className={styles.logoYear}> 2026</span>
+          <img src={logoHorizontalNegativo} alt="TechWeek 2026" className={styles.logoImage} />
         </a>
 
         <ul className={`${styles.links} ${menuOpen ? styles.open : ''}`}>
@@ -53,8 +53,8 @@ export default function NavBar({
               type="primary"
               className={styles.cta}
               style={{
-                background: '#00FF00',
-                color: '#000',
+                background: '#8A00C4',
+                color: '#FFF',
                 border: 'none',
                 fontWeight: 700,
                 letterSpacing: '0.05em',
@@ -78,3 +78,4 @@ export default function NavBar({
     </nav>
   );
 }
+

@@ -43,8 +43,8 @@
 :global(.ant-input:focus),
 :global(.ant-input-affix-wrapper-focused),
 :global(.ant-select-focused .ant-select-selector) {
-  border-color: #00BF63 !important;
-  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.15) !important;
+  border-color: #BF40FF !important;
+  box-shadow: 0 0 0 2px rgba(191, 64, 255, 0.15) !important;
 }
 
 :global(.ant-input-password-icon),
@@ -63,7 +63,7 @@
 
 :global(.ant-select-item-option-active),
 :global(.ant-select-item-option-selected) {
-  background: rgba(0, 191, 99, 0.1) !important;
+  background: rgba(191, 64, 255, 0.1) !important;
   color: #fff !important;
 }
 
@@ -73,7 +73,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: #00BF63;
+  color: #BF40FF;
   margin: 0 0 20px;
 }
 
@@ -82,8 +82,8 @@
   display: flex;
   gap: 24px;
   flex-wrap: wrap;
-  background: rgba(0, 191, 99, 0.05);
-  border: 1px solid rgba(0, 191, 99, 0.15);
+  background: rgba(191, 64, 255, 0.05);
+  border: 1px solid rgba(191, 64, 255, 0.15);
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 24px;
@@ -140,3 +140,4 @@
     gap: 0;
   }
 }
+

@@ -21,7 +21,7 @@
 .groupTitle {
   font-size: 0.78rem;
   font-family: 'Courier New', monospace;
-  color: #00BF63;
+  color: #BF40FF;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   margin-bottom: 20px;
@@ -49,8 +49,8 @@
 }
 
 .logoCard:hover {
-  border-color: #00BF63;
-  background: rgba(0, 191, 99, 0.06);
+  border-color: #BF40FF;
+  background: rgba(191, 64, 255, 0.06);
 }
 
 .logoName {
@@ -88,3 +88,4 @@
     font-size: 0.82rem;
   }
 }
+

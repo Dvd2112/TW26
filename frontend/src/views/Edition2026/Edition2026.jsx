@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Edition2026.module.css';
+import styles from '../../styles/Edition2026.module.css';
 
 const defaultTimeline = [
-  { date: '13–16 Out', label: 'Evento Principal', desc: 'Palestras, workshops, painéis e networking com líderes de tecnologia da região e do Brasil.', icon: '🎤' },
-  { date: '16–18 Out', label: 'Hackathon 48h', desc: 'Maratona de desenvolvimento com desafios reais propostos por empresas parceiras. Recrutamento ao vivo.', icon: '💡' },
+  { date: '13ï¿½16 Out', label: 'Evento Principal', desc: 'Palestras, workshops, painï¿½is e networking com lï¿½deres de tecnologia da regiï¿½o e do Brasil.', icon: '??' },
+  { date: '16ï¿½18 Out', label: 'Hackathon 48h', desc: 'Maratona de desenvolvimento com desafios reais propostos por empresas parceiras. Recrutamento ao vivo.', icon: '??' },
 ];
 
 const defaultFacts = [
@@ -17,14 +17,14 @@ const defaultFacts = [
 
 export default function Edition2026({
   id = 'edition2026',
-  tag = '// 05 — A Próxima Fronteira',
+  tag = '// 05 ï¿½ A Prï¿½xima Fronteira',
   title = 'TechWeek 2026',
-  subtitle = 'A nova edição será itinerante e ainda mais ambiciosa. Com o lançamento do curso de Games/IA, focamos na vertical de Tecnologia Verde (ESG) e entretenimento digital.',
+  subtitle = 'A nova ediï¿½ï¿½o serï¿½ itinerante e ainda mais ambiciosa. Com o lanï¿½amento do curso de Games/IA, focamos na vertical de Tecnologia Verde (ESG) e entretenimento digital.',
   timeline = defaultTimeline,
   facts = defaultFacts,
   profile = {
-    tag: 'Perfil do Público',
-    desc: '80% estudantes de TI — jovens talentos em fase de contratação — e decisores da comunidade de inovação. Uma oportunidade única de acesso direto ao maior banco de talentos técnicos da região.',
+    tag: 'Perfil do Pï¿½blico',
+    desc: '80% estudantes de TI ï¿½ jovens talentos em fase de contrataï¿½ï¿½o ï¿½ e decisores da comunidade de inovaï¿½ï¿½o. Uma oportunidade ï¿½nica de acesso direto ao maior banco de talentos tï¿½cnicos da regiï¿½o.',
   },
 }) {
   const ref = useRef(null);

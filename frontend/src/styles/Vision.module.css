@@ -24,7 +24,7 @@
 }
 
 .card:hover {
-  border-color: #00BF63;
+  border-color: #BF40FF;
   transform: translateY(-4px);
 }
 
@@ -49,8 +49,8 @@
 
 .quote {
   padding: 28px 32px;
-  background: rgba(0, 191, 99, 0.04);
-  border: 1px solid rgba(0, 191, 99, 0.15);
+  background: rgba(191, 64, 255, 0.04);
+  border: 1px solid rgba(191, 64, 255, 0.15);
   border-radius: 8px;
   color: #D9D9D9;
   font-size: 1rem;
@@ -67,7 +67,7 @@
   min-width: 4px;
   height: 100%;
   min-height: 60px;
-  background: linear-gradient(180deg, #00FF00, #00BF63);
+  background: linear-gradient(180deg, #8A00C4, #BF40FF);
   border-radius: 2px;
 }
 
@@ -93,3 +93,4 @@
     min-height: 40px;
   }
 }
+

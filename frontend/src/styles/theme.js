@@ -1,9 +1,9 @@
-export const colors = {
+﻿export const colors = {
   bg: '#000000',
-  neon: '#00FF00',
-  green: '#00BF63',
-  muted: '#D9D9D9',
-  white: '#FFFFFF',
+  neon: '#8a00c4',
+  green: '#bf40ff',
+  muted: '#d9d9d9',
+  white: '#ffffff',
   bgCard: '#0d0d0d',
   bgCardHover: '#111111',
   border: '#1a1a1a',
@@ -11,41 +11,41 @@ export const colors = {
 
 export const antdTheme = {
   token: {
-    colorPrimary: '#00BF63',
+    colorPrimary: '#8a00c4',
     colorBgBase: '#000000',
-    colorTextBase: '#FFFFFF',
+    colorTextBase: '#ffffff',
     colorBorder: '#1a1a1a',
     colorBgContainer: '#0d0d0d',
     colorBgElevated: '#111111',
-    colorText: '#FFFFFF',
-    colorTextSecondary: '#D9D9D9',
+    colorText: '#ffffff',
+    colorTextSecondary: '#d9d9d9',
     borderRadius: 8,
     fontFamily: "'Inter', 'Segoe UI', sans-serif",
   },
   components: {
     Button: {
-      colorPrimary: '#00FF00',
-      colorPrimaryHover: '#00BF63',
-      colorPrimaryText: '#000000',
+      colorPrimary: '#8a00c4',
+      colorPrimaryHover: '#bf40ff',
+      colorPrimaryText: '#ffffff',
       defaultBg: 'transparent',
-      defaultColor: '#00FF00',
-      defaultBorderColor: '#00FF00',
+      defaultColor: '#8a00c4',
+      defaultBorderColor: '#8a00c4',
     },
     Table: {
       colorBgContainer: '#0d0d0d',
       headerBg: '#111111',
-      headerColor: '#D9D9D9',
+      headerColor: '#d9d9d9',
       rowHoverBg: '#1a1a1a',
       borderColor: '#1a1a1a',
     },
     Form: {
-      labelColor: '#D9D9D9',
+      labelColor: '#d9d9d9',
     },
     Input: {
       colorBgContainer: '#111111',
       colorBorder: '#1a1a1a',
-      colorText: '#FFFFFF',
-      activeBorderColor: '#00BF63',
+      colorText: '#ffffff',
+      activeBorderColor: '#bf40ff',
     },
     Select: {
       colorBgContainer: '#111111',
@@ -53,3 +53,4 @@ export const antdTheme = {
     },
   },
 };
+

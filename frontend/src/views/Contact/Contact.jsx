@@ -3,7 +3,7 @@ import { Form, Input, Select, Button, message } from 'antd';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Contact.module.css';
+import styles from '../../styles/Contact.module.css';
 
 const { TextArea } = Input;
 const { Option } = Select;
@@ -11,7 +11,7 @@ const { Option } = Select;
 const contentByAudience = {
   general: {
     sectionTitle: {
-      tag: '// 03 — Conversa Inicial',
+      tag: '// 03 – Conversa Inicial',
       title: 'Vamos Direcionar a Apresentação Certa?',
       subtitle: 'Se você quer usar a TechWeek para apresentar o projeto, o palco ou a jornada do participante, este contato centraliza a conversa com a organização.',
     },
@@ -34,7 +34,7 @@ const contentByAudience = {
   },
   speaker: {
     sectionTitle: {
-      tag: '// 05 — Próximo Passo',
+      tag: '// 05 – Próximo Passo',
       title: 'Quer Entender Como Entrar na Curadoria?',
       subtitle: 'Se a sua atuação conversa com as trilhas da TechWeek 2026, podemos abrir uma conversa sobre formato, profundidade e encaixe editorial.',
     },
@@ -59,7 +59,7 @@ const contentByAudience = {
   },
   participant: {
     sectionTitle: {
-      tag: '// 05 — Fique por Dentro',
+      tag: '// 05 – Fique por Dentro',
       title: 'Quer Receber as Novidades da Edição?',
       subtitle: 'Se você quer acompanhar abertura de inscrições, trilhas confirmadas e oportunidades da semana do evento, deixe seu contato.',
     },
@@ -125,7 +125,7 @@ export default function Contact({ audience = 'general' }) {
                   {config.callout}
                 </p>
                 <p className={styles.calloutEmail}>
-                  <span>📧</span>
+                  <span>�Y"�</span>
                   <a href={`mailto:${config.email}`}>
                     {config.email}
                   </a>
@@ -215,8 +215,8 @@ export default function Contact({ audience = 'general' }) {
                   loading={loading}
                   block
                   style={{
-                    background: '#00FF00',
-                    color: '#000',
+                    background: '#8A00C4',
+                    color: '#FFF',
                     border: 'none',
                     fontWeight: 700,
                     height: 52,
@@ -234,3 +234,4 @@ export default function Contact({ audience = 'general' }) {
     </section>
   );
 }
+

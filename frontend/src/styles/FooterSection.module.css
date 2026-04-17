@@ -1,4 +1,4 @@
-.footer {
+﻿.footer {
   background: #050505;
   border-top: 1px solid #1a1a1a;
   padding: 64px 24px 32px;
@@ -16,18 +16,31 @@
   margin-bottom: 48px;
 }
 
-.brand {}
+.brand {
+  font-family: var(--font-title);
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.brandLogo {
+  display: block;
+  width: min(340px, 90vw);
+  height: auto;
+}
 
 .logoNeon {
-  color: #00FF00;
+  color: #8a00c4;
   font-size: 1.5rem;
   font-weight: 800;
 }
 
 .logoYear {
+  font-family: var(--font-subtitle);
   font-size: 1rem;
-  color: #D9D9D9;
+  color: #d9d9d9;
   font-weight: 400;
+  font-style: italic;
 }
 
 .tagline {
@@ -36,9 +49,10 @@
   color: #666;
   line-height: 1.6;
   max-width: 320px;
+  font-family: var(--font-body);
+  text-transform: none;
 }
 
-/* Info */
 .info {
   display: flex;
   flex-direction: column;
@@ -54,26 +68,27 @@
 .infoLabel {
   font-size: 0.72rem;
   color: #666;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-subtitle);
   letter-spacing: 0.1em;
 }
 
 .infoValue {
   font-size: 0.875rem;
-  color: #D9D9D9;
+  color: #d9d9d9;
+  font-family: var(--font-body);
 }
 
 .infoLink {
   font-size: 0.875rem;
-  color: #00BF63;
+  color: #bf40ff;
+  font-family: var(--font-body);
   transition: color 0.2s;
 }
 
 .infoLink:hover {
-  color: #00FF00;
+  color: #8a00c4;
 }
 
-/* Nav */
 .nav {
   display: flex;
   flex-direction: column;
@@ -83,7 +98,7 @@
 .navTitle {
   font-size: 0.72rem;
   color: #666;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-subtitle);
   letter-spacing: 0.1em;
   text-transform: uppercase;
   margin-bottom: 4px;
@@ -91,15 +106,15 @@
 
 .navLink {
   font-size: 0.875rem;
-  color: #D9D9D9;
+  color: #d9d9d9;
+  font-family: var(--font-body);
   transition: color 0.2s;
 }
 
 .navLink:hover {
-  color: #00FF00;
+  color: #8a00c4;
 }
 
-/* Bottom */
 .divider {
   height: 1px;
   background: #1a1a1a;
@@ -114,9 +129,11 @@
   gap: 8px;
 }
 
-.copy, .built {
+.copy,
+.built {
   font-size: 0.78rem;
   color: #666;
+  font-family: var(--font-body);
 }
 
 .footerActions {
@@ -127,21 +144,23 @@
 }
 
 .footerBtn {
-  background: #00FF00;
-  color: #000;
+  font-family: var(--font-subtitle);
+  background: #8a00c4;
+  color: #ffffff;
   font-weight: 700;
   border: none;
   border-radius: 6px;
   padding: 12px 28px;
   font-size: 1rem;
   text-decoration: none;
-  box-shadow: 0 0 18px rgba(0,255,0,0.10);
+  box-shadow: 0 0 18px rgba(138, 0, 196, 0.1);
   transition: background 0.2s, color 0.2s, box-shadow 0.2s;
 }
+
 .footerBtn:hover {
-  background: #00BF63;
-  color: #fff;
-  box-shadow: 0 0 32px rgba(0,255,0,0.18);
+  background: #bf40ff;
+  color: #ffffff;
+  box-shadow: 0 0 32px rgba(138, 0, 196, 0.18);
 }
 
 @media (max-width: 900px) {

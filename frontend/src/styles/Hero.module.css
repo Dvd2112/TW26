@@ -20,7 +20,7 @@
 }
 
 .gridLine {
-  border-right: 1px solid rgba(0, 255, 0, 0.04);
+  border-right: 1px solid rgba(138, 0, 196, 0.04);
   height: 100%;
 }
 
@@ -32,7 +32,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -60%);
-  background: radial-gradient(circle, rgba(0, 191, 99, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(191, 64, 255, 0.12) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -44,10 +44,18 @@
   text-align: center;
 }
 
+.heroBanner {
+  width: min(540px, 88vw);
+  height: auto;
+  display: block;
+  margin: 0 auto 28px;
+  filter: drop-shadow(0 10px 28px rgba(138, 0, 196, 0.25));
+}
+
 .tag {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-subtitle);
   font-size: 0.8rem;
-  color: #00FF00;
+  color: #8A00C4;
   letter-spacing: 0.12em;
   display: block;
   margin-bottom: 24px;
@@ -55,20 +63,23 @@
 }
 
 .title {
+  font-family: var(--font-title);
   font-size: clamp(2.4rem, 6vw, 4.5rem);
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.04em;
   color: #fff;
-  text-shadow: 0 0 60px rgba(0, 255, 0, 0.08);
+  text-shadow: 0 0 60px rgba(138, 0, 196, 0.08);
+  text-transform: uppercase;
 }
 
 .neon {
-  color: #00FF00;
-  text-shadow: 0 0 30px rgba(0, 255, 0, 0.4);
+  color: #8A00C4;
+  text-shadow: 0 0 30px rgba(138, 0, 196, 0.4);
 }
 
 .subtitle {
+  font-family: var(--font-body);
   margin: 28px auto 0;
   max-width: 640px;
   font-size: 1.1rem;
@@ -93,9 +104,10 @@
 }
 
 .pill {
-  background: rgba(0, 191, 99, 0.08);
-  border: 1px solid rgba(0, 191, 99, 0.25);
-  color: #00BF63;
+  font-family: var(--font-subtitle);
+  background: rgba(191, 64, 255, 0.08);
+  border: 1px solid rgba(191, 64, 255, 0.25);
+  color: #BF40FF;
   font-size: 0.78rem;
   padding: 6px 14px;
   border-radius: 100px;
@@ -125,7 +137,7 @@
 .wheel {
   width: 4px;
   height: 8px;
-  background: #00BF63;
+  background: #BF40FF;
   border-radius: 2px;
 }
 
@@ -173,3 +185,4 @@
     padding: 5px 11px;
   }
 }
+

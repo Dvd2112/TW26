@@ -34,9 +34,9 @@
 }
 
 .card.featured {
-  border-color: #00FF00;
-  background: rgba(0, 255, 0, 0.03);
-  box-shadow: 0 0 40px rgba(0, 255, 0, 0.07);
+  border-color: #8A00C4;
+  background: rgba(138, 0, 196, 0.03);
+  box-shadow: 0 0 40px rgba(138, 0, 196, 0.07);
 }
 
 .featuredBadge {
@@ -44,8 +44,8 @@
   top: -14px;
   left: 50%;
   transform: translateX(-50%);
-  background: #00FF00;
-  color: #000;
+  background: #8A00C4;
+  color: #FFFFFF;
   font-size: 0.72rem;
   font-weight: 700;
   padding: 4px 16px;
@@ -142,3 +142,4 @@
     font-size: 0.82rem;
   }
 }
+

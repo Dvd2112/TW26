@@ -14,88 +14,88 @@ const navLinks = [
 
 const pillars = [
   {
-    icon: '🎤',
-    title: 'Para possíveis palestrantes',
-    description: 'Uma narrativa voltada a autoridade, curadoria e aderência editorial para quem pode enriquecer a programação da edição 2026.',
+    icon: '??',
+    title: 'Para poss?veis palestrantes',
+    description: 'Uma narrativa voltada a autoridade, curadoria e ader?ncia editorial para quem pode enriquecer a programa??o da edi??o 2026.',
   },
   {
-    icon: '🚀',
+    icon: '??',
     title: 'Para futuros participantes',
-    description: 'Uma jornada pensada para gerar desejo, mostrar trilhas, oportunidades e o tipo de experiência que a TechWeek entrega.',
+    description: 'Uma jornada pensada para gerar desejo, mostrar trilhas, oportunidades e o tipo de experi?ncia que a TechWeek entrega.',
   },
   {
-    icon: '🧭',
-    title: 'Para uma apresentação mais objetiva',
-    description: 'Em vez de explicar o mesmo evento de forma genérica, você passa a falar com cada público usando a mensagem certa.',
+    icon: '??',
+    title: 'Para uma apresenta??o mais objetiva',
+    description: 'Em vez de explicar o mesmo evento de forma gen?rica, voc? passa a falar com cada p?blico usando a mensagem certa.',
   },
 ];
 
 const stats = [
-  { value: 500, suffix: '+', label: 'participantes esperados para 2026', icon: '👥', delay: 0 },
-  { value: 48, suffix: 'h', label: 'de hackathon como eixo de ativação', icon: '⚡', delay: 0.1 },
-  { value: 3, suffix: '', label: 'grandes frentes de conteúdo e mercado', icon: '🧠', delay: 0.2 },
-  { value: 1, suffix: ' ecossistema', label: 'conectando campus, empresas e comunidade', icon: '🌐', delay: 0.3 },
+  { value: 500, suffix: '+', label: 'participantes esperados para 2026', icon: '??', delay: 0 },
+  { value: 48, suffix: 'h', label: 'de hackathon como eixo de ativa??o', icon: '?', delay: 0.1 },
+  { value: 3, suffix: '', label: 'grandes frentes de conte?do e mercado', icon: '??', delay: 0.2 },
+  { value: 1, suffix: ' ecossistema', label: 'conectando campus, empresas e comunidade', icon: '??', delay: 0.3 },
 ];
 
 const highlights = [
   {
     tag: 'Jornada 01',
-    icon: '🎙️',
-    title: 'Página para palestrantes',
-    description: 'Mostra por que vale estar no palco da TechWeek, quais temas fazem sentido para a curadoria e como sua contribuição encontra um público pronto para aplicar conhecimento.',
-    accent: '#00FF00',
+    icon: '???',
+    title: 'P?gina para palestrantes',
+    description: 'Mostra por que vale estar no palco da TechWeek, quais temas fazem sentido para a curadoria e como sua contribui??o encontra um p?blico pronto para aplicar conhecimento.',
+    accent: '#8A00C4',
   },
   {
     tag: 'Jornada 02',
-    icon: '🎓',
-    title: 'Página para participantes',
-    description: 'Traduz a edição 2026 como experiência de carreira, repertório e networking para quem quer aprender com profundidade e sair mais perto do mercado.',
-    accent: '#00BF63',
+    icon: '??',
+    title: 'P?gina para participantes',
+    description: 'Traduz a edi??o 2026 como experi?ncia de carreira, repert?rio e networking para quem quer aprender com profundidade e sair mais perto do mercado.',
+    accent: '#BF40FF',
   },
 ];
 
 export default function HomePage() {
   return (
     <>
-      <NavBar links={navLinks} cta={{ label: 'Abrir página de palestrantes', href: '?audience=speakers' }} />
+      <NavBar links={navLinks} cta={{ label: 'Abrir p?gina de palestrantes', href: '?audience=speakers' }} />
       <main>
         <Hero
-          tag={'> 13 a 18 de outubro de 2026 — Francisco Beltrão, PR'}
+          tag={'> 13 a 18 de outubro de 2026 ? Francisco Beltr?o, PR'}
           titleLines={[
             'TechWeek 2026 para',
             'quem sobe ao palco',
-            'e para quem quer viver a experiência',
+            'e para quem quer viver a experi?ncia',
           ]}
-          subtitle="A edição 2026 agora tem duas jornadas de apresentação: uma focada em possíveis palestrantes e outra pensada para aquecer futuros participantes com contexto, desejo e direção clara."
+          subtitle="A edi??o 2026 agora tem duas jornadas de apresenta??o: uma focada em poss?veis palestrantes e outra pensada para aquecer futuros participantes com contexto, desejo e dire??o clara."
           actions={[
-            { label: 'Ver página para palestrantes', href: '?audience=speakers', variant: 'primary' },
-            { label: 'Ver página para participantes', href: '?audience=participants', variant: 'secondary' },
+            { label: 'Ver p?gina para palestrantes', href: '?audience=speakers', variant: 'primary' },
+            { label: 'Ver p?gina para participantes', href: '?audience=participants', variant: 'secondary' },
           ]}
           pills={['Palestrantes', 'Participantes', 'Trilhas em tecnologia', 'Hackathon 48h']}
         />
 
         <Vision
           id="journeys"
-          tag="// 01 — Duas Jornadas"
+          tag="// 01 ? Duas Jornadas"
           title="O Mesmo Evento, Duas Conversas Diferentes"
-          subtitle="A TechWeek continua uma só, mas a forma de apresentá-la agora respeita o que cada público precisa enxergar primeiro."
+          subtitle="A TechWeek continua uma s?, mas a forma de apresent?-la agora respeita o que cada p?blico precisa enxergar primeiro."
           pillars={pillars}
-          quote="Essa nova estrutura facilita apresentação comercial, institucional e acadêmica sem depender de explicação paralela. Cada página passa a defender melhor o mesmo evento."
+          quote="Essa nova estrutura facilita apresenta??o comercial, institucional e acad?mica sem depender de explica??o paralela. Cada p?gina passa a defender melhor o mesmo evento."
         />
 
         <Numbers
           id="numbers"
-          tag="// 02 — Panorama"
+          tag="// 02 ? Panorama"
           title="O Tamanho da Oportunidade em 2026"
-          subtitle="Os principais elementos da edição aparecem aqui como contexto comum para qualquer conversa sobre a TechWeek."
+          subtitle="Os principais elementos da edi??o aparecem aqui como contexto comum para qualquer conversa sobre a TechWeek."
           stats={stats}
         />
 
         <Highlights
           id="highlights"
-          tag="// 03 — Escolha o Caminho"
-          title="Páginas Prontas Para Cada Público"
-          subtitle="Você pode apresentar a edição a partir da visão de palco ou da visão de experiência, sem misturar objetivos."
+          tag="// 03 ? Escolha o Caminho"
+          title="P?ginas Prontas Para Cada P?blico"
+          subtitle="Voc? pode apresentar a edi??o a partir da vis?o de palco ou da vis?o de experi?ncia, sem misturar objetivos."
           highlights={highlights}
         />
 
@@ -105,7 +105,7 @@ export default function HomePage() {
         sections={[
           ['#journeys', 'Jornadas'],
           ['#numbers', 'Panorama'],
-          ['#highlights', 'Páginas'],
+          ['#highlights', 'P?ginas'],
           ['#contact', 'Contato'],
         ]}
       />

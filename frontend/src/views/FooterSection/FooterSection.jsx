@@ -1,4 +1,5 @@
-import styles from './FooterSection.module.css';
+import styles from '../../styles/FooterSection.module.css';
+import logoHorizontalNegativo from '../../assets/TW26 BRANCO/tw26-logo-horizontal-negativo.png';
 
 const defaultSections = [
   ['#journeys', 'Jornadas'],
@@ -7,8 +8,8 @@ const defaultSections = [
 ];
 
 const defaultQuickLinks = [
-  ['?audience=speakers', 'Página para palestrantes'],
-  ['?audience=participants', 'Página para participantes'],
+  ['?audience=speakers', 'Pagina para palestrantes'],
+  ['?audience=participants', 'Pagina para participantes'],
 ];
 
 export default function FooterSection({
@@ -22,8 +23,7 @@ export default function FooterSection({
       <div className={styles.wrapper}>
         <div className={styles.top}>
           <div className={styles.brand}>
-            <span className={styles.logoNeon}>Tech</span>Week
-            <span className={styles.logoYear}> 2026</span>
+            <img src={logoHorizontalNegativo} alt="TechWeek 2026" className={styles.brandLogo} />
             <p className={styles.tagline}>
               {tagline}
             </p>
@@ -31,15 +31,15 @@ export default function FooterSection({
 
           <div className={styles.info}>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>📅 Data</span>
+              <span className={styles.infoLabel}>Data</span>
               <span className={styles.infoValue}>13 a 18 de Outubro de 2026</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>📍 Local</span>
-              <span className={styles.infoValue}>Francisco Beltrão, Paraná</span>
+              <span className={styles.infoLabel}>Local</span>
+              <span className={styles.infoValue}>Francisco Beltrao, Parana</span>
             </div>
             <div className={styles.infoItem}>
-              <span className={styles.infoLabel}>📧 Contato</span>
+              <span className={styles.infoLabel}>Contato</span>
               <a href={`mailto:${contactEmail}`} className={styles.infoLink}>
                 {contactEmail}
               </a>
@@ -47,7 +47,7 @@ export default function FooterSection({
           </div>
 
           <nav className={styles.nav}>
-            <span className={styles.navTitle}>Seções</span>
+            <span className={styles.navTitle}>Secoes</span>
             {sections.map(([href, label]) => (
               <a key={href} href={href} className={styles.navLink}>{label}</a>
             ))}
@@ -71,13 +71,14 @@ export default function FooterSection({
 
         <div className={styles.bottom}>
           <p className={styles.copy}>
-            © 2026 TechWeek. Comitê Organizador — UTFPR Francisco Beltrão.
+            © 2026 TechWeek. Comite Organizador - UTFPR Francisco Beltrao.
           </p>
           <p className={styles.built}>
-            <span style={{ color: '#00BF63' }}>{'</>'}</span> Feito com React + Ant Design
+            <span style={{ color: '#BF40FF' }}>{'</>'}</span> Feito com React + Ant Design
           </p>
         </div>
       </div>
     </footer>
   );
 }
+

@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Button, Tag } from 'antd';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Tiers.module.css';
+import styles from '../../styles/Tiers.module.css';
 
 const tiers = [
   {
@@ -37,7 +37,7 @@ const tiers = [
   },
   {
     name: 'DIAMANTE',
-    color: '#00FF00',
+    color: '#8A00C4',
     featured: true,
     benefits: [
       { label: 'Naming Rights Exclusivo (ex: Hackathon Sua Marca)', included: true },
@@ -60,7 +60,7 @@ export default function Tiers() {
     <section id="tiers" className={styles.section}>
       <div className={styles.wrapper}>
         <SectionTitle
-          tag="// 06 — Cotas de Patrocínio"
+          tag="// 06 – Cotas de Patrocínio"
           title="Escolha o Nível do Seu Impacto"
           subtitle="Estamos abertos a customizar contrapartidas que alinhem o investimento aos KPIs de marketing e RH da sua empresa."
           center
@@ -105,7 +105,7 @@ export default function Tiers() {
                   size="large"
                   style={
                     tier.featured
-                      ? { background: '#00FF00', color: '#000', border: 'none', fontWeight: 700, height: 48 }
+                      ? { background: '#8A00C4', color: '#FFF', border: 'none', fontWeight: 700, height: 48 }
                       : { background: 'transparent', color: tier.color, border: `1px solid ${tier.color}`, fontWeight: 600, height: 44 }
                   }
                 >
@@ -124,3 +124,4 @@ export default function Tiers() {
     </section>
   );
 }
+

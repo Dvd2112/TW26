@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Statistic } from 'antd';
-import styles from './StatCard.module.css';
+import styles from '../../styles/StatCard.module.css';
 
 export default function StatCard({ value, suffix, prefix, label, icon, delay = 0 }) {
   const ref = useRef(null);
@@ -20,9 +20,10 @@ export default function StatCard({ value, suffix, prefix, label, icon, delay = 0
         value={value}
         suffix={suffix}
         prefix={prefix}
-        valueStyle={{ color: '#00FF00', fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 2.8rem)', lineHeight: 1.1 }}
+        valueStyle={{ color: '#8A00C4', fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 2.8rem)', lineHeight: 1.1 }}
       />
       <p className={styles.label}>{label}</p>
     </motion.div>
   );
 }
+

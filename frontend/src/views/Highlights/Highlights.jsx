@@ -1,16 +1,16 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Highlights.module.css';
+import styles from '../../styles/Highlights.module.css';
 
 const defaultHighlights = [
   {
     tag: 'Nível Executivo',
-    icon: '🌐',
+    icon: '🌍',
     title: 'Speakers de Calibre Global',
     description:
       'Trazemos o mundo para o Sudoeste. Contamos com a expertise de líderes como Julien Decultot (CFO da LVMH) e referências regionais como Renan Bisato (COO da CISS S.A.).',
-    accent: '#00FF00',
+    accent: '#8A00C4',
   },
   {
     tag: 'Hands-on',
@@ -18,7 +18,7 @@ const defaultHighlights = [
     title: 'Conteúdo 100% Prático',
     description:
       'Oficinas de alta demanda esgotadas em horas. "GitHub para Gestão de Projetos" atingiu 100% de ocupação. Aprendizado que vai direto para o mercado.',
-    accent: '#00BF63',
+    accent: '#BF40FF',
   },
   {
     tag: 'Tecnologia & Sociedade',
@@ -26,7 +26,7 @@ const defaultHighlights = [
     title: 'Debates que Importam',
     description:
       'Discussões disruptivas com a Polícia Penal sobre uso de tecnologia no setor público, unindo ética, segurança e inovação em uma mesa única.',
-    accent: '#00BF63',
+    accent: '#BF40FF',
   },
   {
     tag: 'Hackathon 48h',
@@ -34,13 +34,13 @@ const defaultHighlights = [
     title: 'Maratona de Inovação',
     description:
       'Em 2026, 48h ininterruptas de desenvolvimento. Times resolvem desafios reais propostos por empresas parceiras. Recrutamento acontece em tempo real.',
-    accent: '#00FF00',
+    accent: '#8A00C4',
   },
 ];
 
 export default function Highlights({
   id = 'highlights',
-  tag = '// 04 — Highlights',
+  tag = '// 04 – Highlights',
   title = 'Onde a Inovação Acontece',
   subtitle = 'O que tornou a TechWeek um marco no calendário regional e o que tornará 2026 ainda maior.',
   highlights = defaultHighlights,
@@ -79,3 +79,4 @@ export default function Highlights({
     </section>
   );
 }
+

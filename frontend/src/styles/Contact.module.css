@@ -20,8 +20,8 @@
 .callout {
   display: flex;
   gap: 16px;
-  background: rgba(0, 191, 99, 0.05);
-  border: 1px solid rgba(0, 191, 99, 0.15);
+  background: rgba(191, 64, 255, 0.05);
+  border: 1px solid rgba(191, 64, 255, 0.15);
   border-radius: 10px;
   padding: 24px;
   margin-top: 0;
@@ -30,7 +30,7 @@
 .calloutBar {
   width: 4px;
   min-width: 4px;
-  background: linear-gradient(180deg, #00FF00, #00BF63);
+  background: linear-gradient(180deg, #8A00C4, #BF40FF);
   border-radius: 2px;
   align-self: stretch;
 }
@@ -50,12 +50,12 @@
 }
 
 .calloutEmail a {
-  color: #00BF63;
+  color: #BF40FF;
   transition: color 0.2s;
 }
 
 .calloutEmail a:hover {
-  color: #00FF00;
+  color: #8A00C4;
 }
 
 /* Form card */
@@ -88,8 +88,8 @@
 
 :global(.ant-input:focus),
 :global(.ant-select-focused .ant-select-selector) {
-  border-color: #00BF63 !important;
-  box-shadow: 0 0 0 2px rgba(0, 191, 99, 0.15) !important;
+  border-color: #BF40FF !important;
+  box-shadow: 0 0 0 2px rgba(191, 64, 255, 0.15) !important;
 }
 
 :global(.ant-select-dropdown) {
@@ -103,7 +103,7 @@
 
 :global(.ant-select-item-option-active),
 :global(.ant-select-item-option-selected) {
-  background: rgba(0, 191, 99, 0.1) !important;
+  background: rgba(191, 64, 255, 0.1) !important;
   color: #fff !important;
 }
 
@@ -142,3 +142,4 @@
     font-size: 0.85rem;
   }
 }
+

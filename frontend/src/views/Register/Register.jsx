@@ -3,12 +3,12 @@ import { Form, Input, Select, Button, message } from 'antd';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
-import styles from './Register.module.css';
+import styles from '../../styles/Register.module.css';
 
 const { Option } = Select;
 const STORAGE_KEY = 'tw26_presave';
 
-/* ─── helpers CPF ──────────────────────────────────────── */
+/* ?"??"??"? helpers CPF ?"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"? */
 function formatCPF(value) {
   const d = value.replace(/\D/g, '').slice(0, 11);
   if (d.length <= 3) return d;
@@ -28,7 +28,7 @@ function validateCPF(cpf) {
   return (11 - (s % 11)) % 11 === +d[10];
 }
 
-/* ─── Step 1: Nome + E-mail ────────────────────────────── */
+/* ?"??"??"? Step 1: Nome + E-mail ?"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"? */
 function Step1() {
   const [form] = Form.useForm();
 
@@ -74,15 +74,15 @@ function Step1() {
             size="large"
             block
             style={{
-              background: '#00FF00',
-              color: '#000',
+              background: '#8A00C4',
+              color: '#FFF',
               border: 'none',
               fontWeight: 800,
               letterSpacing: '0.05em',
               height: 48,
             }}
           >
-            Confirmar e continuar →
+            Confirmar e continuar ??'
           </Button>
         </Form.Item>
       </Form>
@@ -90,7 +90,7 @@ function Step1() {
   );
 }
 
-/* ─── Step 2: Demais dados ─────────────────────────────── */
+/* ?"??"??"? Step 2: Demais dados ?"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"? */
 function Step2() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -136,7 +136,7 @@ function Step2() {
           Você receberá as novidades e a confirmação no e-mail <strong>{saved.email}</strong>.
         </p>
         <a href="?audience=participants">
-          <Button style={{ color: '#00FF00', borderColor: '#00FF00', background: 'transparent', fontWeight: 600 }}>
+          <Button style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', fontWeight: 600 }}>
             Voltar para a página de participantes
           </Button>
         </a>
@@ -156,7 +156,7 @@ function Step2() {
       {saved.name && (
         <div className={styles.savedInfo}>
           <span className={styles.savedInfoItem}>👤 {saved.name}</span>
-          <span className={styles.savedInfoItem}>✉️ {saved.email}</span>
+          <span className={styles.savedInfoItem}>📧 {saved.email}</span>
         </div>
       )}
 
@@ -169,7 +169,7 @@ function Step2() {
               { required: true, message: 'Informe seu CPF' },
               {
                 validator: (_, v) =>
-                  !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inválido'),
+                  !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inv�lido'),
               },
             ]}
             style={{ flex: 1 }}
@@ -203,11 +203,11 @@ function Step2() {
             label="Senha"
             rules={[
               { required: true, message: 'Crie uma senha' },
-              { min: 8, message: 'Mínimo 8 caracteres' },
+              { min: 8, message: 'M�nimo 8 caracteres' },
             ]}
             style={{ flex: 1 }}
           >
-            <Input.Password placeholder="Mínimo 8 caracteres" size="large" />
+            <Input.Password placeholder="M�nimo 8 caracteres" size="large" />
           </Form.Item>
 
           <Form.Item
@@ -238,8 +238,8 @@ function Step2() {
             loading={loading}
             block
             style={{
-              background: '#00FF00',
-              color: '#000',
+              background: '#8A00C4',
+              color: '#FFF',
               border: 'none',
               fontWeight: 800,
               letterSpacing: '0.05em',
@@ -254,19 +254,19 @@ function Step2() {
   );
 }
 
-/* ─── Export principal ─────────────────────────────────── */
+/* ?"??"??"? Export principal ?"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"??"? */
 export default function Register() {
   const step = new URLSearchParams(window.location.search).get('step');
   const isStep2 = step === '2';
 
   const config = isStep2
     ? {
-        tag: '// Pré-Save — Etapa 2',
+        tag: '// Pré-Save – Etapa 2',
         title: 'Complete Seu Cadastro',
         subtitle: 'Só mais alguns dados para finalizar sua pré-inscrição na TechWeek 2026.',
       }
     : {
-        tag: '// Pré-Save — Etapa 1',
+        tag: '// Pré-Save – Etapa 1',
         title: 'Reserve Sua Vaga na TechWeek 2026',
         subtitle: 'Comece pelo básico: informe seu nome e e-mail para garantir sua posição. Você completa o cadastro na próxima etapa.',
       };
@@ -287,3 +287,4 @@ export default function Register() {
     </section>
   );
 }
+
