@@ -7,10 +7,7 @@ const defaultSections = [
   ['#contact', 'Contato'],
 ];
 
-const defaultQuickLinks = [
-  ['?audience=speakers', 'Pagina para palestrantes'],
-  ['?audience=participants', 'Pagina para participantes'],
-];
+const defaultQuickLinks = [];
 
 export default function FooterSection({
   sections = defaultSections,
@@ -59,15 +56,6 @@ export default function FooterSection({
         </div>
 
         <div className={styles.divider} />
-
-        <div className={styles.footerActions}>
-          <a href="?audience=participants" className={styles.footerBtn}>
-            Ir para Participantes
-          </a>
-          <a href="?audience=speakers" className={styles.footerBtn}>
-            Ir para Patrocinadores
-          </a>
-        </div>
 
         <div className={styles.bottom}>
           <p className={styles.copy}>

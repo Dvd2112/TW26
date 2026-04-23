@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Button } from 'antd';
 import styles from '../../styles/Hero.module.css';
-import logoPropNegativo from '../../assets/TW26 BRANCO/tw26-logo-prop-negativo.png';
+import logoPropNegativo from '../../assets/TW26 BRANCO/tw26-logo-prop.png';
 
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 40 },

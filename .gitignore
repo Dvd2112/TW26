@@ -1,0 +1,13 @@
+# Ambiente
+backend/.env
+backend/data/
+
+# Dependências
+node_modules/
+
+# Build
+frontend/build/
+
+# Sistema
+.DS_Store
+Thumbs.db

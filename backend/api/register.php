@@ -52,6 +52,30 @@ $email       = filter_var(trim($data['email']), FILTER_VALIDATE_EMAIL);
 $institution = htmlspecialchars(strip_tags(trim($data['institution'])), ENT_QUOTES, 'UTF-8');
 $password    = $data['password'];
 
+// Limites de tamanho — previne payloads abusivos e truncamento silencioso no banco
+$fieldLimits = [
+    'name'        => [2,   120],
+    'cpf'         => [11,   11],   // apenas dígitos após preg_replace
+    'email'       => [5,   254],
+    'institution' => [1,    80],
+    'password'    => [8,   72],    // bcrypt trunca em 72 bytes
+];
+$fieldValues = [
+    'name'        => $name,
+    'cpf'         => $cpf,
+    'email'       => $email !== false ? $email : '',
+    'institution' => $institution,
+    'password'    => $password,
+];
+foreach ($fieldLimits as $field => [$min, $max]) {
+    $len = mb_strlen((string) $fieldValues[$field], 'UTF-8');
+    if ($len < $min || $len > $max) {
+        http_response_code(422);
+        echo json_encode(['success' => false, 'message' => "Tamanho inválido para o campo: $field"]);
+        exit;
+    }
+}
+
 // Validar e-mail
 if ($email === false) {
     http_response_code(422);
@@ -110,54 +134,35 @@ if (strlen($password) < 8) {
 
 $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-// Salvar no banco SQLite
-$dbDir  = __DIR__ . '/../data';
-$dbPath = $dbDir . '/registrations.db';
-
-if (!is_dir($dbDir)) {
-    mkdir($dbDir, 0750, true);
-}
+// Salvar no banco PostgreSQL
+require_once __DIR__ . '/../config/database.php';
 
 try {
-    $db = new SQLite3($dbPath, SQLITE3_OPEN_CREATE | SQLITE3_OPEN_READWRITE);
-    $db->exec('PRAGMA journal_mode=WAL;');
-    $db->exec(
-        'CREATE TABLE IF NOT EXISTS registrations (
-            id            INTEGER PRIMARY KEY AUTOINCREMENT,
-            name          TEXT    NOT NULL,
-            cpf           TEXT    NOT NULL UNIQUE,
-            email         TEXT    NOT NULL UNIQUE,
-            institution   TEXT    NOT NULL,
-            password_hash TEXT    NOT NULL,
-            created_at    TEXT    NOT NULL DEFAULT (datetime("now"))
-        )'
-    );
+    $pdo = getDbConnection();
 
     // Verificar duplicidade
-    $stmt   = $db->prepare('SELECT id FROM registrations WHERE email = :email OR cpf = :cpf LIMIT 1');
-    $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-    $stmt->bindValue(':cpf',   $cpf,   SQLITE3_TEXT);
-    $result   = $stmt->execute();
-    $existing = $result->fetchArray(SQLITE3_ASSOC);
+    $check = $pdo->prepare(
+        'SELECT id FROM users WHERE email = :email OR cpf = :cpf LIMIT 1'
+    );
+    $check->execute([':email' => $email, ':cpf' => $cpf]);
 
-    if ($existing !== false) {
-        $db->close();
+    if ($check->fetch() !== false) {
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'E-mail ou CPF já cadastrado.']);
         exit;
     }
 
-    $insert = $db->prepare(
-        'INSERT INTO registrations (name, cpf, email, institution, password_hash)
+    $insert = $pdo->prepare(
+        'INSERT INTO users (name, cpf, email, institution, password_hash)
          VALUES (:name, :cpf, :email, :institution, :password_hash)'
     );
-    $insert->bindValue(':name',          $name,         SQLITE3_TEXT);
-    $insert->bindValue(':cpf',           $cpf,          SQLITE3_TEXT);
-    $insert->bindValue(':email',         $email,        SQLITE3_TEXT);
-    $insert->bindValue(':institution',   $institution,  SQLITE3_TEXT);
-    $insert->bindValue(':password_hash', $passwordHash, SQLITE3_TEXT);
-    $insert->execute();
-    $db->close();
+    $insert->execute([
+        ':name'          => $name,
+        ':cpf'           => $cpf,
+        ':email'         => $email,
+        ':institution'   => $institution,
+        ':password_hash' => $passwordHash,
+    ]);
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno ao processar inscrição.']);

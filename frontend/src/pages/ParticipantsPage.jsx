@@ -120,7 +120,6 @@ export default function ParticipantsPage() {
           subtitle="A TechWeek 2026 foi pensada para quem quer aprender com profundidade, conhecer gente boa, enxergar mercado com mais clareza e viver uma semana tech de verdade."
           actions={[
             { label: 'Fazer pré-save agora', href: '?page=register', variant: 'primary' },
-            { label: 'Ver página para palestrantes', href: '?audience=speakers', variant: 'secondary' },
           ]}
           pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
         />
@@ -175,10 +174,7 @@ export default function ParticipantsPage() {
           ['#edition2026', 'A semana'],
           ['#contact', 'Novidades'],
         ]}
-        quickLinks={[
-          ['./', 'Visão geral do projeto'],
-          ['?audience=speakers', 'Página para palestrantes'],
-        ]}
+        quickLinks={[]}
         tagline="TechWeek 2026 para futuros participantes: conteúdo relevante, comunidade ativa e uma semana desenhada para acelerar repertório e conexão."
       />
     </>

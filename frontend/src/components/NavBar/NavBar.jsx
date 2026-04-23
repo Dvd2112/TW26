@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from 'antd';
 import styles from '../../styles/NavBar.module.css';
-import logoHorizontalNegativo from '../../assets/TW26 BRANCO/tw26-logo-horizontal-negativo.png';
+import logoHorizontalNegativo from '../../assets/TW26 HORIZONTAL/tw26-horizontal-lateral.png';
 
 const defaultLinks = [
   { label: 'Jornadas', href: '#journeys' },
