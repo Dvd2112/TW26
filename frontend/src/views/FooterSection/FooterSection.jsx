@@ -33,7 +33,7 @@ export default function FooterSection({
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Local</span>
-              <span className={styles.infoValue}>Francisco Beltrao, Parana</span>
+              <span className={styles.infoValue}>Francisco Beltrão, Paraná</span>
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Contato</span>

@@ -14,14 +14,17 @@ CREATE TABLE IF NOT EXISTS permissions (
 
 -- ─── users ────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
-    id            SERIAL      PRIMARY KEY,
-    name          TEXT        NOT NULL,
-    cpf           TEXT        NOT NULL UNIQUE,
-    email         TEXT        NOT NULL UNIQUE,
-    institution   TEXT,
-    password_hash TEXT        NOT NULL,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id                    SERIAL      PRIMARY KEY,
+    name                  TEXT        NOT NULL,
+    cpf                   TEXT        NOT NULL UNIQUE,
+    email                 TEXT        NOT NULL UNIQUE,
+    institution           TEXT,
+    password_hash         TEXT        NOT NULL,
+    email_verified_at     TIMESTAMPTZ,
+    email_token           TEXT,
+    email_token_expires   TIMESTAMPTZ,
+    created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ─── user_permissions ─────────────────────────────────────────────────────────
