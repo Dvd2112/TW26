@@ -82,7 +82,7 @@ function Step1() {
               height: 48,
             }}
           >
-            Confirmar e continuar ??'
+            Confirmar e continuar
           </Button>
         </Form.Item>
       </Form>
@@ -167,10 +167,10 @@ function Step2() {
             label="CPF"
             rules={[
               { required: true, message: 'Informe seu CPF' },
-              {
-                validator: (_, v) =>
-                  !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inv�lido'),
-              },
+              // {
+              //   validator: (_, v) =>
+              //     !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inválido'),
+              // },
             ]}
             style={{ flex: 1 }}
           >

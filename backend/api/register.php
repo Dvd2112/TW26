@@ -111,11 +111,11 @@ function validateCPF(string $cpf): bool
     return $rem === (int) $cpf[10];
 }
 
-if (!validateCPF($cpf)) {
-    http_response_code(422);
-    echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
-    exit;
-}
+// if (!validateCPF($cpf)) {
+//     http_response_code(422);
+//     echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
+//     exit;
+// }
 
 // Validar instituição
 $allowedInstitutions = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
@@ -136,6 +136,11 @@ $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
 // Salvar no banco PostgreSQL
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/mailer.php';
+
+// Gerar token de verificação de e-mail
+$emailToken   = bin2hex(random_bytes(32)); // 64 chars hex
+$tokenExpires = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:sP');
 
 try {
     $pdo = getDbConnection();
@@ -153,15 +158,17 @@ try {
     }
 
     $insert = $pdo->prepare(
-        'INSERT INTO users (name, cpf, email, institution, password_hash)
-         VALUES (:name, :cpf, :email, :institution, :password_hash)'
+        'INSERT INTO users (name, cpf, email, institution, password_hash, email_token, email_token_expires)
+         VALUES (:name, :cpf, :email, :institution, :password_hash, :email_token, :email_token_expires)'
     );
     $insert->execute([
-        ':name'          => $name,
-        ':cpf'           => $cpf,
-        ':email'         => $email,
-        ':institution'   => $institution,
-        ':password_hash' => $passwordHash,
+        ':name'                => $name,
+        ':cpf'                 => $cpf,
+        ':email'               => $email,
+        ':institution'         => $institution,
+        ':password_hash'       => $passwordHash,
+        ':email_token'         => $emailToken,
+        ':email_token_expires' => $tokenExpires,
     ]);
 } catch (Exception $e) {
     http_response_code(500);
@@ -169,30 +176,21 @@ try {
     exit;
 }
 
-// E-mail de confirmação ao participante
-$headers  = "From: noreply@techweek2026.com.br\r\n";
-$headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+// E-mail de confirmação com link de verificação
+try {
+    sendConfirmationEmail($email, $name, $emailToken);
+} catch (Exception $e) {
+    // Não bloqueia o cadastro se o envio falhar; registra em log
+    error_log('[TW26] Falha ao enviar e-mail de confirmação para ' . $email . ': ' . $e->getMessage());
+}
 
-$confirmSubject = "=?UTF-8?B?" . base64_encode("[TechWeek 2026] Pré-inscrição confirmada — $name") . "?=";
-$confirmBody    = "Olá, $name!\n\n";
-$confirmBody   .= "Sua pré-inscrição na TechWeek 2026 foi realizada com sucesso.\n\n";
-$confirmBody   .= "Dados registrados:\n";
-$confirmBody   .= "Nome:        $name\n";
-$confirmBody   .= "E-mail:      $email\n";
-$confirmBody   .= "Instituição: $institution\n\n";
-$confirmBody   .= "Em breve você receberá mais informações sobre datas, programação e confirmação da sua inscrição.\n\n";
-$confirmBody   .= "Equipe TechWeek 2026\n";
-mail($email, $confirmSubject, $confirmBody, $headers);
-
-// Notificação ao admin (CPF parcialmente mascarado)
-$maskedCpf    = substr($cpf, 0, 3) . '.***.***-' . substr($cpf, 9, 2);
-$adminSubject = "=?UTF-8?B?" . base64_encode("[TechWeek 2026] Nova pré-inscrição — $name") . "?=";
-$adminBody    = "Nova pré-inscrição recebida:\n\n";
-$adminBody   .= "Nome:        $name\n";
-$adminBody   .= "CPF:         $maskedCpf\n";
-$adminBody   .= "E-mail:      $email\n";
-$adminBody   .= "Instituição: $institution\n";
-mail('david.junior211204@gmail.com', $adminSubject, $adminBody, $headers);
+// Notificação ao admin
+try {
+    $maskedCpf = substr($cpf, 0, 3) . '.***.***-' . substr($cpf, 9, 2);
+    sendAdminNotification($name, $maskedCpf, $email, $institution);
+} catch (Exception $e) {
+    error_log('[TW26] Falha ao enviar notificação admin: ' . $e->getMessage());
+}
 
 http_response_code(201);
-echo json_encode(['success' => true, 'message' => 'Pré-inscrição realizada com sucesso!']);
+echo json_encode(['success' => true, 'message' => 'Pré-inscrição realizada! Verifique seu e-mail para confirmar o cadastro.']);

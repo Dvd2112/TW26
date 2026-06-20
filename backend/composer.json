@@ -1,0 +1,15 @@
+{
+    "name": "tw26/backend",
+    "description": "TechWeek 2026 — Backend PHP",
+    "require": {
+        "phpmailer/phpmailer": "^6.9"
+    },
+    "autoload": {
+        "psr-4": {
+            "TW26\\": "src/"
+        }
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}
