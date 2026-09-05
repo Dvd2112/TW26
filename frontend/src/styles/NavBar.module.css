@@ -98,6 +98,29 @@
   border-radius: 4px !important;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+}
+
+.ctaGhost {
+  white-space: nowrap;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 4px !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  background: transparent !important;
+  font-weight: 600;
+}
+
+.ctaGhost:hover {
+  border-color: #8A00C4 !important;
+  color: #BF40FF !important;
+}
+
 .burger {
   display: none;
   flex-direction: column;
@@ -181,7 +204,8 @@
     display: flex;
   }
 
-  .cta {
+  .cta,
+  .actions .ctaGhost {
     display: none;
   }
 }
