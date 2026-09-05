@@ -29,8 +29,8 @@ function getDbConnection(): PDO
 }
 endif;
 
-if (!function_exists('getEnv')):
-function getEnv(string $key, string $default = ''): string
+if (!function_exists('env')):
+function env(string $key, string $default = ''): string
 {
     static $env = null;
     if ($env === null) {
