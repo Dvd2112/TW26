@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 header('Content-Type: text/html; charset=utf-8');
 
-require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/http.php';
 
 // ─── parâmetros ───────────────────────────────────────────────────────────────
 
@@ -64,11 +64,14 @@ try {
     $update->execute([':id' => $user['id']]);
 
 } catch (Exception $e) {
+    appLog('verify_email.db_error', ['user_id' => $user['id'], 'message' => $e->getMessage()]);
     renderPage('error', 'Erro interno', 'Não foi possível confirmar o e-mail. Tente novamente mais tarde.');
     exit;
 }
 
-renderPage('success', 'E-mail confirmado!', 'Sua pré-inscrição na TechWeek 2026 está confirmada. Em breve você receberá mais informações.');
+appLog('verify_email.success', ['user_id' => $user['id']]);
+
+renderPage('success', 'E-mail confirmado!', 'Sua inscrição na TechWeek 2026 está com o e-mail confirmado. A organização ainda revisará sua inscrição manualmente.');
 exit;
 
 // ─── helpers ─────────────────────────────────────────────────────────────────

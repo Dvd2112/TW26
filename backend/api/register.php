@@ -3,29 +3,11 @@ declare(strict_types=1);
 
 header('Content-Type: application/json; charset=utf-8');
 
-// CORS — ajuste o domínio em produção
-$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed = [
-    'http://localhost:5173',
-    'https://techweek2026.com.br',
-    'https://dvd2112.github.io',
-];
-if (in_array($origin, $allowed, true)) {
-    header("Access-Control-Allow-Origin: $origin");
-}
-header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+require_once __DIR__ . '/../config/http.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(204);
-    exit;
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Método não permitido.']);
-    exit;
-}
+corsHeaders();
+requireMethod('POST');
+requireCsrf();
 
 $raw  = file_get_contents('php://input');
 $data = json_decode($raw, true);
@@ -111,11 +93,11 @@ function validateCPF(string $cpf): bool
     return $rem === (int) $cpf[10];
 }
 
-// if (!validateCPF($cpf)) {
-//     http_response_code(422);
-//     echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
-//     exit;
-// }
+if (!validateCPF($cpf)) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
+    exit;
+}
 
 // Validar instituição
 $allowedInstitutions = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
@@ -134,13 +116,8 @@ if (strlen($password) < 8) {
 
 $passwordHash = password_hash($password, PASSWORD_BCRYPT);
 
-// Salvar no banco PostgreSQL
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/mailer.php';
-
-// Gerar token de verificação de e-mail
-$emailToken   = bin2hex(random_bytes(32)); // 64 chars hex
-$tokenExpires = (new DateTimeImmutable('+24 hours'))->format('Y-m-d H:i:sP');
 
 try {
     $pdo = getDbConnection();
@@ -152,36 +129,39 @@ try {
     $check->execute([':email' => $email, ':cpf' => $cpf]);
 
     if ($check->fetch() !== false) {
+        appLog('register.duplicate', ['email' => $email]);
         http_response_code(409);
         echo json_encode(['success' => false, 'message' => 'E-mail ou CPF já cadastrado.']);
         exit;
     }
 
     $insert = $pdo->prepare(
-        'INSERT INTO users (name, cpf, email, institution, password_hash, email_token, email_token_expires)
-         VALUES (:name, :cpf, :email, :institution, :password_hash, :email_token, :email_token_expires)'
+        'INSERT INTO users (name, cpf, email, institution, password_hash)
+         VALUES (:name, :cpf, :email, :institution, :password_hash)'
     );
     $insert->execute([
-        ':name'                => $name,
-        ':cpf'                 => $cpf,
-        ':email'               => $email,
-        ':institution'         => $institution,
-        ':password_hash'       => $passwordHash,
-        ':email_token'         => $emailToken,
-        ':email_token_expires' => $tokenExpires,
+        ':name'          => $name,
+        ':cpf'           => $cpf,
+        ':email'         => $email,
+        ':institution'   => $institution,
+        ':password_hash' => $passwordHash,
     ]);
+    $userId = (int) $pdo->lastInsertId();
 } catch (Exception $e) {
+    appLog('register.db_error', ['message' => $e->getMessage()]);
     http_response_code(500);
     echo json_encode(['success' => false, 'message' => 'Erro interno ao processar inscrição.']);
     exit;
 }
 
-// E-mail de confirmação com link de verificação
+appLog('register.success', ['user_id' => $userId, 'email' => $email, 'institution' => $institution]);
+
+// E-mail de boas-vindas (não bloqueia o cadastro se o envio falhar)
 try {
-    sendConfirmationEmail($email, $name, $emailToken);
+    sendWelcomeEmail($email, $name);
+    appLog('register.welcome_email_sent', ['user_id' => $userId, 'email' => $email]);
 } catch (Exception $e) {
-    // Não bloqueia o cadastro se o envio falhar; registra em log
-    error_log('[TW26] Falha ao enviar e-mail de confirmação para ' . $email . ': ' . $e->getMessage());
+    appLog('register.welcome_email_failed', ['user_id' => $userId, 'email' => $email, 'error' => $e->getMessage()]);
 }
 
 // Notificação ao admin
@@ -189,8 +169,17 @@ try {
     $maskedCpf = substr($cpf, 0, 3) . '.***.***-' . substr($cpf, 9, 2);
     sendAdminNotification($name, $maskedCpf, $email, $institution);
 } catch (Exception $e) {
-    error_log('[TW26] Falha ao enviar notificação admin: ' . $e->getMessage());
+    appLog('register.admin_notification_failed', ['user_id' => $userId, 'error' => $e->getMessage()]);
 }
 
+// Auto-login: o participante segue autenticado para escolher o lote
+startSession();
+$_SESSION['user_id'] = $userId;
+session_regenerate_id(true);
+
 http_response_code(201);
-echo json_encode(['success' => true, 'message' => 'Pré-inscrição realizada! Verifique seu e-mail para confirmar o cadastro.']);
+echo json_encode([
+    'success' => true,
+    'message' => 'Cadastro criado! Finalizando sua inscrição...',
+    'user_id' => $userId,
+]);
