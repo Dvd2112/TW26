@@ -5,7 +5,6 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception as MailException;
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/database.php'; // expõe _loadEnv()
 
 if (!function_exists('createMailer')):
@@ -18,9 +17,22 @@ if (!function_exists('createMailer')):
  *   SMTP_SECURE   (tls | ssl | "")      padrão: tls
  *   MAIL_FROM     endereço remetente    padrão: noreply@techweek2026.com.br
  *   MAIL_FROM_NAME nome do remetente    padrão: TechWeek 2026
+ *
+ * @throws RuntimeException se o PHPMailer não estiver instalado (composer install)
  */
 function createMailer(): PHPMailer
 {
+    // Carregado sob demanda (não no topo do arquivo) para que a ausência do
+    // vendor/ vire uma Exception recuperável, e não um Fatal Error que
+    // derrubaria a requisição inteira antes mesmo do try/catch de quem chamou.
+    $vendorAutoload = __DIR__ . '/../vendor/autoload.php';
+    if (!file_exists($vendorAutoload)) {
+        throw new RuntimeException(
+            'PHPMailer não está instalado. Rode "composer install" dentro de backend/.'
+        );
+    }
+    require_once $vendorAutoload;
+
     $env = _loadEnv();
 
     $mail = new PHPMailer(true);
@@ -52,30 +64,40 @@ function createMailer(): PHPMailer
 }
 endif;
 
-if (!function_exists('sendConfirmationEmail')):
+if (!function_exists('sendWelcomeEmail')):
 /**
- * Envia e-mail de confirmação de cadastro com link de verificação.
+ * Envia e-mail de boas-vindas após o cadastro (sem link de confirmação —
+ * a inscrição segue seu fluxo normal independente de verificação de e-mail).
  *
- * @param string $toEmail  E-mail do destinatário
- * @param string $toName   Nome do destinatário
- * @param string $token    Token de verificação (hex)
- * @throws MailException   Em caso de falha no envio
+ * @throws MailException Em caso de falha no envio
  */
-function sendConfirmationEmail(string $toEmail, string $toName, string $token): void
+function sendWelcomeEmail(string $toEmail, string $toName): void
 {
-    $appUrl  = rtrim(getEnv('APP_URL', 'https://techweek2026.com.br'), '/');
-    $link    = $appUrl . '/backend/api/verify-email.php?token=' . urlencode($token);
-    $expires = '24 horas';
-
-    $html = buildConfirmationHtml($toName, $link, $expires);
-    $text = buildConfirmationText($toName, $link, $expires);
-
     $mail = createMailer();
     $mail->addAddress($toEmail, $toName);
-    $mail->Subject  = '[TechWeek 2026] Confirme seu e-mail';
+    $mail->Subject = '[TechWeek 2026] Inscrição recebida — bem-vindo(a)!';
     $mail->isHTML(true);
-    $mail->Body     = $html;
-    $mail->AltBody  = $text;
+    $mail->Body    = buildWelcomeHtml($toName);
+    $mail->AltBody = buildWelcomeText($toName);
+    $mail->send();
+}
+endif;
+
+if (!function_exists('sendPaymentConfirmedEmail')):
+/**
+ * Envia e-mail confirmando que o pagamento foi validado e a inscrição está
+ * garantida. Disparado quando um admin aprova o pagamento.
+ *
+ * @throws MailException Em caso de falha no envio
+ */
+function sendPaymentConfirmedEmail(string $toEmail, string $toName, string $loteName, string $amount): void
+{
+    $mail = createMailer();
+    $mail->addAddress($toEmail, $toName);
+    $mail->Subject = '[TechWeek 2026] Pagamento confirmado — vaga garantida!';
+    $mail->isHTML(true);
+    $mail->Body    = buildPaymentConfirmedHtml($toName, $loteName, $amount);
+    $mail->AltBody = buildPaymentConfirmedText($toName, $loteName, $amount);
     $mail->send();
 }
 endif;
@@ -86,7 +108,7 @@ if (!function_exists('sendAdminNotification')):
  */
 function sendAdminNotification(string $name, string $maskedCpf, string $email, string $institution): void
 {
-    $adminEmail = getEnv('ADMIN_EMAIL', 'david.junior211204@gmail.com');
+    $adminEmail = env('ADMIN_EMAIL', 'david.junior211204@gmail.com');
 
     $mail = createMailer();
     $mail->addAddress($adminEmail);
@@ -101,13 +123,16 @@ function sendAdminNotification(string $name, string $maskedCpf, string $email, s
 }
 endif;
 
-// ─── templates ────────────────────────────────────────────────────────────────
+// ─── layout compartilhado (cores do software: preto + roxo) ───────────────────
 
-if (!function_exists('buildConfirmationHtml')):
-function buildConfirmationHtml(string $name, string $link, string $expires): string
+if (!function_exists('buildEmailShell')):
+/**
+ * Envelope HTML comum a todos os e-mails — mesma paleta usada no site
+ * (fundo preto, cards #0d0d0d/#111111, roxo #8a00c4/#bf40ff).
+ */
+function buildEmailShell(string $eyebrow, string $bodyHtml): string
 {
-    $nameSafe  = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
-    $linkSafe  = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+    $eyebrowSafe = htmlspecialchars($eyebrow, ENT_QUOTES, 'UTF-8');
 
     return <<<HTML
 <!DOCTYPE html>
@@ -115,24 +140,24 @@ function buildConfirmationHtml(string $name, string $link, string $expires): str
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Confirme seu e-mail — TechWeek 2026</title>
+  <title>TechWeek 2026</title>
 </head>
-<body style="margin:0;padding:0;background:#0a0a0a;font-family:'Segoe UI',Arial,sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a;padding:40px 0;">
+<body style="margin:0;padding:0;background:#000000;font-family:'Segoe UI',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#000000;padding:40px 0;">
     <tr>
       <td align="center">
         <table width="600" cellpadding="0" cellspacing="0"
-               style="background:#111111;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.5);">
+               style="background:#0d0d0d;border-radius:12px;overflow:hidden;border:1px solid #1a1a1a;">
 
           <!-- header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%);
+            <td style="background:linear-gradient(135deg,#1a0033 0%,#3d0066 50%,#8a00c4 100%);
                         padding:40px 48px;text-align:center;">
               <p style="margin:0;font-size:28px;font-weight:700;color:#ffffff;letter-spacing:2px;">
-                TECH<span style="color:#e94560;">WEEK</span> 2026
+                TECH<span style="color:#bf40ff;">WEEK</span> 2026
               </p>
-              <p style="margin:8px 0 0;font-size:13px;color:#8899aa;letter-spacing:4px;text-transform:uppercase;">
-                Confirmação de E-mail
+              <p style="margin:8px 0 0;font-size:13px;color:#d9d9d9;letter-spacing:4px;text-transform:uppercase;">
+                {$eyebrowSafe}
               </p>
             </td>
           </tr>
@@ -140,42 +165,14 @@ function buildConfirmationHtml(string $name, string $link, string $expires): str
           <!-- body -->
           <tr>
             <td style="padding:48px 48px 32px;">
-              <p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">
-                Olá, {$nameSafe}!
-              </p>
-              <p style="margin:0 0 24px;font-size:15px;color:#aaaaaa;line-height:1.7;">
-                Obrigado por se pré-inscrever na <strong style="color:#ffffff;">TechWeek 2026</strong>.
-                Para concluir o cadastro, confirme seu endereço de e-mail clicando no botão abaixo.
-              </p>
-
-              <!-- CTA -->
-              <table cellpadding="0" cellspacing="0" style="margin:32px 0;">
-                <tr>
-                  <td style="border-radius:8px;background:#e94560;">
-                    <a href="{$linkSafe}"
-                       style="display:inline-block;padding:16px 40px;font-size:16px;font-weight:700;
-                              color:#ffffff;text-decoration:none;letter-spacing:.5px;">
-                      Confirmar E-mail
-                    </a>
-                  </td>
-                </tr>
-              </table>
-
-              <p style="margin:0 0 8px;font-size:13px;color:#666666;">
-                Este link é válido por <strong style="color:#aaaaaa;">{$expires}</strong>.
-                Se você não criou esta conta, ignore este e-mail.
-              </p>
-              <p style="margin:16px 0 0;font-size:12px;color:#555555;word-break:break-all;">
-                Ou cole este endereço no navegador:<br>
-                <a href="{$linkSafe}" style="color:#e94560;">{$linkSafe}</a>
-              </p>
+              {$bodyHtml}
             </td>
           </tr>
 
           <!-- footer -->
           <tr>
-            <td style="padding:24px 48px;border-top:1px solid #222222;text-align:center;">
-              <p style="margin:0;font-size:12px;color:#444444;">
+            <td style="padding:24px 48px;border-top:1px solid #1a1a1a;text-align:center;">
+              <p style="margin:0;font-size:12px;color:#555555;">
                 © 2026 TechWeek — Dois Vizinhos, PR · Este é um e-mail automático, não responda.
               </p>
             </td>
@@ -191,14 +188,128 @@ HTML;
 }
 endif;
 
-if (!function_exists('buildConfirmationText')):
-function buildConfirmationText(string $name, string $link, string $expires): string
+// ─── boas-vindas ────────────────────────────────────────────────────────────────
+
+if (!function_exists('buildWelcomeHtml')):
+function buildWelcomeHtml(string $name): string
+{
+    $nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $accountUrl = htmlspecialchars(
+        rtrim(env('APP_URL', 'https://techweek2026.com.br'), '/') . '/?page=account',
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $body = <<<HTML
+<p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">
+  Olá, {$nameSafe}! 🎉
+</p>
+<p style="margin:0 0 16px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Sua inscrição na <strong style="color:#ffffff;">TechWeek 2026</strong> foi recebida com sucesso.
+  Seja muito bem-vindo(a)!
+</p>
+<p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Em breve você vai poder acompanhar sua inscrição, o status do pagamento e se inscrever
+  nas oficinas direto na sua conta no site.
+</p>
+
+<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+  <tr>
+    <td style="border-radius:8px;background:#8a00c4;">
+      <a href="{$accountUrl}"
+         style="display:inline-block;padding:16px 40px;font-size:16px;font-weight:700;
+                color:#ffffff;text-decoration:none;letter-spacing:.5px;">
+        Ver minha conta
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;font-size:13px;color:#666666;">
+  Se você não fez esse cadastro, pode ignorar este e-mail.
+</p>
+HTML;
+
+    return buildEmailShell('Inscrição recebida', $body);
+}
+endif;
+
+if (!function_exists('buildWelcomeText')):
+function buildWelcomeText(string $name): string
 {
     return "Olá, $name!\n\n"
-         . "Obrigado por se pré-inscrever na TechWeek 2026.\n\n"
-         . "Confirme seu e-mail acessando o link abaixo (válido por $expires):\n"
-         . "$link\n\n"
-         . "Se você não criou esta conta, ignore este e-mail.\n\n"
+         . "Sua inscrição na TechWeek 2026 foi recebida com sucesso. Seja bem-vindo(a)!\n\n"
+         . "Acompanhe sua inscrição, o status do pagamento e as oficinas na sua conta:\n"
+         . "https://techweek2026.com.br/?page=account\n\n"
+         . "Equipe TechWeek 2026\n";
+}
+endif;
+
+// ─── pagamento confirmado ───────────────────────────────────────────────────────
+
+if (!function_exists('buildPaymentConfirmedHtml')):
+function buildPaymentConfirmedHtml(string $name, string $loteName, string $amount): string
+{
+    $nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $loteSafe = htmlspecialchars($loteName, ENT_QUOTES, 'UTF-8');
+    $amountSafe = htmlspecialchars($amount, ENT_QUOTES, 'UTF-8');
+    $oficinasUrl = htmlspecialchars(
+        rtrim(env('APP_URL', 'https://techweek2026.com.br'), '/') . '/?page=oficinas',
+        ENT_QUOTES,
+        'UTF-8'
+    );
+
+    $body = <<<HTML
+<p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">
+  Pagamento confirmado, {$nameSafe}! ✅
+</p>
+<p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Recebemos e validamos seu pagamento. Sua vaga na <strong style="color:#ffffff;">TechWeek 2026</strong>
+  está <strong style="color:#bf40ff;">garantida</strong>.
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+       style="background:#111111;border:1px solid #1a1a1a;border-radius:8px;margin:0 0 24px;">
+  <tr>
+    <td style="padding:20px 24px;">
+      <p style="margin:0 0 8px;font-size:13px;color:#888888;text-transform:uppercase;letter-spacing:1px;">Lote</p>
+      <p style="margin:0 0 16px;font-size:16px;color:#ffffff;font-weight:600;">{$loteSafe}</p>
+      <p style="margin:0 0 8px;font-size:13px;color:#888888;text-transform:uppercase;letter-spacing:1px;">Valor pago</p>
+      <p style="margin:0;font-size:16px;color:#ffffff;font-weight:600;">R$ {$amountSafe}</p>
+    </td>
+  </tr>
+</table>
+
+<table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+  <tr>
+    <td style="border-radius:8px;background:#8a00c4;">
+      <a href="{$oficinasUrl}"
+         style="display:inline-block;padding:16px 40px;font-size:16px;font-weight:700;
+                color:#ffffff;text-decoration:none;letter-spacing:.5px;">
+        Escolher minhas oficinas
+      </a>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;font-size:13px;color:#666666;">
+  Nos vemos na TechWeek 2026!
+</p>
+HTML;
+
+    return buildEmailShell('Pagamento confirmado', $body);
+}
+endif;
+
+if (!function_exists('buildPaymentConfirmedText')):
+function buildPaymentConfirmedText(string $name, string $loteName, string $amount): string
+{
+    return "Pagamento confirmado, $name!\n\n"
+         . "Recebemos e validamos seu pagamento. Sua vaga na TechWeek 2026 está garantida.\n\n"
+         . "Lote: $loteName\n"
+         . "Valor pago: R$ $amount\n\n"
+         . "Escolha suas oficinas em: https://techweek2026.com.br/?page=oficinas\n\n"
+         . "Nos vemos na TechWeek 2026!\n"
          . "Equipe TechWeek 2026\n";
 }
 endif;
