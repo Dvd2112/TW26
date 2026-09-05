@@ -106,7 +106,7 @@ export default function ParticipantsPage() {
     <>
       <NavBar
         links={navLinks}
-        cta={{ label: 'Fazer pré-save', href: '?page=register' }}
+        cta={{ label: 'Se inscrever', href: '?page=register' }}
         logoHref="./"
       />
       <main>
@@ -119,7 +119,7 @@ export default function ParticipantsPage() {
           ]}
           subtitle="A TechWeek 2026 foi pensada para quem quer aprender com profundidade, conhecer gente boa, enxergar mercado com mais clareza e viver uma semana tech de verdade."
           actions={[
-            { label: 'Fazer pré-save agora', href: '?page=register', variant: 'primary' },
+            { label: 'Se inscrever agora', href: '?page=register', variant: 'primary' },
           ]}
           pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
         />
