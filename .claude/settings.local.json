@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C /home/david/workspace/TW26 status --short)",
+      "Bash(grep -n \"CONTENT_TYPE\\\\|file_get_contents\\\\|json_decode\" -r \"//wsl.localhost/Ubuntu-24.04/home/david/workspace/TW26/backend/api/\" 2>/dev/null)",
+      "Read(///wsl.localhost/Ubuntu-24.04/home/david/workspace/TW26/backend/**)",
+      "Bash(grep -n \"SESSION_SECURE\\\\|CORS\\\\|ORIGIN\" \"//wsl.localhost/Ubuntu-24.04/home/david/workspace/TW26/backend/.env.example\")"
+    ]
+  }
+}
