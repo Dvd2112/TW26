@@ -1,0 +1,76 @@
+# CD — roda no push para main (e manualmente via "Run workflow").
+#
+# Deploy do frontend (GitHub Pages, branch gh-pages) funciona sem configuração
+# extra — usa o GITHUB_TOKEN automático do repositório.
+#
+# Deploy do backend (VPS via SSH) só roda se os secrets abaixo estiverem
+# configurados em Settings > Secrets and variables > Actions:
+#   VPS_HOST           IP ou domínio da VPS Oracle
+#   VPS_USER           usuário SSH
+#   VPS_SSH_KEY        chave privada SSH (formato PEM, sem senha)
+#   VPS_PORT           porta SSH (opcional, padrão 22)
+#   VPS_BACKEND_PATH   caminho absoluto do repositório clonado na VPS
+#     (ex.: /var/www/techweekfb — deve ser um clone git com origin configurado)
+#
+# Enquanto VPS_HOST não estiver definido, o job de backend é pulado (skipped),
+# não falha o workflow.
+
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-frontend:
+    name: Deploy frontend (GitHub Pages)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+        env:
+          CI: true
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: frontend/build
+
+  deploy-backend:
+    name: Deploy backend (VPS via SSH)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VPS_HOST != '' }}
+    steps:
+      - name: Deploy via SSH (git pull + composer install)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            cd "${{ secrets.VPS_BACKEND_PATH }}"
+            git fetch origin main
+            git reset --hard origin/main
+            cd backend
+            composer install --no-dev --no-progress --prefer-dist
+            echo "Deploy concluído em $(date)"

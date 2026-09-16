@@ -1,9 +1,11 @@
 # Ambiente
 backend/.env
 backend/data/
+storage/
 
 # Dependências
 node_modules/
+backend/vendor/
 
 # Build
 frontend/build/
@@ -11,3 +13,4 @@ frontend/build/
 # Sistema
 .DS_Store
 Thumbs.db
+*:Zone.Identifier

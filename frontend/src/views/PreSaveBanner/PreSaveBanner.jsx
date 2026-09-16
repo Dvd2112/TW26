@@ -20,7 +20,7 @@ export default function PreSaveBanner({ registerHref = '?page=register' }) {
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
         >
-          // Pré-Save 2026
+          // Inscrições 2026
         </motion.span>
 
         <motion.h2
@@ -79,7 +79,7 @@ export default function PreSaveBanner({ registerHref = '?page=register' }) {
                 fontSize: '0.95rem',
               }}
             >
-              Garantir minha vaga — Pré-Save
+              Se inscrever agora
             </Button>
           </a>
         </motion.div>

@@ -1,0 +1,118 @@
+.section {
+  min-height: 100vh;
+  padding: 120px 24px 80px;
+  background: #000;
+}
+
+.wrapper {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.muted {
+  color: #aaa;
+}
+
+.statLine {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  color: #fff;
+  font-size: 0.9rem;
+}
+
+.statLine span {
+  color: #D9D9D9;
+}
+
+:global(.ant-card) {
+  background: #0d0d0d;
+  border: 1px solid #1a1a1a;
+}
+
+:global(.ant-card .ant-card-head) {
+  border-bottom: 1px solid #1a1a1a;
+}
+
+:global(.ant-card .ant-card-head-title) {
+  color: #fff;
+}
+
+:global(.ant-table) {
+  background: transparent;
+}
+
+:global(.ant-table-thead > tr > th) {
+  background: #111 !important;
+  color: #fff !important;
+  border-bottom: 1px solid #1a1a1a !important;
+}
+
+:global(.ant-table-tbody > tr > td) {
+  border-bottom: 1px solid #1a1a1a !important;
+  color: #D9D9D9 !important;
+}
+
+:global(.ant-table-tbody > tr:hover > td) {
+  background: rgba(191, 64, 255, 0.06) !important;
+}
+
+:global(.ant-tabs-tab) {
+  color: #D9D9D9;
+}
+
+:global(.ant-tabs-tab-active .ant-tabs-tab-btn) {
+  color: #BF40FF !important;
+  font-weight: 700;
+}
+
+:global(.ant-tabs-ink-bar) {
+  background: #8A00C4 !important;
+}
+
+:global(.ant-statistic-title) {
+  color: #aaa !important;
+}
+
+:global(.ant-statistic-content) {
+  color: #fff !important;
+}
+
+:global(.ant-modal-content),
+:global(.ant-modal-header) {
+  background: #0d0d0d !important;
+}
+
+:global(.ant-modal-title) {
+  color: #fff !important;
+}
+
+:global(.ant-modal .ant-form-item-label > label) {
+  color: #D9D9D9 !important;
+}
+
+:global(.ant-input),
+:global(.ant-input-affix-wrapper),
+:global(.ant-select-selector),
+:global(.ant-input-number) {
+  background: #111 !important;
+  border-color: #1a1a1a !important;
+  color: #fff !important;
+}
+
+:global(.ant-select-dropdown) {
+  background: #111 !important;
+  border: 1px solid #1a1a1a !important;
+}
+
+:global(.ant-select-item) {
+  color: #D9D9D9 !important;
+}
+
+@media (max-width: 640px) {
+  .section {
+    padding: 100px 16px 60px;
+  }
+}
