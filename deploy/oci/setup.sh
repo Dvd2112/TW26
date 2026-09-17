@@ -75,6 +75,16 @@ echo "==> Aplicando schema (só na primeira vez — ignora erro se já existir)"
 sudo -u postgres psql -d "${DB_NAME}" -f "${REPO_PATH}/backend/database/schema.sql" || true
 sudo -u postgres psql -d "${DB_NAME}" -f "${REPO_PATH}/backend/database/seed.sql" || true
 
+# schema.sql roda como "postgres" (superuser), então as tabelas ficam com
+# esse dono — o app conecta como "${DB_USER}", que sem isso não tem
+# permissão nenhuma nelas ("permission denied for table ...").
+sudo -u postgres psql -d "${DB_NAME}" -c "
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${DB_USER};
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${DB_USER};
+"
+
 if [ ! -f "${REPO_PATH}/backend/.env" ]; then
   # parse_ini_file() (usado por backend/config/database.php) não lida bem com
   # os comentários decorativos do .env.example (parênteses, CRLF do Windows)
