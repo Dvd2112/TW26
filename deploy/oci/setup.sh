@@ -76,7 +76,10 @@ sudo -u postgres psql -d "${DB_NAME}" -f "${REPO_PATH}/backend/database/schema.s
 sudo -u postgres psql -d "${DB_NAME}" -f "${REPO_PATH}/backend/database/seed.sql" || true
 
 if [ ! -f "${REPO_PATH}/backend/.env" ]; then
-  cp "${REPO_PATH}/backend/.env.example" "${REPO_PATH}/backend/.env"
+  # parse_ini_file() (usado por backend/config/database.php) não lida bem com
+  # os comentários decorativos do .env.example (parênteses, CRLF do Windows)
+  # — gera um .env "limpo", só com CHAVE=valor.
+  grep -v -E '^\s*#|^\s*$' "${REPO_PATH}/backend/.env.example" | tr -d '\r' > "${REPO_PATH}/backend/.env"
   echo "!! Edite ${REPO_PATH}/backend/.env com as credenciais reais (DB_PASS, SMTP_*, APP_URL, etc.)"
 fi
 
