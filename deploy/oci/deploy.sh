@@ -22,10 +22,11 @@ composer install --no-dev --no-progress --prefer-dist
 echo "==> frontend: build"
 cd "${REPO_PATH}/frontend"
 npm ci
-# Em VMs com pouca RAM (ex.: Always Free E2.1.Micro, 1GB), o V8 calcula um
-# heap padrão baseado só na RAM física e ignora o swap, estourando o build.
-# Força um limite maior de heap, que o swap sustenta.
-NODE_OPTIONS="--max-old-space-size=1536" npm run build
+# Em VMs com pouca RAM (ex.: Always Free E2.1.Micro, 1GB), o build de produção
+# do CRA estoura memória — sourcemaps e o plugin do ESLint são os maiores
+# consumidores. Desliga os dois (não afeta o site, só telemetria de debug) e
+# ainda aumenta o heap do Node como reforço.
+GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=896" npm run build
 
 echo "==> restart php-fpm"
 sudo systemctl reload "php${PHP_VERSION}-fpm"
