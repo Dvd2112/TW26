@@ -22,7 +22,10 @@ composer install --no-dev --no-progress --prefer-dist
 echo "==> frontend: build"
 cd "${REPO_PATH}/frontend"
 npm ci
-npm run build
+# Em VMs com pouca RAM (ex.: Always Free E2.1.Micro, 1GB), o V8 calcula um
+# heap padrão baseado só na RAM física e ignora o swap, estourando o build.
+# Força um limite maior de heap, que o swap sustenta.
+NODE_OPTIONS="--max-old-space-size=1536" npm run build
 
 echo "==> restart php-fpm"
 sudo systemctl reload "php${PHP_VERSION}-fpm"
