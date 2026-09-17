@@ -3,17 +3,18 @@
 # Deploy do frontend (GitHub Pages, branch gh-pages) funciona sem configuração
 # extra — usa o GITHUB_TOKEN automático do repositório.
 #
-# Deploy do backend (VPS via SSH) só roda se os secrets abaixo estiverem
-# configurados em Settings > Secrets and variables > Actions:
-#   VPS_HOST           IP ou domínio da VPS Oracle
-#   VPS_USER           usuário SSH
+# Deploy na VM OCI (frontend + backend juntos, via deploy/oci/deploy.sh) só
+# roda se os secrets abaixo estiverem configurados em
+# Settings > Secrets and variables > Actions:
+#   VPS_HOST           IP público da instância OCI
+#   VPS_USER           usuário SSH (ex.: ubuntu)
 #   VPS_SSH_KEY        chave privada SSH (formato PEM, sem senha)
 #   VPS_PORT           porta SSH (opcional, padrão 22)
-#   VPS_BACKEND_PATH   caminho absoluto do repositório clonado na VPS
-#     (ex.: /var/www/techweekfb — deve ser um clone git com origin configurado)
+#   VPS_BACKEND_PATH   caminho absoluto do repositório clonado na VM
+#     (ex.: /var/www/techweek2026 — criado por deploy/oci/setup.sh)
 #
-# Enquanto VPS_HOST não estiver definido, o job de backend é pulado (skipped),
-# não falha o workflow.
+# Enquanto VPS_HOST não estiver definido, o job de deploy na VM é pulado
+# (skipped), não falha o workflow. Ver deploy/oci/ para o setup inicial da VM.
 
 name: CD
 
@@ -54,12 +55,12 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: frontend/build
 
-  deploy-backend:
-    name: Deploy backend (VPS via SSH)
+  deploy-vm:
+    name: Deploy na VM OCI (frontend + backend)
     runs-on: ubuntu-latest
     if: ${{ secrets.VPS_HOST != '' }}
     steps:
-      - name: Deploy via SSH (git pull + composer install)
+      - name: Deploy via SSH (deploy/oci/deploy.sh)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -68,9 +69,4 @@ jobs:
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
             set -e
-            cd "${{ secrets.VPS_BACKEND_PATH }}"
-            git fetch origin main
-            git reset --hard origin/main
-            cd backend
-            composer install --no-dev --no-progress --prefer-dist
-            echo "Deploy concluído em $(date)"
+            bash "${{ secrets.VPS_BACKEND_PATH }}/deploy/oci/deploy.sh"
