@@ -338,9 +338,9 @@ function Step3() {
           </>
         )}
 
-        <a href="?audience=participants">
+        <a href="./">
           <Button style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', fontWeight: 600 }}>
-            Voltar para a página de participantes
+            Voltar para a página inicial
           </Button>
         </a>
       </motion.div>

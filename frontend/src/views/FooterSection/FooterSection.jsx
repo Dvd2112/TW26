@@ -12,7 +12,7 @@ const defaultQuickLinks = [];
 export default function FooterSection({
   sections = defaultSections,
   quickLinks = defaultQuickLinks,
-  contactEmail = 'david.junior211204@gmail.com',
+  contactEmail = 'techweekfb@gmail.com',
   tagline = 'Conectando Talentos, Tecnologia e o Futuro do Sudoeste',
 }) {
   return (
@@ -29,7 +29,7 @@ export default function FooterSection({
           <div className={styles.info}>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Data</span>
-              <span className={styles.infoValue}>13 a 18 de Outubro de 2026</span>
+              <span className={styles.infoValue}>19 a 22 de Outubro de 2026</span>
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Local</span>
@@ -62,7 +62,7 @@ export default function FooterSection({
             © 2026 TechWeek. Comite Organizador - UTFPR Francisco Beltrao.
           </p>
           <p className={styles.built}>
-            <span style={{ color: '#BF40FF' }}>{'</>'}</span> Feito com React + Ant Design
+            <span style={{ color: '#BF40FF' }}>{'</>'}</span> Feito em colaboração por David Lopes Araujo Junior &amp; Prof. Dr. Wellton Costa de Oliveira
           </p>
         </div>
       </div>

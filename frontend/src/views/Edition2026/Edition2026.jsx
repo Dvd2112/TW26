@@ -4,8 +4,8 @@ import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from '../../styles/Edition2026.module.css';
 
 const defaultTimeline = [
-  { date: '13ï¿½16 Out', label: 'Evento Principal', desc: 'Palestras, workshops, painï¿½is e networking com lï¿½deres de tecnologia da regiï¿½o e do Brasil.', icon: '??' },
-  { date: '16ï¿½18 Out', label: 'Hackathon 48h', desc: 'Maratona de desenvolvimento com desafios reais propostos por empresas parceiras. Recrutamento ao vivo.', icon: '??' },
+  { date: '17-18 Out', label: 'Hackathon 48h', desc: 'Maratona de desenvolvimento com desafios reais propostos por empresas parceiras. Recrutamento ao vivo.', icon: '??' },
+  { date: '19-22 Out', label: 'Evento Principal', desc: 'Palestras, workshops, painï¿½is e networking com lï¿½deres de tecnologia da regiï¿½o e do Brasil.', icon: '??' },
 ];
 
 const defaultFacts = [

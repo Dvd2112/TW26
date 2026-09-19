@@ -109,7 +109,7 @@ if ($audience === 'participant' && !in_array($profile, $allowedProfiles, true)) 
 }
 
 // Montagem do e-mail
-$to      = 'david.junior211204@gmail.com';
+$to      = 'techweekfb@gmail.com';
 
 $subjectText = match ($audience) {
     'speaker' => "[TechWeek 2026] Interesse de palestrante — $name",
@@ -145,7 +145,7 @@ if ($audience === 'sponsor') {
 
 $body .= "Mensagem:\n$message\n";
 
-$headers  = "From: noreply@techweekfb.com.br\r\n";
+$headers  = "From: techweekfb@gmail.com\r\n";
 $headers .= "Reply-To: $email\r\n";
 $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
 $headers .= "X-Mailer: PHP/" . phpversion();
