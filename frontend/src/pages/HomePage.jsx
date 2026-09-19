@@ -3,111 +3,175 @@ import Hero from '../views/Hero/Hero';
 import Vision from '../views/Vision/Vision';
 import Numbers from '../views/Numbers/Numbers';
 import Highlights from '../views/Highlights/Highlights';
-import Contact from '../views/Contact/Contact';
+import Edition2026 from '../views/Edition2026/Edition2026';
+import PreSaveBanner from '../views/PreSaveBanner/PreSaveBanner';
 import FooterSection from '../views/FooterSection/FooterSection';
 
 const navLinks = [
-  { label: 'Jornadas', href: '#journeys' },
-  { label: 'Panorama', href: '#numbers' },
-  { label: 'Contato', href: '#contact' },
+  { label: 'O que você encontra', href: '#vision' },
+  { label: 'Destaques', href: '#highlights' },
+  { label: 'Edição 2026', href: '#edition2026' },
 ];
 
 const pillars = [
   {
-    icon: '??',
-    title: 'Para poss?veis palestrantes',
-    description: 'Uma narrativa voltada a autoridade, curadoria e ader?ncia editorial para quem pode enriquecer a programa??o da edi??o 2026.',
+    icon: '📊',
+    title: 'Conteúdo que conversa com mercado real',
+    description: 'A programação mistura visão estratégica e prática aplicável para quem quer sair da bolha acadêmica e entender como a tecnologia acontece no mundo profissional.',
   },
   {
-    icon: '??',
-    title: 'Para futuros participantes',
-    description: 'Uma jornada pensada para gerar desejo, mostrar trilhas, oportunidades e o tipo de experi?ncia que a TechWeek entrega.',
+    icon: '🤝',
+    title: 'Rede para aprender e se aproximar',
+    description: 'A TechWeek reúne estudantes, profissionais, lideranças e empresas, criando um ambiente bom para fazer conexões, testar repertório e enxergar novas possibilidades de carreira.',
   },
   {
-    icon: '??',
-    title: 'Para uma apresenta??o mais objetiva',
-    description: 'Em vez de explicar o mesmo evento de forma gen?rica, voc? passa a falar com cada p?blico usando a mensagem certa.',
+    icon: '⚡',
+    title: 'Experiência intensa, não evento morno',
+    description: 'Entre trilhas, workshops, painéis e hackathon, a edição foi desenhada para gerar energia, troca e memória de participação.',
   },
 ];
 
 const stats = [
-  { value: 500, suffix: '+', label: 'participantes esperados para 2026', icon: '??', delay: 0 },
-  { value: 48, suffix: 'h', label: 'de hackathon como eixo de ativa??o', icon: '?', delay: 0.1 },
-  { value: 3, suffix: '', label: 'grandes frentes de conte?do e mercado', icon: '??', delay: 0.2 },
-  { value: 1, suffix: ' ecossistema', label: 'conectando campus, empresas e comunidade', icon: '??', delay: 0.3 },
+  { value: 500, suffix: '+', label: 'participantes esperados em 2026', icon: '👥', delay: 0 },
+  { value: 40, suffix: 'h', label: 'de conteúdo e experiências na semana', icon: '📚', delay: 0.1 },
+  { value: 48, suffix: 'h', label: 'de hackathon para quem quer ir além', icon: '⚡', delay: 0.2 },
+  { value: 3, suffix: '', label: 'trilhas centrais para explorar tecnologia', icon: '🗺️', delay: 0.3 },
+  { value: 80, suffix: '%', label: 'de público em formação técnica ou carreira inicial', icon: '🎓', delay: 0.4 },
+  { value: 1, suffix: ' região', label: 'com baixa oferta de eventos tech desse porte', icon: '📍', delay: 0.5 },
 ];
 
 const highlights = [
   {
-    tag: 'Jornada 01',
-    icon: '???',
-    title: 'P?gina para palestrantes',
-    description: 'Mostra por que vale estar no palco da TechWeek, quais temas fazem sentido para a curadoria e como sua contribui??o encontra um p?blico pronto para aplicar conhecimento.',
+    tag: 'Aprendizado',
+    icon: '📚',
+    title: 'Talks e workshops com aplicação prática',
+    description: 'A ideia é sair da cadeira com novas referências, ferramentas, processos e perguntas melhores para levar para estudo, estágio, trabalho ou projeto pessoal.',
     accent: '#8A00C4',
   },
   {
-    tag: 'Jornada 02',
-    icon: '??',
-    title: 'P?gina para participantes',
-    description: 'Traduz a edi??o 2026 como experi?ncia de carreira, repert?rio e networking para quem quer aprender com profundidade e sair mais perto do mercado.',
+    tag: 'Carreira',
+    icon: '👥',
+    title: 'Contato com quem constrói tecnologia',
+    description: 'Você encontra lideranças, profissionais experientes, empresas parceiras e pessoas que estão atravessando desafios parecidos com os seus.',
     accent: '#BF40FF',
   },
+  {
+    tag: 'Experiência',
+    icon: '🔥',
+    title: 'Hackathon e programação com ritmo',
+    description: 'A edição começa com a maratona de inovação e segue com o evento principal, criando uma experiência mais viva para quem quer participar de verdade.',
+    accent: '#8A00C4',
+  },
+];
+
+const timeline = [
+  {
+    date: 'Antes da edição',
+    label: 'Curadoria e alinhamento editorial',
+    desc: 'A organização estrutura temas, formatos e profundidade esperada para que cada participação entre no programa com coerência e impacto.',
+    icon: '🔭',
+  },
+  {
+    date: '17–18 Out',
+    label: 'Hackathon 48h',
+    desc: 'Para quem quer vivência mais intensa, o hackathon abre a edição com prototipação, colaboração, desafio e muita energia prática.',
+    icon: '⚡',
+  },
+  {
+    date: '19–22 Out',
+    label: 'Talks, workshops e painéis',
+    desc: 'Os dias do evento principal concentram trilhas de conteúdo, troca com especialistas, atividades formativas e encontros com a comunidade de tecnologia.',
+    icon: '🎤',
+  },
+  {
+    date: 'Durante o evento',
+    label: 'Networking e circulação entre frentes',
+    desc: 'Além de assistir, você pode circular, conversar, se aproximar de temas novos e entender como diferentes áreas da tecnologia se conectam.',
+    icon: '🤝',
+  },
+];
+
+const facts = [
+  { icon: 'IA', label: 'produto, automação e dados' },
+  { icon: 'ENG', label: 'software, cloud e arquitetura' },
+  { icon: 'GMS', label: 'games e experiências digitais' },
+  { icon: 'ESG', label: 'tecnologia verde e impacto' },
 ];
 
 export default function HomePage() {
   return (
     <>
-      <NavBar links={navLinks} cta={{ label: 'Abrir p?gina de palestrantes', href: '?audience=speakers' }} />
+      <NavBar
+        links={navLinks}
+        cta={{ label: 'Se inscrever', href: '?page=register' }}
+        logoHref="./"
+      />
       <main>
         <Hero
-          tag={'> 13 a 18 de outubro de 2026 ? Francisco Beltr?o, PR'}
+          tag={'> 19 a 22 de outubro de 2026 · Francisco Beltrão, PR'}
           titleLines={[
-            'TechWeek 2026 para',
-            'quem sobe ao palco',
-            'e para quem quer viver a experi?ncia',
+            'A semana tech que',
+            'conecta carreira,',
+            'palco e comunidade',
           ]}
-          subtitle="A edi??o 2026 agora tem duas jornadas de apresenta??o: uma focada em poss?veis palestrantes e outra pensada para aquecer futuros participantes com contexto, desejo e dire??o clara."
+          subtitle="A TechWeek 2026 reúne quem quer aprender com profundidade, conhecer gente boa, enxergar o mercado com mais clareza e quem tem repertório para compartilhar no palco."
           actions={[
-            { label: 'Ver p?gina para palestrantes', href: '?audience=speakers', variant: 'primary' },
-            { label: 'Ver p?gina para participantes', href: '?audience=participants', variant: 'secondary' },
+            { label: 'Se inscrever agora', href: '?page=register', variant: 'primary' },
+            { label: 'Quero palestrar', href: 'mailto:techweekfb@gmail.com?subject=Proposta%20de%20palestra%20-%20TechWeek%202026', variant: 'secondary' },
           ]}
-          pills={['Palestrantes', 'Participantes', 'Trilhas em tecnologia', 'Hackathon 48h']}
+          pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
         />
 
         <Vision
-          id="journeys"
-          tag="// 01 ? Duas Jornadas"
-          title="O Mesmo Evento, Duas Conversas Diferentes"
-          subtitle="A TechWeek continua uma s?, mas a forma de apresent?-la agora respeita o que cada p?blico precisa enxergar primeiro."
+          id="vision"
+          tag="// 01 – O Que Você Encontra"
+          title="Uma Edição Feita Para Quem Quer Sair Melhor"
+          subtitle="A TechWeek combina conhecimento, comunidade e intensidade para entregar uma experiência útil para estudantes, profissionais, palestrantes e pessoas que querem se aproximar do ecossistema tech."
           pillars={pillars}
-          quote="Essa nova estrutura facilita apresenta??o comercial, institucional e acad?mica sem depender de explica??o paralela. Cada p?gina passa a defender melhor o mesmo evento."
+          quote="A ideia não é só assistir. É viver uma semana que amplie repertório, gere encontro e ajude você a enxergar caminhos mais concretos dentro da tecnologia."
         />
 
         <Numbers
           id="numbers"
-          tag="// 02 ? Panorama"
-          title="O Tamanho da Oportunidade em 2026"
-          subtitle="Os principais elementos da edi??o aparecem aqui como contexto comum para qualquer conversa sobre a TechWeek."
+          tag="// 02 – O Que Esperar"
+          title="Uma Semana Que Vale Colocar na Agenda"
+          subtitle="A edição 2026 está sendo montada para equilibrar profundidade de conteúdo, energia de comunidade e oportunidade prática."
           stats={stats}
         />
 
         <Highlights
           id="highlights"
-          tag="// 03 ? Escolha o Caminho"
-          title="P?ginas Prontas Para Cada P?blico"
-          subtitle="Voc? pode apresentar a edi??o a partir da vis?o de palco ou da vis?o de experi?ncia, sem misturar objetivos."
+          tag="// 03 – Destaques"
+          title="O Tipo de Experiência Que Faz Ficar"
+          subtitle="Mais do que acompanhar uma programação, você entra em uma semana desenhada para estimular presença, conversa e construção de trajetória."
           highlights={highlights}
         />
 
-        <Contact audience="general" />
+        <Edition2026
+          id="edition2026"
+          tag="// 04 – A Edição 2026"
+          title="Como a TechWeek 2026 Ganha Ritmo"
+          subtitle="A programação se distribui ao longo de vários dias, criando um fluxo em que conteúdo, conexão e experimentação se reforçam mutuamente."
+          timeline={timeline}
+          facts={facts}
+          profile={{
+            tag: 'Para Quem Faz Sentido',
+            desc: 'Se você está estudando, começando carreira, mudando de área, lidera um time ou quer subir ao palco, a edição foi pensada para você.',
+          }}
+        />
+
+        <PreSaveBanner />
       </main>
       <FooterSection
         sections={[
-          ['#journeys', 'Jornadas'],
-          ['#numbers', 'Panorama'],
-          ['#highlights', 'P?ginas'],
-          ['#contact', 'Contato'],
+          ['#vision', 'O que você encontra'],
+          ['#numbers', 'O que esperar'],
+          ['#highlights', 'Destaques'],
+          ['#edition2026', 'A edição'],
+          ['mailto:techweekfb@gmail.com', 'Contato'],
         ]}
+        quickLinks={[]}
+        tagline="TechWeek 2026: conteúdo relevante, comunidade ativa e uma semana desenhada para acelerar repertório, conexão e carreira."
       />
     </>
   );

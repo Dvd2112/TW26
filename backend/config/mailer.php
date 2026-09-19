@@ -15,7 +15,7 @@ if (!function_exists('createMailer')):
  *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
  * Variáveis opcionais:
  *   SMTP_SECURE   (tls | ssl | "")      padrão: tls
- *   MAIL_FROM     endereço remetente    padrão: noreply@techweek2026.com.br
+ *   MAIL_FROM     endereço remetente    padrão: techweekfb@gmail.com
  *   MAIL_FROM_NAME nome do remetente    padrão: TechWeek 2026
  *
  * @throws RuntimeException se o PHPMailer não estiver instalado (composer install)
@@ -56,7 +56,7 @@ function createMailer(): PHPMailer
     }
 
     $mail->setFrom(
-        $env['MAIL_FROM']      ?? 'noreply@techweek2026.com.br',
+        $env['MAIL_FROM']      ?? 'techweekfb@gmail.com',
         $env['MAIL_FROM_NAME'] ?? 'TechWeek 2026'
     );
 
@@ -108,7 +108,7 @@ if (!function_exists('sendAdminNotification')):
  */
 function sendAdminNotification(string $name, string $maskedCpf, string $email, string $institution): void
 {
-    $adminEmail = env('ADMIN_EMAIL', 'david.junior211204@gmail.com');
+    $adminEmail = env('ADMIN_EMAIL', 'techweekfb@gmail.com');
 
     $mail = createMailer();
     $mail->addAddress($adminEmail);

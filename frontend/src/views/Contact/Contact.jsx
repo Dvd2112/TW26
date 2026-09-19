@@ -16,7 +16,7 @@ const contentByAudience = {
       subtitle: 'Se você quer usar a TechWeek para apresentar o projeto, o palco ou a jornada do participante, este contato centraliza a conversa com a organização.',
     },
     callout: 'A TechWeek 2026 está sendo desenhada para falar com públicos diferentes sem perder consistência. Use este canal para alinhar narrativa, materiais e próximos passos.',
-    email: 'david.junior211204@gmail.com',
+    email: 'techweekfb@gmail.com',
     companyLabel: 'Empresa / Instituição',
     companyPlaceholder: 'UTFPR, comunidade, empresa parceira...',
     selectField: {
@@ -39,7 +39,7 @@ const contentByAudience = {
       subtitle: 'Se a sua atuação conversa com as trilhas da TechWeek 2026, podemos abrir uma conversa sobre formato, profundidade e encaixe editorial.',
     },
     callout: 'Buscamos palestras que entreguem repertório aplicável, leitura de mercado e experiências concretas. Priorizamos conteúdo útil, denso e conectado ao momento da tecnologia regional e nacional.',
-    email: 'david.junior211204@gmail.com',
+    email: 'techweekfb@gmail.com',
     companyLabel: 'Empresa / Instituição',
     companyPlaceholder: 'Onde você atua hoje?',
     selectField: {
@@ -64,7 +64,7 @@ const contentByAudience = {
       subtitle: 'Se você quer acompanhar abertura de inscrições, trilhas confirmadas e oportunidades da semana do evento, deixe seu contato.',
     },
     callout: 'A edição 2026 foi desenhada para quem quer sair com repertório, contatos e experiências que ajudam na formação e na entrada no mercado. Você pode se aproximar antes mesmo da abertura oficial.',
-    email: 'david.junior211204@gmail.com',
+    email: 'techweekfb@gmail.com',
     companyLabel: 'Curso, empresa ou instituição',
     companyPlaceholder: 'Ex.: ADS UTFPR, empresa, comunidade...',
     selectField: {

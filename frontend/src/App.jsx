@@ -1,7 +1,7 @@
 import { ConfigProvider, App as AntApp } from 'antd';
 import ptBR from 'antd/locale/pt_BR';
 import { antdTheme } from './styles/theme';
-import ParticipantsPage from './pages/ParticipantsPage';
+import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
@@ -19,7 +19,7 @@ export default function App() {
     : page === 'conta'    ? AccountPage
     : page === 'oficinas' ? OficinasPage
     : page === 'admin'    ? AdminPage
-    : ParticipantsPage;
+    : HomePage;
 
   return (
     <ConfigProvider theme={antdTheme} locale={ptBR}>

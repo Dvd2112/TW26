@@ -11,7 +11,7 @@ Site institucional + sistema de pré-inscrição da **TechWeek 2026** (evento de
 | `frontend/` | React 19 + CRA (react-scripts), Ant Design 6, framer-motion, axios | GitHub Pages (`gh-pages`, base `/TW26/`) |
 | `backend/` | PHP 8 procedural (sem framework), PostgreSQL (PDO), PHPMailer | Servidor próprio sob `https://techweek2026.com.br/backend/` |
 
-- **Sem router no front**: navegação por **query params** (`?audience=participants`, `?page=register`, `?step=2`). NÃO instalar react-router sem discussão prévia.
+- **Sem router no front**: navegação por **query params** (`?page=register`, `?step=2`). NÃO instalar react-router sem discussão prévia.
 - **Sem framework no back**: endpoints PHP soltos, um arquivo por rota, contrato JSON `{ success, message }`.
 
 ## 2. Estrutura do repositório
@@ -24,15 +24,13 @@ TW26/
 │   ├── package.json           # homepage "/TW26", scripts start/build/test/lint/deploy
 │   ├── build/                 # build CRA versionado no repo (usado pelo gh-pages)
 │   ├── public/
-│   │   ├── index.html         # template CRA (título desatualizado: "Patrocinio")
+│   │   ├── index.html         # template CRA
 │   │   └── 404.html           # redirect para /TW26/ (truque SPA do GitHub Pages)
 │   └── src/
 │       ├── index.js           # entrypoint (StrictMode + createRoot)
-│       ├── App.jsx            # "roteador" por query param → RegisterPage ou ParticipantsPage
+│       ├── App.jsx            # "roteador" por query param → HomePage (padrão), RegisterPage etc.
 │       ├── pages/             # PÁGINAS = orquestração + conteúdo (texto) como constantes
-│       │   ├── HomePage.jsx          # hub das duas jornadas (?audience=...)
-│       │   ├── SpeakersPage.jsx      # jornada palestrante
-│       │   ├── ParticipantsPage.jsx  # jornada participante
+│       │   ├── HomePage.jsx          # página única (participantes + palestrantes)
 │       │   └── RegisterPage.jsx      # wizard de pré-inscrição (?page=register)
 │       ├── views/             # SEÇÕES genéricas dirigidas a props (reutilizáveis)
 │       │   ├── Hero/ Vision/ Numbers/ Highlights/ Edition2026/
@@ -99,7 +97,7 @@ pages/  →  views/  →  components/
 
 ### 4.2 Roteamento
 - Feito em `App.jsx` lendo `URLSearchParams(window.location.search)` e trocando a página renderizada.
-- Navegação entre jornadas: links `<a href="?audience=speakers">` (**full reload**, não SPA navigation).
+- Navegação entre páginas: links `<a href="?page=register">` (**full reload**, não SPA navigation). A home é única, com âncoras (`#vision`, `#highlights`...).
 - Wizard de registro: `Register.jsx` lê `?step=2`; etapa 1 persiste em `sessionStorage` (chave `'tw26_presave'`) e navega via `window.location.search = params.toString()`.
 
 ### 4.3 Estilização — CSS Modules + Design Tokens
@@ -201,11 +199,10 @@ Tabelas `presaves`, `lotes`, `registrations`, `payments`, `activities`, `activit
 
 ## 8. Dívidas conhecidas (NÃO "consertar" sem pedir; considerar ao tocar arquivos próximos)
 
-1. **Encoding quebrado (mojibake `?`)**: `HomePage.jsx` inteiro e trecho de `SpeakersPage.jsx` — texto original perdido, precisa reescrita humana.
+1. **Encoding quebrado (mojibake `?`)**: `Edition2026.jsx` e `Numbers.jsx` (textos default) — texto original perdido, precisa reescrita humana.
 2. **Validação de CPF comentada** tanto no front (`Register.jsx`) quanto no back (`register.php`) — desligamento deliberado durante desenvolvimento; reativar os dois juntos.
 3. **Views mortas**: `Tiers/` e `Sponsors/` não são importadas por ninguém (restos da LP de patrocínio).
 4. **`App.css` é lixo de template** (classes `.counter`, `.hero` do starter) — não referenciar; candidato a deletar.
-5. **Título do `public/index.html`** ainda diz "TechWeek 2026 - Patrocinio".
 6. **Endpoints hardcoded** `/TW26/backend/api/*.php` — migrar para variável (`REACT_APP_API_URL` ou instância axios) exigiria mudar front E CORS no back em conjunto.
 7. `build/` versionado no repo (necessário pro fluxo gh-pages atual).
 8. Assets com nomes contendo espaços e `Zone.Identifier` (artefatos Windows/WSL) — cuidado ao renomear/copiar.
@@ -218,4 +215,4 @@ Tabelas `presaves`, `lotes`, `registrations`, `payments`, `activities`, `activit
 - [ ] Endpoint novo segue o esqueleto da seção 5.3 (CORS, guards, sanitização, prepared statements, contrato JSON)
 - [ ] Mudança de schema gerou migration numerada + atualizou `schema.sql`
 - [ ] Mensagens de erro não expõem detalhes internos (stack, SQL, paths)
-- [ ] Testado o fluxo real de navegação por query params (`?audience=`, `?page=register`, `?step=`)
+- [ ] Testado o fluxo real de navegação por query params (`?page=register`, `?step=`)
