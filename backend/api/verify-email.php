@@ -96,7 +96,7 @@ function renderPage(string $type, string $title, string $message): void
 
     $icon    = $icons[$type]  ?? '❌';
     $color   = $colors[$type] ?? '#e94560';
-    $appUrl  = 'https://techweek2026.com.br';
+    $appUrl  = 'https://techweekfb.com.br';
     $titleH  = htmlspecialchars($title,   ENT_QUOTES, 'UTF-8');
     $msgH    = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
 
