@@ -10,7 +10,7 @@
 #   VPS_BACKEND_PATH   caminho absoluto do repositório clonado na VM
 #     (ex.: /var/www/techweek2026 — criado por deploy/oci/setup.sh)
 #
-# Enquanto VPS_HOST não estiver definido, o job de deploy na VM é pulado
+# Enquanto VPS_HOST não estiver definido, o passo de deploy na VM é pulado
 # (skipped), não falha o workflow. Ver deploy/oci/ para o setup inicial da VM.
 
 name: CD
@@ -24,9 +24,12 @@ jobs:
   deploy-vm:
     name: Deploy na VM OCI (frontend + backend)
     runs-on: ubuntu-latest
-    if: ${{ secrets.VPS_HOST != '' }}
+    # 'secrets' não é permitido em 'if' de job; expõe via env e testa no step.
+    env:
+      VPS_HOST: ${{ secrets.VPS_HOST }}
     steps:
       - name: Deploy via SSH (deploy/oci/deploy.sh)
+        if: ${{ env.VPS_HOST != '' }}
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.VPS_HOST }}
