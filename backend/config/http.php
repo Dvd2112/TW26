@@ -16,7 +16,7 @@ function corsHeaders(): void
     $allowed = [
         'http://localhost:3000',
         'http://localhost:5173',
-        'https://techweek2026.com.br',
+        'https://techweekfb.com.br',
         'https://dvd2112.github.io',
     ];
     if (in_array($origin, $allowed, true)) {

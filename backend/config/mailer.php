@@ -15,7 +15,7 @@ if (!function_exists('createMailer')):
  *   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS
  * Variáveis opcionais:
  *   SMTP_SECURE   (tls | ssl | "")      padrão: tls
- *   MAIL_FROM     endereço remetente    padrão: noreply@techweek2026.com.br
+ *   MAIL_FROM     endereço remetente    padrão: noreply@techweekfb.com.br
  *   MAIL_FROM_NAME nome do remetente    padrão: TechWeek 2026
  *
  * @throws RuntimeException se o PHPMailer não estiver instalado (composer install)
@@ -56,7 +56,7 @@ function createMailer(): PHPMailer
     }
 
     $mail->setFrom(
-        $env['MAIL_FROM']      ?? 'noreply@techweek2026.com.br',
+        $env['MAIL_FROM']      ?? 'noreply@techweekfb.com.br',
         $env['MAIL_FROM_NAME'] ?? 'TechWeek 2026'
     );
 
@@ -195,7 +195,7 @@ function buildWelcomeHtml(string $name): string
 {
     $nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
     $accountUrl = htmlspecialchars(
-        rtrim(env('APP_URL', 'https://techweek2026.com.br'), '/') . '/?page=account',
+        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=account',
         ENT_QUOTES,
         'UTF-8'
     );
@@ -240,7 +240,7 @@ function buildWelcomeText(string $name): string
     return "Olá, $name!\n\n"
          . "Sua inscrição na TechWeek 2026 foi recebida com sucesso. Seja bem-vindo(a)!\n\n"
          . "Acompanhe sua inscrição, o status do pagamento e as oficinas na sua conta:\n"
-         . "https://techweek2026.com.br/?page=account\n\n"
+         . "https://techweekfb.com.br/?page=account\n\n"
          . "Equipe TechWeek 2026\n";
 }
 endif;
@@ -254,7 +254,7 @@ function buildPaymentConfirmedHtml(string $name, string $loteName, string $amoun
     $loteSafe = htmlspecialchars($loteName, ENT_QUOTES, 'UTF-8');
     $amountSafe = htmlspecialchars($amount, ENT_QUOTES, 'UTF-8');
     $oficinasUrl = htmlspecialchars(
-        rtrim(env('APP_URL', 'https://techweek2026.com.br'), '/') . '/?page=oficinas',
+        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=oficinas',
         ENT_QUOTES,
         'UTF-8'
     );
@@ -308,7 +308,7 @@ function buildPaymentConfirmedText(string $name, string $loteName, string $amoun
          . "Recebemos e validamos seu pagamento. Sua vaga na TechWeek 2026 está garantida.\n\n"
          . "Lote: $loteName\n"
          . "Valor pago: R$ $amount\n\n"
-         . "Escolha suas oficinas em: https://techweek2026.com.br/?page=oficinas\n\n"
+         . "Escolha suas oficinas em: https://techweekfb.com.br/?page=oficinas\n\n"
          . "Nos vemos na TechWeek 2026!\n"
          . "Equipe TechWeek 2026\n";
 }
