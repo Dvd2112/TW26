@@ -79,7 +79,7 @@ function validateCPF(string $cpf): bool
     for ($i = 0; $i < 9; $i++) {
         $sum += (int) $cpf[$i] * (10 - $i);
     }
-    $rem = (11 - ($sum % 11)) % 11;
+    $rem = (($sum * 10) % 11) % 10;
     if ($rem !== (int) $cpf[9]) {
         return false;
     }
@@ -88,7 +88,7 @@ function validateCPF(string $cpf): bool
     for ($i = 0; $i < 10; $i++) {
         $sum += (int) $cpf[$i] * (11 - $i);
     }
-    $rem = (11 - ($sum % 11)) % 11;
+    $rem = (($sum * 10) % 11) % 10;
 
     return $rem === (int) $cpf[10];
 }
