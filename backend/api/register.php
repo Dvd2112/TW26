@@ -65,40 +65,6 @@ if ($email === false) {
     exit;
 }
 
-// Validar CPF
-function validateCPF(string $cpf): bool
-{
-    if (strlen($cpf) !== 11) {
-        return false;
-    }
-    if (preg_match('/^(\d)\1+$/', $cpf)) {
-        return false;
-    }
-
-    $sum = 0;
-    for ($i = 0; $i < 9; $i++) {
-        $sum += (int) $cpf[$i] * (10 - $i);
-    }
-    $rem = (($sum * 10) % 11) % 10;
-    if ($rem !== (int) $cpf[9]) {
-        return false;
-    }
-
-    $sum = 0;
-    for ($i = 0; $i < 10; $i++) {
-        $sum += (int) $cpf[$i] * (11 - $i);
-    }
-    $rem = (($sum * 10) % 11) % 10;
-
-    return $rem === (int) $cpf[10];
-}
-
-if (!validateCPF($cpf)) {
-    http_response_code(422);
-    echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
-    exit;
-}
-
 // Validar instituição
 $allowedInstitutions = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
 if (!in_array($institution, $allowedInstitutions, true)) {

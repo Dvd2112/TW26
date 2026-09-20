@@ -17,17 +17,6 @@ function formatCPF(value) {
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
 }
 
-function validateCPF(cpf) {
-  const d = cpf.replace(/\D/g, '');
-  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
-  let s = 0;
-  for (let i = 0; i < 9; i++) s += +d[i] * (10 - i);
-  if (((s * 10) % 11) % 10 !== +d[9]) return false;
-  s = 0;
-  for (let i = 0; i < 10; i++) s += +d[i] * (11 - i);
-  return ((s * 10) % 11) % 10 === +d[10];
-}
-
 function goToStep(step) {
   const params = new URLSearchParams(window.location.search);
   params.set('step', String(step));
@@ -148,7 +137,9 @@ function Step2() {
               { required: true, message: 'Informe seu CPF' },
               {
                 validator: (_, v) =>
-                  !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inválido'),
+                  !v || v.replace(/\D/g, '').length === 11
+                    ? Promise.resolve()
+                    : Promise.reject('O CPF deve ter 11 dígitos'),
               },
             ]}
             style={{ flex: 1 }}
