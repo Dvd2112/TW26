@@ -22,10 +22,10 @@ function validateCPF(cpf) {
   if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
   let s = 0;
   for (let i = 0; i < 9; i++) s += +d[i] * (10 - i);
-  if ((11 - (s % 11)) % 11 !== +d[9]) return false;
+  if (((s * 10) % 11) % 10 !== +d[9]) return false;
   s = 0;
   for (let i = 0; i < 10; i++) s += +d[i] * (11 - i);
-  return (11 - (s % 11)) % 11 === +d[10];
+  return ((s * 10) % 11) % 10 === +d[10];
 }
 
 function goToStep(step) {
