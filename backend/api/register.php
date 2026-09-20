@@ -65,6 +65,13 @@ if ($email === false) {
     exit;
 }
 
+// CPF: só o formato importa (11 dígitos, garantido em $fieldLimits); rejeita todos iguais
+if (preg_match('/^(\d)\1+$/', $cpf)) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'CPF inválido.']);
+    exit;
+}
+
 // Validar instituição
 $allowedInstitutions = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
 if (!in_array($institution, $allowedInstitutions, true)) {

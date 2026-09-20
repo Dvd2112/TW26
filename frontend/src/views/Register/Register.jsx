@@ -136,10 +136,13 @@ function Step2() {
             rules={[
               { required: true, message: 'Informe seu CPF' },
               {
-                validator: (_, v) =>
-                  !v || v.replace(/\D/g, '').length === 11
-                    ? Promise.resolve()
-                    : Promise.reject('O CPF deve ter 11 dígitos'),
+                validator: (_, v) => {
+                  const d = (v || '').replace(/\D/g, '');
+                  if (!d) return Promise.resolve();
+                  if (d.length !== 11) return Promise.reject('O CPF deve ter 11 dígitos');
+                  if (/^(\d)\1+$/.test(d)) return Promise.reject('CPF inválido');
+                  return Promise.resolve();
+                },
               },
             ]}
             style={{ flex: 1 }}
