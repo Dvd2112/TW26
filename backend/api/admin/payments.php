@@ -61,8 +61,7 @@ if ($method === 'GET') {
             $row['user_id']    = (int) $row['user_id'];
             $row['registration_id'] = (int) $row['registration_id'];
             $row['payment_id'] = $row['payment_id'] !== null ? (int) $row['payment_id'] : null;
-            // PDO_PGSQL retorna boolean como texto 't'/'f', não como PHP bool
-            $row['has_proof']  = $row['has_proof'] === 't';
+            $row['has_proof']  = dbBool($row['has_proof']);
         }
         unset($row);
 

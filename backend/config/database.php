@@ -40,6 +40,17 @@ function env(string $key, string $default = ''): string
 }
 endif;
 
+if (!function_exists('dbBool')):
+/**
+ * Converte um boolean vindo do PDO_PGSQL. A partir do PHP 8.1 o driver devolve
+ * bool nativo; versões antigas devolviam o texto 't'/'f'. Aceita os dois.
+ */
+function dbBool(mixed $value): bool
+{
+    return $value === true || $value === 't' || $value === 'true' || $value === '1' || $value === 1;
+}
+endif;
+
 if (!function_exists('_loadEnv')):
 /**
  * @throws RuntimeException

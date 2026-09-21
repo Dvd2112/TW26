@@ -184,7 +184,7 @@ export default function Account() {
           ) : (
             <>
               <p className={styles.line}>
-                <strong>Lote:</strong> {registration.lote?.name} — R$ {Number(registration.lote?.price ?? 0).toFixed(2)}
+                <strong>Lote:</strong> {registration.lote?.name} — R$ {Number(payment?.amount ?? registration.lote?.price ?? 0).toFixed(2)}
               </p>
               <p className={styles.line}>
                 <strong>Status:</strong>{' '}
@@ -202,9 +202,21 @@ export default function Account() {
               {payment && payment.status === 'unpaid' && (
                 <div className={styles.pixCard}>
                   <p className={styles.line}><strong>Valor:</strong> R$ {Number(payment.amount).toFixed(2)}</p>
+                  {registration.lote?.has_qr && (
+                    <img
+                      src={`/TW26/backend/api/lote-qr.php?lote_id=${registration.lote.id}`}
+                      alt={`QR code PIX de R$ ${Number(payment.amount).toFixed(2)}`}
+                      style={{ width: 200, height: 200, objectFit: 'contain', background: '#fff', borderRadius: 10, padding: 8, marginBottom: 8 }}
+                    />
+                  )}
                   <p className={styles.line}><strong>Chave PIX:</strong> {pix?.key}</p>
                   <p className={styles.line}><strong>Titular:</strong> {pix?.name}</p>
                   <p className={styles.line}><strong>Cidade:</strong> {pix?.city}</p>
+                  {registration.lote?.pix_link && (
+                    <a href={registration.lote.pix_link} target="_blank" rel="noopener noreferrer">
+                      <Button block style={{ marginBottom: 8 }}>Pagar pelo link do PIX</Button>
+                    </a>
+                  )}
 
                   <p className={styles.line} style={{ marginTop: 12 }}>
                     <strong>Comprovante do PIX</strong> (obrigatório — JPG, PNG ou PDF, até 5MB)

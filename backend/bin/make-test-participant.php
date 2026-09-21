@@ -69,7 +69,7 @@ if ($status === 'none') {
 }
 
 // ─── lote (usa um ativo existente, ou cria um de teste) ────────────────────────
-$lote = $pdo->query('SELECT id, price FROM lotes WHERE is_active = true ORDER BY order_index LIMIT 1')->fetch();
+$lote = $pdo->query('SELECT id, price FROM lotes WHERE is_active = true AND participant_type = \'participant\' ORDER BY order_index LIMIT 1')->fetch();
 
 if ($lote === false) {
     $pdo->exec(

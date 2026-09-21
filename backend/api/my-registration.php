@@ -18,6 +18,7 @@ try {
         'SELECT r.id AS registration_id, r.status, r.payment_status, r.participant_type,
                 r.registered_at, r.confirmed_at,
                 l.id AS lote_id, l.name AS lote_name, l.price AS lote_price,
+                (l.qr_code_path IS NOT NULL) AS lote_has_qr, l.pix_link AS lote_pix_link,
                 p.id AS payment_id, p.amount, p.status AS payment_status,
                 p.participant_confirmed_at, p.paid_at
          FROM registrations r
@@ -44,6 +45,8 @@ try {
                 'id'    => $row['lote_id'] !== null ? (int) $row['lote_id'] : null,
                 'name'  => $row['lote_name'],
                 'price' => $row['lote_price'] !== null ? (float) $row['lote_price'] : null,
+                'has_qr' => dbBool($row['lote_has_qr']),
+                'pix_link' => $row['lote_pix_link'],
             ],
         ];
         $payment = [

@@ -5,12 +5,19 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/http.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/lotes.php';
 
 corsHeaders();
 requireMethod('POST');
 requireCsrf();
 
 $user = requireLogin();
+
+$data = json_decode(file_get_contents('php://input') ?: '', true);
+$requestedLoteId = is_array($data) ? (int) ($data['lote_id'] ?? 0) : 0;
+if ($requestedLoteId <= 0) {
+    jsonResponse(422, false, 'Selecione um lote para se inscrever.');
+}
 
 try {
     $pdo = getDbConnection();
@@ -24,25 +31,30 @@ try {
 
     $pdo->beginTransaction();
 
-    // O lote não é escolhido pelo participante: é determinado automaticamente
-    // pela instituição dele. Prioriza um lote específico da instituição; se não
-    // houver, cai para um lote genérico (institution IS NULL). Trava a linha
-    // (FOR UPDATE) para evitar estouro de vagas em cadastros concorrentes.
+    // O participante escolhe o lote, mas só pode escolher um lote do próprio
+    // tipo (normal/voluntário/staff), aberto e da instituição dele (ou genérico,
+    // institution IS NULL). Trava a linha (FOR UPDATE) para evitar estouro de
+    // vagas em cadastros concorrentes.
     $loteStmt = $pdo->prepare(
-        "SELECT id, name, price, capacity, volunteer_discount_percent, starts_at, ends_at
+        "SELECT id, name, price, capacity, volunteer_discount_percent, starts_at, ends_at,
+                (qr_code_path IS NOT NULL) AS has_qr, pix_link
          FROM lotes
-         WHERE is_active = true
+         WHERE id = :id
+           AND is_active = true
+           AND participant_type = :participant_type
            AND (institution = :institution OR institution IS NULL)
-         ORDER BY (institution IS NULL) ASC
-         LIMIT 1
          FOR UPDATE"
     );
-    $loteStmt->execute([':institution' => $user['institution']]);
+    $loteStmt->execute([
+        ':id'               => $requestedLoteId,
+        ':participant_type' => $user['participant_type'],
+        ':institution'      => $user['institution'],
+    ]);
     $lote = $loteStmt->fetch();
 
     if ($lote === false) {
         $pdo->rollBack();
-        jsonResponse(422, false, 'Nenhum lote aberto no momento para sua instituição.');
+        jsonResponse(422, false, 'Este lote não está disponível para o seu perfil e instituição.');
     }
     $loteId = (int) $lote['id'];
 
@@ -71,14 +83,11 @@ try {
 
     // Preço conforme o tipo de participante (staff = gratuito; voluntário = desconto)
     $type  = $user['participant_type'];
-    $price = (float) $lote['price'];
-    if ($type === 'staff') {
-        $price = 0.0;
-    } elseif ($type === 'volunteer') {
-        $discount = (float) ($lote['volunteer_discount_percent'] ?? 0);
-        $price    = round($price * (1 - $discount / 100), 2);
-    }
-    $price = sprintf('%.2f', $price);
+    $price = sprintf('%.2f', loteFinalPrice(
+        (float) $lote['price'],
+        (float) ($lote['volunteer_discount_percent'] ?? 0),
+        $type
+    ));
 
     $insReg = $pdo->prepare(
         'INSERT INTO registrations (user_id, lote_id, came_from_presave, status, payment_status, participant_type)
@@ -116,6 +125,9 @@ try {
     jsonResponse(201, true, 'Inscrição realizada!', [
         'registration_id' => $regId,
         'payment_id'      => $payId,
+        'lote_id'         => $loteId,
+        'has_qr'          => dbBool($lote['has_qr']),
+        'pix_link'        => $lote['pix_link'],
         'amount'          => $price,
         'payment_status'  => $price === '0.00' ? 'paid' : 'pending',
         'pix'             => [

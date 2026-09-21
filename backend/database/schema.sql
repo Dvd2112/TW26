@@ -51,7 +51,10 @@ CREATE TABLE IF NOT EXISTS lotes (
     id          SERIAL         PRIMARY KEY,
     name        TEXT           NOT NULL,
     institution TEXT, -- NULL = qualquer instituição (lote genérico)
-    price       NUMERIC(10, 2) NOT NULL,
+    participant_type TEXT      NOT NULL DEFAULT 'participant'
+                          CONSTRAINT lotes_participant_type_check
+                          CHECK (participant_type IN ('participant', 'volunteer', 'staff')),
+    price      NUMERIC(10, 2) NOT NULL,
     capacity    INTEGER        NOT NULL,
     order_index INTEGER        NOT NULL,
     volunteer_discount_percent NUMERIC(5, 2) NOT NULL DEFAULT 0
@@ -59,6 +62,8 @@ CREATE TABLE IF NOT EXISTS lotes (
     starts_at   TIMESTAMPTZ,
     ends_at     TIMESTAMPTZ,
     is_active   BOOLEAN        NOT NULL DEFAULT FALSE,
+    qr_code_path TEXT, -- imagem do QR PIX (com o valor) em storage/qrcodes/; NULL = sem QR
+    pix_link    TEXT, -- link do PIX (http/https) mostrado como botão no pagamento; NULL = sem link
     created_at  TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
