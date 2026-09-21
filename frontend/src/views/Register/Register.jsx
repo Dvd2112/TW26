@@ -391,7 +391,10 @@ function Step3() {
               <img
                 src={`/TW26/backend/api/lote-qr.php?lote_id=${result.lote_id}`}
                 alt={`QR code PIX de R$ ${result.amount}`}
-                style={{ width: 220, height: 220, objectFit: 'contain', background: '#fff', borderRadius: 10, padding: 8 }}
+                style={{
+                  width: '100%', maxWidth: 360, aspectRatio: '1 / 1', boxSizing: 'border-box',
+                  objectFit: 'contain', background: '#fff', borderRadius: 12, padding: 12,
+                }}
               />
             )}
             <div className={styles.pixCard}>
