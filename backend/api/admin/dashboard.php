@@ -35,8 +35,7 @@ try {
          FROM lotes l ORDER BY l.order_index'
     )->fetchAll();
     foreach ($vagasPorLote as &$lote) {
-        // PDO_PGSQL retorna boolean como texto 't'/'f', não como PHP bool
-        $lote['is_active'] = $lote['is_active'] === 't';
+        $lote['is_active'] = dbBool($lote['is_active']);
     }
     unset($lote);
 

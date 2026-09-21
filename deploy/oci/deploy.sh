@@ -15,6 +15,16 @@ echo "==> git pull"
 git fetch origin main
 git reset --hard origin/main
 
+echo "==> storage: pastas de upload (comprovantes e QR codes) graváveis pelo php-fpm"
+# A raiz do repo é do usuário de deploy; sem isto o php-fpm (www-data) não
+# consegue criar storage/ e os uploads falham. É gitignored, então o
+# `git reset --hard` acima não apaga o que já foi enviado.
+cd "${REPO_PATH}"
+mkdir -p storage/comprovantes storage/qrcodes
+chgrp www-data storage storage/comprovantes storage/qrcodes \
+  || echo "!! aviso: não consegui aplicar o grupo www-data em storage/ (o usuário de deploy está no grupo www-data?)"
+chmod 2775 storage storage/comprovantes storage/qrcodes
+
 echo "==> backend: composer install"
 cd "${REPO_PATH}/backend"
 composer install --no-dev --no-progress --prefer-dist

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Form, Input, Select, Button, message } from 'antd';
+import { Form, Input, Select, Button, Upload, message } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
@@ -15,17 +16,6 @@ function formatCPF(value) {
   if (d.length <= 6) return `${d.slice(0, 3)}.${d.slice(3)}`;
   if (d.length <= 9) return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6)}`;
   return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
-}
-
-function validateCPF(cpf) {
-  const d = cpf.replace(/\D/g, '');
-  if (d.length !== 11 || /^(\d)\1+$/.test(d)) return false;
-  let s = 0;
-  for (let i = 0; i < 9; i++) s += +d[i] * (10 - i);
-  if (((s * 10) % 11) % 10 !== +d[9]) return false;
-  s = 0;
-  for (let i = 0; i < 10; i++) s += +d[i] * (11 - i);
-  return ((s * 10) % 11) % 10 === +d[10];
 }
 
 function goToStep(step) {
@@ -147,8 +137,13 @@ function Step2() {
             rules={[
               { required: true, message: 'Informe seu CPF' },
               {
-                validator: (_, v) =>
-                  !v || validateCPF(v) ? Promise.resolve() : Promise.reject('CPF inválido'),
+                validator: (_, v) => {
+                  const d = (v || '').replace(/\D/g, '');
+                  if (!d) return Promise.resolve();
+                  if (d.length !== 11) return Promise.reject('O CPF deve ter 11 dígitos');
+                  if (/^(\d)\1+$/.test(d)) return Promise.reject('CPF inválido');
+                  return Promise.resolve();
+                },
               },
             ]}
             style={{ flex: 1 }}
@@ -233,31 +228,53 @@ function Step2() {
   );
 }
 
-/* ─── Step 3: inscrição automática (lote definido pela instituição) + PIX ─── */
+/* ─── Step 3: escolha do lote (do tipo do usuário) + inscrição + PIX ─────── */
 function Step3() {
-  const [status, setStatus] = useState('loading'); // loading | error | done
+  const [status, setStatus] = useState('loading'); // loading | choose | error | done
   const [errorMsg, setErrorMsg] = useState('');
+  const [lotes, setLotes] = useState([]);
+  const [enrollingId, setEnrollingId] = useState(null);
   const [result, setResult] = useState(null);
   const [paid, setPaid] = useState(false);
   const [confirmingPayment, setConfirmingPayment] = useState(false);
+  const [proofFile, setProofFile] = useState(null);
 
   useEffect(() => {
-    axios.post('/TW26/backend/api/registrations.php')
+    axios.get('/TW26/backend/api/lotes.php')
       .then((res) => {
-        sessionStorage.removeItem(STORAGE_KEY);
-        setResult(res.data);
-        setStatus('done');
+        setLotes(res.data.lotes ?? []);
+        setStatus('choose');
       })
       .catch((err) => {
-        setErrorMsg(err.response?.data?.message ?? 'Erro ao realizar a inscrição.');
+        setErrorMsg(err.response?.data?.message ?? 'Erro ao carregar os lotes.');
         setStatus('error');
       });
   }, []);
 
+  const enroll = async (loteId) => {
+    setEnrollingId(loteId);
+    try {
+      const res = await axios.post('/TW26/backend/api/registrations.php', { lote_id: loteId });
+      sessionStorage.removeItem(STORAGE_KEY);
+      setResult(res.data);
+      setStatus('done');
+    } catch (err) {
+      message.error(err.response?.data?.message ?? 'Erro ao realizar a inscrição.');
+    } finally {
+      setEnrollingId(null);
+    }
+  };
+
   const confirmPayment = async () => {
+    if (!proofFile) {
+      message.error('Anexe o comprovante do PIX antes de enviar.');
+      return;
+    }
     setConfirmingPayment(true);
     try {
-      await axios.post('/TW26/backend/api/payments.php');
+      const formData = new FormData();
+      formData.append('comprovante', proofFile);
+      await axios.post('/TW26/backend/api/payments.php', formData);
       setPaid(true);
     } catch (err) {
       message.error(err.response?.data?.message ?? 'Erro ao confirmar pagamento.');
@@ -271,8 +288,59 @@ function Step3() {
       <motion.div className={styles.formCard} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <p className={styles.stepLabel}>Etapa 3 de 3</p>
         <p style={{ textAlign: 'center', color: '#D9D9D9', margin: '24px 0' }}>
-          Finalizando sua inscrição...
+          Carregando lotes disponíveis...
         </p>
+      </motion.div>
+    );
+  }
+
+  if (status === 'choose') {
+    return (
+      <motion.div className={styles.formCard} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <p className={styles.stepLabel}>Etapa 3 de 3</p>
+        {lotes.length === 0 ? (
+          <>
+            <p className={styles.successText} style={{ textAlign: 'center', margin: '0 auto' }}>
+              Nenhum lote aberto no momento para o seu perfil e instituição.
+            </p>
+            <a href="?page=account">
+              <Button block style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', marginTop: 16 }}>
+                Ir para Minha Conta
+              </Button>
+            </a>
+          </>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {lotes.map((lote) => (
+              <div key={lote.id} className={styles.loteOption}>
+                <div>
+                  <div className={styles.loteName}>{lote.name}</div>
+                  <div className={styles.loteMeta}>
+                    {lote.final_price === 0
+                      ? 'Gratuito'
+                      : `R$ ${lote.final_price.toFixed(2)}`}
+                    {lote.final_price !== lote.price && lote.price > 0 && (
+                      <s style={{ color: '#888', marginLeft: 8, fontWeight: 400 }}>
+                        R$ {lote.price.toFixed(2)}
+                      </s>
+                    )}
+                    {' · '}
+                    {lote.is_full ? 'Esgotado' : `${lote.available} vaga${lote.available === 1 ? '' : 's'}`}
+                  </div>
+                </div>
+                <Button
+                  type="primary"
+                  disabled={lote.is_full}
+                  loading={enrollingId === lote.id}
+                  onClick={() => enroll(lote.id)}
+                  style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}
+                >
+                  Inscrever-se
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
       </motion.div>
     );
   }
@@ -305,7 +373,8 @@ function Step3() {
 
         {isFree ? (
           <p className={styles.successText}>
-            Sua inscrição está <strong>confirmada</strong>. Você não precisa pagar.
+            Você não precisa pagar. Sua inscrição será <strong>aprovada</strong> pela
+            organização em breve.
           </p>
         ) : paid ? (
           <p className={styles.successText}>
@@ -318,22 +387,51 @@ function Step3() {
               Falta só o pagamento de <strong>R$ {result.amount}</strong> para
               confirmar sua vaga. Transfira o valor via PIX:
             </p>
+            {result.has_qr && (
+              <img
+                src={`/TW26/backend/api/lote-qr.php?lote_id=${result.lote_id}`}
+                alt={`QR code PIX de R$ ${result.amount}`}
+                style={{ width: 220, height: 220, objectFit: 'contain', background: '#fff', borderRadius: 10, padding: 8 }}
+              />
+            )}
             <div className={styles.pixCard}>
               <p><strong>Chave PIX:</strong> <span>{result.pix?.key}</span></p>
               <p><strong>Titular:</strong> {result.pix?.name}</p>
               <p><strong>Cidade:</strong> {result.pix?.city}</p>
             </div>
+            {result.pix_link && (
+              <a href={result.pix_link} target="_blank" rel="noopener noreferrer">
+                <Button style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', fontWeight: 600 }}>
+                  Pagar pelo link do PIX
+                </Button>
+              </a>
+            )}
+            <p className={styles.successText}>
+              Depois de pagar, anexe o <strong>comprovante do PIX</strong> (obrigatório —
+              JPG, PNG ou PDF, até 5MB):
+            </p>
+            <Upload
+              accept=".jpg,.jpeg,.png,.pdf"
+              maxCount={1}
+              beforeUpload={(f) => { setProofFile(f); return false; }}
+              onRemove={() => setProofFile(null)}
+              fileList={proofFile ? [proofFile] : []}
+            >
+              <Button icon={<UploadOutlined />}>Selecionar comprovante</Button>
+            </Upload>
             <Button
               type="primary"
               size="large"
               loading={confirmingPayment}
+              disabled={!proofFile}
               onClick={confirmPayment}
               style={{ background: '#8A00C4', border: 'none', fontWeight: 700, height: 48, width: '100%', maxWidth: 360 }}
             >
-              Já fiz o PIX
+              Enviar comprovante
             </Button>
             <p className={styles.successText} style={{ fontSize: '0.8rem' }}>
-              Assim que você clicar, nossa equipe valida o recebimento e confirma.
+              Assim que você enviar, nossa equipe confere o comprovante e aprova sua inscrição.
+              Você também pode enviar depois, em Minha Conta.
             </p>
           </>
         )}
@@ -366,7 +464,7 @@ export default function Register() {
     ? {
         tag: '// Inscrição – Etapa 3',
         title: 'Quase lá!',
-        subtitle: 'Estamos confirmando sua vaga no lote da sua instituição.',
+        subtitle: 'Escolha o lote disponível para o seu perfil e garanta sua vaga.',
       }
     : {
         tag: '// Inscrição – Etapa 1',

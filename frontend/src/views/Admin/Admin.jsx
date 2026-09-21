@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Tabs, Table, Card, Button, Modal, Form, Input, InputNumber, Select, Tag,
-  Statistic, Row, Col, Space, Popconfirm, message, Progress, DatePicker, TimePicker,
+  Statistic, Row, Col, Space, Popconfirm, message, Progress, DatePicker, TimePicker, Upload,
 } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -128,6 +129,25 @@ function OverviewTab() {
 }
 
 /* ─── Inscrições ─────────────────────────────────────────────────────────── */
+/**
+ * Abre o comprovante (imagem/PDF) numa aba nova. Busca via axios (com o cookie
+ * de sessão) e abre como blob: uma navegação direta ao PHP não passa pelo proxy
+ * do CRA em desenvolvimento (que devolve o index.html para requisições de página).
+ */
+async function openProof(paymentId) {
+  try {
+    const res = await axios.get('/TW26/backend/api/admin/payment-proof.php', {
+      params: { payment_id: paymentId },
+      responseType: 'blob',
+    });
+    const url = URL.createObjectURL(res.data);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  } catch {
+    message.error('Não foi possível abrir o comprovante.');
+  }
+}
+
 function RegistrationsTab() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +214,7 @@ function RegistrationsTab() {
           ? (
             <Button
               size="small"
-              onClick={() => window.open(`/TW26/backend/api/admin/payment-proof.php?payment_id=${r.payment_id}`, '_blank')}
+              onClick={() => openProof(r.payment_id)}
             >
               Ver
             </Button>
@@ -273,6 +293,9 @@ function LotesTab() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [qrFile, setQrFile] = useState(null);
+  const [removeQr, setRemoveQr] = useState(false);
+  const [qrBust, setQrBust] = useState(0); // força recarregar a imagem após substituir
   const [form] = Form.useForm();
 
   const load = () => {
@@ -288,19 +311,26 @@ function LotesTab() {
 
   const openNew = () => {
     setEditing(null);
+    setQrFile(null);
+    setRemoveQr(false);
     form.resetFields();
-    form.setFieldsValue({ price: 0, capacity: 100, is_active: '0', discount: 0, institution: '' });
+    form.setFieldsValue({ price: 0, capacity: 100, is_active: '0', discount: 0, institution: '', participant_type: 'participant' });
     setOpen(true);
   };
 
   const openEdit = (lote) => {
     setEditing(lote);
+    setQrFile(null);
+    setRemoveQr(false);
+    setQrBust(Date.now());
     const starts = lote.starts_at ? dayjs(lote.starts_at) : null;
     const ends = lote.ends_at ? dayjs(lote.ends_at) : null;
     form.setFieldsValue({
       name: lote.name, price: lote.price, capacity: lote.capacity,
       order_index: lote.order_index, is_active: lote.is_active ? '1' : '0',
       discount: lote.discount, institution: lote.institution ?? '',
+      participant_type: lote.participant_type ?? 'participant',
+      pix_link: lote.pix_link ?? '',
       starts_date: starts, starts_time: starts,
       ends_date: ends, ends_time: ends,
     });
@@ -308,27 +338,57 @@ function LotesTab() {
   };
 
   const save = async () => {
-    const v = await form.validateFields();
+    let v;
+    try {
+      v = await form.validateFields();
+    } catch {
+      return; // campos inválidos: o antd já destaca os erros no formulário
+    }
     const payload = {
       name: v.name, price: v.price, capacity: v.capacity,
       order_index: v.order_index, discount: v.discount,
       institution: v.institution || '',
+      participant_type: v.participant_type,
+      pix_link: (v.pix_link ?? '').trim(),
       is_active: v.is_active === '1',
       starts_at: combineDateTime(v.starts_date, v.starts_time),
       ends_at: combineDateTime(v.ends_date, v.ends_time),
     };
+    let loteId = editing?.id;
     try {
       if (editing) {
         await axios.put('/TW26/backend/api/admin/lotes.php', { id: editing.id, ...payload });
       } else {
-        await axios.post('/TW26/backend/api/admin/lotes.php', payload);
+        const res = await axios.post('/TW26/backend/api/admin/lotes.php', payload);
+        loteId = res.data.id;
       }
-      message.success(editing ? 'Lote atualizado.' : 'Lote criado.');
-      setOpen(false);
-      load();
     } catch (err) {
       message.error(err.response?.data?.message ?? 'Erro ao salvar lote.');
+      return;
     }
+
+    // QR code: enviado/removido depois de o lote existir (precisa do id)
+    try {
+      if (qrFile) {
+        const formData = new FormData();
+        formData.append('id', loteId);
+        formData.append('qr', qrFile);
+        await axios.post('/TW26/backend/api/admin/lote-qr.php', formData);
+      } else if (removeQr && editing?.has_qr) {
+        await axios.delete('/TW26/backend/api/admin/lote-qr.php', { data: { id: loteId } });
+      }
+    } catch (err) {
+      message.warning(
+        `Lote salvo, mas o QR code não foi atualizado: ${err.response?.data?.message ?? 'erro inesperado'} Edite o lote para tentar de novo.`,
+      );
+      setOpen(false);
+      load();
+      return;
+    }
+
+    message.success(editing ? 'Lote atualizado.' : 'Lote criado.');
+    setOpen(false);
+    load();
   };
 
   const remove = async (id) => {
@@ -343,6 +403,10 @@ function LotesTab() {
 
   const columns = [
     { title: 'Nome', dataIndex: 'name' },
+    {
+      title: 'Tipo de usuário', dataIndex: 'participant_type',
+      render: (v) => <Tag color="purple">{TYPE_LABELS[v] ?? v}</Tag>,
+    },
     {
       title: 'Instituição', dataIndex: 'institution',
       render: (v) => (v ? <Tag color="geekblue">{v}</Tag> : <Tag>Todas</Tag>),
@@ -362,6 +426,10 @@ function LotesTab() {
     {
       title: 'Status', dataIndex: 'is_active',
       render: (v) => (v ? <Tag color="green">Aberto</Tag> : <Tag>Fechado</Tag>),
+    },
+    {
+      title: 'QR PIX', dataIndex: 'has_qr',
+      render: (v) => (v ? <Tag color="green">Enviado</Tag> : <Tag>Sem QR</Tag>),
     },
     {
       title: 'Ações', key: 'actions',
@@ -417,7 +485,7 @@ function LotesTab() {
               <Form.Item
                 name="institution"
                 label="Instituição"
-                extra="Vazio = vale para qualquer instituição. Só pode existir 1 lote aberto por instituição."
+                extra="Vazio = vale para qualquer instituição. Só pode existir 1 lote aberto por instituição e tipo de usuário."
               >
                 <Select allowClear placeholder="Todas as instituições">
                   <Option value="UTFPR">UTFPR</Option>
@@ -439,6 +507,20 @@ function LotesTab() {
             </Col>
           </Row>
           <Row gutter={16}>
+            <Col xs={24} md={16}>
+              <Form.Item
+                name="participant_type"
+                label="Tipo de usuário"
+                extra="O lote só é visível e utilizável por usuários deste tipo."
+                rules={[{ required: true, message: 'Informe o tipo de usuário' }]}
+              >
+                <Select>
+                  <Option value="participant">Normal</Option>
+                  <Option value="volunteer">Voluntário</Option>
+                  <Option value="staff">Staff</Option>
+                </Select>
+              </Form.Item>
+            </Col>
             <Col xs={24} md={8}>
               <Form.Item name="discount" label="Desconto voluntário (%)">
                 <InputNumber min={0} max={100} style={{ width: '100%' }} />
@@ -467,6 +549,44 @@ function LotesTab() {
               </Form.Item>
             </Col>
           </Row>
+          <Form.Item
+            name="pix_link"
+            label="Link do PIX (opcional)"
+            extra="Se preenchido, o usuário vê um botão para pagar pelo link, além do QR code."
+            rules={[{ type: 'url', message: 'Informe um link válido (https://...)' }]}
+          >
+            <Input placeholder="https://..." />
+          </Form.Item>
+          <Form.Item
+            label="QR code PIX do lote"
+            extra="Imagem do QR com o valor deste lote (JPG, PNG ou WEBP, até 2MB). Aparece para o usuário na tela de pagamento."
+          >
+            {editing?.has_qr && !removeQr && !qrFile && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                <img
+                  src={`/TW26/backend/api/lote-qr.php?lote_id=${editing.id}&v=${qrBust}`}
+                  alt="QR code atual do lote"
+                  style={{ width: 96, height: 96, objectFit: 'contain', background: '#fff', borderRadius: 6 }}
+                />
+                <Button size="small" danger onClick={() => setRemoveQr(true)}>Remover QR</Button>
+              </div>
+            )}
+            {removeQr && !qrFile && (
+              <p className={styles.muted}>
+                O QR atual será removido ao salvar.{' '}
+                <Button type="link" size="small" onClick={() => setRemoveQr(false)}>Desfazer</Button>
+              </p>
+            )}
+            <Upload
+              accept=".jpg,.jpeg,.png,.webp"
+              maxCount={1}
+              beforeUpload={(f) => { setQrFile(f); return false; }}
+              onRemove={() => setQrFile(null)}
+              fileList={qrFile ? [qrFile] : []}
+            >
+              <Button icon={<UploadOutlined />}>{editing?.has_qr ? 'Substituir imagem' : 'Selecionar imagem'}</Button>
+            </Upload>
+          </Form.Item>
         </Form>
       </Modal>
     </Card>
