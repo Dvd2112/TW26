@@ -3,7 +3,7 @@ import {
   Tabs, Table, Card, Button, Modal, Form, Input, InputNumber, Select, Tag,
   Statistic, Row, Col, Space, Popconfirm, message, Progress, DatePicker, TimePicker, Upload,
 } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { UploadOutlined, SearchOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -34,6 +34,35 @@ const PAY_COLORS = {
 const REG_LABELS = { pending: 'Pendente', confirmed: 'Confirmado', cancelled: 'Cancelado' };
 
 const ACTIVITY_TYPE_LABELS = { palestra: 'Palestra', workshop: 'Workshop', oficina: 'Oficina' };
+
+/** Minúsculas e sem acentos, para a busca não depender de "José" vs "jose". */
+const normalizeText = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/**
+ * Filtra linhas por texto livre. `getText(row)` devolve tudo que é pesquisável na linha;
+ * a busca com várias palavras exige que todas apareçam (ex.: "maria pago").
+ */
+function filterRows(rows, query, getText) {
+  const terms = normalizeText(query).split(/\s+/).filter(Boolean);
+  if (terms.length === 0) return rows;
+  return rows.filter((row) => {
+    const haystack = normalizeText(getText(row));
+    return terms.every((t) => haystack.includes(t));
+  });
+}
+
+function SearchInput({ value, onChange, placeholder = 'Buscar...', width = 260 }) {
+  return (
+    <Input
+      allowClear
+      prefix={<SearchOutlined />}
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{ width, maxWidth: '100%' }}
+    />
+  );
+}
 
 /** Junta uma data (DatePicker) e um horário (TimePicker), ambos dayjs, num ISO local. */
 function combineDateTime(date, time) {
@@ -157,6 +186,7 @@ function RegistrationsTab() {
   const [fIndex, setFIndex] = useState(null);
   const [lotes, setLotes] = useState([]);
   const [confirming, setConfirming] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     axios.get('/TW26/backend/api/admin/lotes.php')
@@ -281,6 +311,7 @@ function RegistrationsTab() {
   return (
     <Card>
       <Space style={{ marginBottom: 16 }} wrap>
+        <SearchInput value={search} onChange={setSearch} placeholder="Buscar nome, e-mail, lote, índice..." width={300} />
         <Select
           placeholder="Lote" allowClear style={{ width: 200 }}
           value={fLote ?? undefined} onChange={changeLote}
@@ -305,7 +336,11 @@ function RegistrationsTab() {
       </Space>
       <Table
         rowKey="payment_id"
-        dataSource={rows}
+        dataSource={filterRows(rows, search, (r) => [
+          r.name, r.email, TYPE_LABELS[r.reg_type], r.lote_name,
+          r.lote_index === null ? '' : `#${r.lote_index} ${r.lote_index}`,
+          PAY_LABELS[r.payment_status],
+        ].join(' '))}
         columns={columns}
         loading={loading}
         pagination={{ pageSize: 15 }}
@@ -321,6 +356,7 @@ function LoteRegistrations({ loteId, onChanged }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
+  const [search, setSearch] = useState('');
 
   const load = useCallback(() => {
     axios.get('/TW26/backend/api/admin/payments.php', { params: { lote_id: loteId } })
@@ -413,7 +449,12 @@ function LoteRegistrations({ loteId, onChanged }) {
     },
   ];
 
-  const byStatus = (status) => rows.filter((r) => r.reg_status === status);
+  const filtered = filterRows(rows, search, (r) => [
+    r.name, r.email, TYPE_LABELS[r.reg_type],
+    r.lote_index === null ? '' : `#${r.lote_index} ${r.lote_index}`,
+    PAY_LABELS[r.payment_status],
+  ].join(' '));
+  const byStatus = (status) => filtered.filter((r) => r.reg_status === status);
   const tab = (key, label) => {
     const list = byStatus(key);
     return {
@@ -434,15 +475,20 @@ function LoteRegistrations({ loteId, onChanged }) {
   };
 
   return (
-    <Tabs
-      size="small"
-      defaultActiveKey="confirmed"
-      items={[
-        tab('confirmed', 'Inscritos'),
-        tab('pending', 'Pendentes'),
-        tab('cancelled', 'Cancelados'),
-      ]}
-    />
+    <div>
+      <div style={{ marginBottom: 12 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder="Buscar nome, e-mail, índice..." width={300} />
+      </div>
+      <Tabs
+        size="small"
+        defaultActiveKey="confirmed"
+        items={[
+          tab('confirmed', 'Inscritos'),
+          tab('pending', 'Pendentes'),
+          tab('cancelled', 'Cancelados'),
+        ]}
+      />
+    </div>
   );
 }
 
@@ -455,6 +501,7 @@ function LotesTab() {
   const [qrFile, setQrFile] = useState(null);
   const [removeQr, setRemoveQr] = useState(false);
   const [qrBust, setQrBust] = useState(0); // força recarregar a imagem após substituir
+  const [search, setSearch] = useState('');
   const [form] = Form.useForm();
 
   const load = () => {
@@ -610,11 +657,19 @@ function LotesTab() {
   return (
     <Card
       title="Lotes"
-      extra={<Button type="primary" onClick={openNew} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>Novo lote</Button>}
+      extra={(
+        <Space wrap>
+          <SearchInput value={search} onChange={setSearch} placeholder="Buscar lote, instituição, tipo..." />
+          <Button type="primary" onClick={openNew} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>Novo lote</Button>
+        </Space>
+      )}
     >
       <Table
         rowKey="id"
-        dataSource={lotes}
+        dataSource={filterRows(lotes, search, (l) => [
+          l.name, TYPE_LABELS[l.participant_type], l.institution || 'Todas',
+          l.is_active ? 'Aberto' : 'Fechado', l.has_qr ? 'QR enviado' : 'Sem QR',
+        ].join(' '))}
         columns={columns}
         loading={loading}
         pagination={false}
@@ -773,6 +828,8 @@ function FinanceiroTab() {
   const [revenues, setRevenues] = useState([]);
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState('expense');
+  const [expenseSearch, setExpenseSearch] = useState('');
+  const [revenueSearch, setRevenueSearch] = useState('');
   const [form] = Form.useForm();
 
   const loadAll = () => {
@@ -848,10 +905,14 @@ function FinanceiroTab() {
         Lançar receita
       </Button>
 
-      <Card title="Despesas" style={{ marginTop: 16 }}>
+      <Card
+        title="Despesas"
+        style={{ marginTop: 16 }}
+        extra={<SearchInput value={expenseSearch} onChange={setExpenseSearch} placeholder="Buscar despesa..." />}
+      >
         <Table
           rowKey="id"
-          dataSource={expenses}
+          dataSource={filterRows(expenses, expenseSearch, (e) => `${e.category} ${e.description}`)}
           size="small"
           pagination={{ pageSize: 8 }}
           columns={[
@@ -870,10 +931,14 @@ function FinanceiroTab() {
         />
       </Card>
 
-      <Card title="Receitas extras (patrocínio, doações...)" style={{ marginTop: 16 }}>
+      <Card
+        title="Receitas extras (patrocínio, doações...)"
+        style={{ marginTop: 16 }}
+        extra={<SearchInput value={revenueSearch} onChange={setRevenueSearch} placeholder="Buscar receita..." />}
+      >
         <Table
           rowKey="id"
-          dataSource={revenues}
+          dataSource={filterRows(revenues, revenueSearch, (r) => `${r.category} ${r.description}`)}
           size="small"
           pagination={{ pageSize: 8 }}
           columns={[
@@ -933,6 +998,8 @@ function AdminActivitiesTab() {
   const [enrollments, setEnrollments] = useState([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState('');
+  const [enrollSearch, setEnrollSearch] = useState('');
   const [form] = Form.useForm();
 
   const load = () => {
@@ -1005,13 +1072,19 @@ function AdminActivitiesTab() {
 
   return (
     <div>
-      <Button type="primary" style={{ background: '#8A00C4', borderColor: '#8A00C4', marginBottom: 16 }} onClick={openNew}>
-        Nova atividade
-      </Button>
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Button type="primary" style={{ background: '#8A00C4', borderColor: '#8A00C4' }} onClick={openNew}>
+          Nova atividade
+        </Button>
+        <SearchInput value={search} onChange={setSearch} placeholder="Buscar título, palestrante, local..." width={300} />
+      </Space>
 
       <Table
         rowKey="id"
-        dataSource={activities}
+        dataSource={filterRows(activities, search, (a) => [
+          a.title, ACTIVITY_TYPE_LABELS[a.type], a.speaker_name, a.location,
+          a.is_published ? 'Publicada' : 'Não publicada',
+        ].join(' '))}
         size="small"
         pagination={false}
         columns={[
@@ -1040,10 +1113,16 @@ function AdminActivitiesTab() {
         ]}
       />
 
-      <Card title="Inscritos por atividade" style={{ marginTop: 16 }}>
+      <Card
+        title="Inscritos por atividade"
+        style={{ marginTop: 16 }}
+        extra={<SearchInput value={enrollSearch} onChange={setEnrollSearch} placeholder="Buscar atividade, nome, e-mail..." width={300} />}
+      >
         <Table
           rowKey={(r) => `${r.activity_id}-${r.user_id}`}
-          dataSource={enrollments}
+          dataSource={filterRows(enrollments, enrollSearch, (e) => [
+            activities.find((a) => Number(a.id) === Number(e.activity_id))?.title, e.name, e.email,
+          ].join(' '))}
           size="small"
           pagination={{ pageSize: 10 }}
           columns={[
@@ -1148,6 +1227,7 @@ function UsersTab() {
   const [available, setAvailable] = useState([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [search, setSearch] = useState('');
   const [form] = Form.useForm();
 
   const load = () => {
@@ -1242,7 +1322,20 @@ function UsersTab() {
       extra={<Button type="primary" onClick={openNew} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>Novo usuário</Button>}
     >
       <p className={styles.muted}>Cadastre participantes (normal/voluntário/staff) e admins. Voluntários têm desconto; staff é isento.</p>
-      <Table rowKey="id" dataSource={users} columns={columns} size="small" pagination={{ pageSize: 15 }} />
+      <div style={{ marginBottom: 16 }}>
+        <SearchInput value={search} onChange={setSearch} placeholder="Buscar nome, e-mail, CPF, lote, permissão..." width={360} />
+      </div>
+      <Table
+        rowKey="id"
+        dataSource={filterRows(users, search, (u) => [
+          u.name, u.email, u.cpf, u.institution, TYPE_LABELS[u.participant_type], u.lote_name,
+          u.lote_index === null ? '' : `#${u.lote_index} ${u.lote_index}`,
+          (u.permissions ?? []).join(' '),
+        ].join(' '))}
+        columns={columns}
+        size="small"
+        pagination={{ pageSize: 15 }}
+      />
 
       <Modal
         title={editing ? 'Editar usuário' : 'Novo usuário'}
