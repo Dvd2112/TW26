@@ -13,16 +13,18 @@ const TYPE_LABELS = {
 };
 
 const PAYMENT_LABELS = {
-  unpaid: 'Aguardando pagamento',
+  pending: 'Aguardando pagamento',
   awaiting_confirmation: 'Pagamento em confirmação',
   paid: 'Pago',
+  failed: 'Falhou',
   refunded: 'Reembolsado',
 };
 
 const PAYMENT_COLORS = {
-  unpaid: 'orange',
+  pending: 'orange',
   awaiting_confirmation: 'gold',
   paid: 'green',
+  failed: 'red',
   refunded: 'default',
 };
 
@@ -199,7 +201,7 @@ export default function Account() {
                 </Tag>
               </p>
 
-              {payment && payment.status === 'unpaid' && (
+              {payment && (payment.status === 'pending' || payment.status === 'failed') && (
                 <div className={styles.pixCard}>
                   <p className={styles.line}><strong>Valor:</strong> R$ {Number(payment.amount).toFixed(2)}</p>
                   {registration.lote?.has_qr && (

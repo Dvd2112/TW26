@@ -19,7 +19,7 @@ try {
                 r.registered_at, r.confirmed_at,
                 l.id AS lote_id, l.name AS lote_name, l.price AS lote_price,
                 (l.qr_code_path IS NOT NULL) AS lote_has_qr, l.pix_link AS lote_pix_link,
-                p.id AS payment_id, p.amount, p.status AS payment_status,
+                p.id AS payment_id, p.amount, p.status AS payment_row_status,
                 p.participant_confirmed_at, p.paid_at
          FROM registrations r
          LEFT JOIN lotes l ON l.id = r.lote_id
@@ -52,7 +52,7 @@ try {
         $payment = [
             'id'                     => $row['payment_id'] !== null ? (int) $row['payment_id'] : null,
             'amount'                 => $row['amount'] !== null ? (float) $row['amount'] : null,
-            'status'                 => $row['payment_status'],
+            'status'                 => $row['payment_row_status'],
             'participant_confirmed_at' => $row['participant_confirmed_at'],
             'paid_at'                => $row['paid_at'],
         ];
