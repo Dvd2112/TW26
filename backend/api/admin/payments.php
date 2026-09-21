@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
 require_once __DIR__ . '/../../config/mailer.php';
+require_once __DIR__ . '/../../config/lotes.php';
 
 corsHeaders();
 requireCsrf();
@@ -20,6 +21,7 @@ if ($method === 'GET') {
     $status = trim($_GET['status'] ?? '');
     $loteId = (int) ($_GET['lote_id'] ?? 0);
     $tipo   = trim($_GET['participant_type'] ?? '');
+    $index  = (int) ($_GET['lote_index'] ?? 0);
 
     $where  = [];
     $params = [];
@@ -31,6 +33,10 @@ if ($method === 'GET') {
         $where[] = 'r.lote_id = :lote';
         $params[':lote'] = $loteId;
     }
+    if ($index > 0) {
+        $where[] = 'r.lote_index = :idx';
+        $params[':idx'] = $index;
+    }
     if ($tipo !== '') {
         $where[] = 'r.participant_type = :tipo';
         $params[':tipo'] = $tipo;
@@ -41,6 +47,8 @@ if ($method === 'GET') {
         $stmt = $pdo->prepare(
             "SELECT u.id AS user_id, u.name, u.email, u.participant_type AS user_type,
                     r.id AS registration_id, r.status AS reg_status, r.participant_type AS reg_type,
+                    r.registered_at, r.lote_id, r.lote_index,
+                    (" . loteOccupiesSlotSql('r') . ") AS holds_slot,
                     l.name AS lote_name, l.price AS lote_price,
                     p.id AS payment_id, p.amount, p.status AS payment_status,
                     p.participant_confirmed_at, p.paid_at, p.confirmed_note,
@@ -59,9 +67,12 @@ if ($method === 'GET') {
             $row['amount']     = $row['amount'] !== null ? (float) $row['amount'] : null;
             $row['lote_price'] = $row['lote_price'] !== null ? (float) $row['lote_price'] : null;
             $row['user_id']    = (int) $row['user_id'];
+            $row['lote_id']    = $row['lote_id'] !== null ? (int) $row['lote_id'] : null;
+            $row['lote_index'] = $row['lote_index'] !== null ? (int) $row['lote_index'] : null;
             $row['registration_id'] = (int) $row['registration_id'];
             $row['payment_id'] = $row['payment_id'] !== null ? (int) $row['payment_id'] : null;
             $row['has_proof']  = dbBool($row['has_proof']);
+            $row['holds_slot'] = dbBool($row['holds_slot']);
         }
         unset($row);
 
@@ -110,12 +121,13 @@ if ($method === 'POST') {
         $now = (new DateTimeImmutable('now'))->format('Y-m-d H:i:sP');
 
         if ($action === 'confirm') {
-            // A aprovação da inscrição é sempre manual: mesmo pagamentos já
-            // marcados como 'paid' (ex.: staff/gratuito) ficam em 'pending'
-            // até um admin aprovar explicitamente.
+            // Aprovado == pago: inscrições gratuitas (staff) já nascem
+            // confirmadas; aqui o admin aprova as pagas via PIX.
             if ($pay['registration_status'] === 'confirmed') {
                 jsonResponse(409, false, 'Inscrição já confirmada.');
             }
+
+            $pdo->beginTransaction();
 
             if ($pay['payment_status'] !== 'paid') {
                 $pdo->prepare(
@@ -130,10 +142,16 @@ if ($method === 'POST') {
                  WHERE id = :rid'
             )->execute([':now' => $now, ':rid' => $pay['registration_id']]);
 
+            // Pagou: entra na numeração do lote (1, 2, 3...)
+            $loteIndex = assignLoteIndex($pdo, (int) $pay['registration_id']);
+
+            $pdo->commit();
+
             appLog('admin.registration_approved', [
                 'admin_id'        => $user['id'],
                 'registration_id' => $pay['registration_id'],
                 'payment_id'      => $paymentId,
+                'lote_index'      => $loteIndex,
             ]);
 
             try {
@@ -178,6 +196,9 @@ if ($method === 'POST') {
 
         jsonResponse(200, true, 'Inscrição cancelada.');
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('[TW26] admin/payments POST: ' . $e->getMessage());
         jsonResponse(500, false, 'Erro interno ao atualizar pagamento.');
     }

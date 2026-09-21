@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
+require_once __DIR__ . '/../../config/lotes.php';
 
 corsHeaders();
 requireMethod('GET');
@@ -31,7 +32,7 @@ try {
     $vagasPorLote = $pdo->query(
         'SELECT l.id, l.name, l.capacity, l.is_active,
                 (SELECT count(*) FROM registrations r
-                  WHERE r.lote_id = l.id AND r.status <> \'cancelled\') AS enrolled
+                  WHERE r.lote_id = l.id AND ' . loteOccupiesSlotSql('r') . ') AS enrolled
          FROM lotes l ORDER BY l.order_index'
     )->fetchAll();
     foreach ($vagasPorLote as &$lote) {

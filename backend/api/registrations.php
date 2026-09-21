@@ -71,7 +71,7 @@ try {
 
     // Capacidade
     $countStmt = $pdo->prepare(
-        'SELECT count(*) FROM registrations WHERE lote_id = :id AND status <> \'cancelled\''
+        'SELECT count(*) FROM registrations r WHERE r.lote_id = :id AND ' . loteOccupiesSlotSql('r')
     );
     $countStmt->execute([':id' => $loteId]);
     $enrolled = (int) $countStmt->fetchColumn();
@@ -89,15 +89,20 @@ try {
         $type
     ));
 
+    // Aprovado == pago: inscrição gratuita já nasce paga, logo já nasce confirmada.
+    $isFree = $price === '0.00';
+
     $insReg = $pdo->prepare(
-        'INSERT INTO registrations (user_id, lote_id, came_from_presave, status, payment_status, participant_type)
-         VALUES (:uid, :lote, true, \'pending\', :payment_status, :type)'
+        'INSERT INTO registrations (user_id, lote_id, came_from_presave, status, payment_status, participant_type, confirmed_at)
+         VALUES (:uid, :lote, true, :status, :payment_status, :type, :confirmed_at)'
     );
     $insReg->execute([
         ':uid'            => $user['id'],
         ':lote'           => $loteId,
-        ':payment_status' => $price === '0.00' ? 'paid' : 'unpaid',
+        ':status'         => $isFree ? 'confirmed' : 'pending',
+        ':payment_status' => $isFree ? 'paid' : 'unpaid',
         ':type'           => $type,
+        ':confirmed_at'   => $isFree ? (new DateTimeImmutable('now'))->format('Y-m-d H:i:sP') : null,
     ]);
     $regId = (int) $pdo->lastInsertId();
 
@@ -112,6 +117,11 @@ try {
         ':paid_at' => $price === '0.00' ? (new DateTimeImmutable('now'))->format('Y-m-d H:i:sP') : null,
     ]);
     $payId = (int) $pdo->lastInsertId();
+
+    // Índice no lote só nasce quando a pessoa paga (aqui: inscrição gratuita)
+    if ($isFree) {
+        assignLoteIndex($pdo, $regId);
+    }
 
     $pdo->commit();
 

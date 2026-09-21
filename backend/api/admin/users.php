@@ -46,13 +46,18 @@ if ($method === 'GET') {
     try {
         $users = $pdo->query(
             'SELECT u.id, u.name, u.email, u.cpf, u.institution, u.participant_type, u.created_at,
-                    (SELECT r.status FROM registrations r WHERE r.user_id = u.id LIMIT 1) AS reg_status
-             FROM users u ORDER BY u.created_at DESC'
+                    r.status AS reg_status, r.lote_id, r.lote_index, l.name AS lote_name
+             FROM users u
+             LEFT JOIN registrations r ON r.user_id = u.id
+             LEFT JOIN lotes l ON l.id = r.lote_id
+             ORDER BY u.created_at DESC'
         )->fetchAll();
 
         $permsByUser = listPermissionsForUsers($pdo, $users);
         foreach ($users as &$u) {
             $u['id']        = (int) $u['id'];
+            $u['lote_id']    = $u['lote_id'] !== null ? (int) $u['lote_id'] : null;
+            $u['lote_index'] = $u['lote_index'] !== null ? (int) $u['lote_index'] : null;
             $u['permissions'] = $permsByUser[(int) $u['id']] ?? [];
         }
         unset($u);

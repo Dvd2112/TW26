@@ -30,7 +30,7 @@ try {
                 l.volunteer_discount_percent, l.starts_at, l.ends_at, l.is_active,
                 (l.qr_code_path IS NOT NULL) AS has_qr,
                 (SELECT count(*) FROM registrations r
-                  WHERE r.lote_id = l.id AND r.status <> \'cancelled\') AS enrolled
+                  WHERE r.lote_id = l.id AND ' . loteOccupiesSlotSql('r') . ') AS enrolled
          FROM lotes l
          WHERE l.is_active = true
            AND l.participant_type = :participant_type

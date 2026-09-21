@@ -153,17 +153,28 @@ function RegistrationsTab() {
   const [loading, setLoading] = useState(true);
   const [fStatus, setFStatus] = useState('');
   const [fTipo, setFTipo] = useState('');
+  const [fLote, setFLote] = useState(null);
+  const [fIndex, setFIndex] = useState(null);
+  const [lotes, setLotes] = useState([]);
   const [confirming, setConfirming] = useState(false);
+
+  useEffect(() => {
+    axios.get('/TW26/backend/api/admin/lotes.php')
+      .then((res) => setLotes(res.data.lotes ?? []))
+      .catch(() => message.error('Erro ao carregar lotes para o filtro.'));
+  }, []);
 
   const load = useCallback(() => {
     const params = new URLSearchParams();
     if (fStatus) params.set('status', fStatus);
     if (fTipo) params.set('participant_type', fTipo);
+    if (fLote) params.set('lote_id', fLote);
+    if (fIndex) params.set('lote_index', fIndex);
     axios.get(`/TW26/backend/api/admin/payments.php?${params.toString()}`)
       .then((res) => setRows(res.data.registrations ?? []))
       .catch((err) => message.error(err.response?.data?.message ?? 'Erro ao carregar.'))
       .finally(() => setLoading(false));
-  }, [fStatus, fTipo]);
+  }, [fStatus, fTipo, fLote, fIndex]);
 
   useEffect(() => {
     load();
@@ -171,6 +182,8 @@ function RegistrationsTab() {
 
   const changeStatus = (v) => { setFStatus(v); setLoading(true); };
   const changeTipo = (v) => { setFTipo(v); setLoading(true); };
+  const changeLote = (v) => { setFLote(v ?? null); setLoading(true); };
+  const changeIndex = (v) => { setFIndex(v ?? null); setLoading(true); };
 
   const act = async (paymentId, action) => {
     setConfirming(true);
@@ -195,6 +208,13 @@ function RegistrationsTab() {
       render: (v) => <Tag color={TYPE_COLORS[v]}>{TYPE_LABELS[v] ?? v}</Tag>,
     },
     { title: 'Lote', dataIndex: 'lote_name', key: 'lote_name' },
+    {
+      title: 'Índice',
+      dataIndex: 'lote_index',
+      key: 'lote_index',
+      sorter: (a, b) => (a.lote_index ?? Infinity) - (b.lote_index ?? Infinity),
+      render: (v) => (v === null ? '—' : `#${v}`),
+    },
     {
       title: 'Valor',
       key: 'amount',
@@ -260,7 +280,16 @@ function RegistrationsTab() {
 
   return (
     <Card>
-      <Space style={{ marginBottom: 16 }}>
+      <Space style={{ marginBottom: 16 }} wrap>
+        <Select
+          placeholder="Lote" allowClear style={{ width: 200 }}
+          value={fLote ?? undefined} onChange={changeLote}
+          options={lotes.map((l) => ({ value: l.id, label: l.name }))}
+        />
+        <InputNumber
+          placeholder="Índice no lote" min={1} precision={0} style={{ width: 150 }}
+          value={fIndex} onChange={changeIndex}
+        />
         <Select placeholder="Status do pagamento" allowClear style={{ width: 220 }} value={fStatus || undefined} onChange={changeStatus}>
           <Option value="unpaid">Aguardando pagamento</Option>
           <Option value="awaiting_confirmation">Em confirmação</Option>
@@ -284,6 +313,136 @@ function RegistrationsTab() {
         scroll={{ x: 1050 }}
       />
     </Card>
+  );
+}
+
+/* ─── Inscritos de um lote (linha expandida em Lotes) ─────────────────────── */
+function LoteRegistrations({ loteId, onChanged }) {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState(false);
+
+  const load = useCallback(() => {
+    axios.get('/TW26/backend/api/admin/payments.php', { params: { lote_id: loteId } })
+      .then((res) => setRows(res.data.registrations ?? []))
+      .catch((err) => message.error(err.response?.data?.message ?? 'Erro ao carregar inscritos.'))
+      .finally(() => setLoading(false));
+  }, [loteId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const act = async (paymentId, action) => {
+    setActing(true);
+    try {
+      await axios.post('/TW26/backend/api/admin/payments.php', { payment_id: paymentId, action });
+      message.success(action === 'confirm' ? 'Inscrição aprovada!' : 'Inscrição cancelada.');
+      load();
+      onChanged?.();
+    } catch (err) {
+      message.error(err.response?.data?.message ?? 'Erro na ação.');
+    } finally {
+      setActing(false);
+    }
+  };
+
+  const columns = [
+    { title: 'Nome', dataIndex: 'name' },
+    { title: 'E-mail', dataIndex: 'email' },
+    {
+      title: 'Tipo', dataIndex: 'reg_type',
+      render: (v) => <Tag color={TYPE_COLORS[v]}>{TYPE_LABELS[v] ?? v}</Tag>,
+    },
+    {
+      title: 'Índice', dataIndex: 'lote_index',
+      sorter: (a, b) => (a.lote_index ?? Infinity) - (b.lote_index ?? Infinity),
+      render: (v) => (v === null ? '—' : `#${v}`),
+    },
+    {
+      title: 'Inscrição', dataIndex: 'registered_at',
+      render: (v) => (v ? dayjs(v).format('DD/MM HH:mm') : '—'),
+    },
+    {
+      title: 'Pagamento', dataIndex: 'payment_status',
+      render: (v, r) => (
+        <Space size={4} wrap>
+          <Tag color={PAY_COLORS[v]}>{PAY_LABELS[v] ?? v}</Tag>
+          {r.reg_status === 'pending' && !r.holds_slot && <Tag>Expirada (sem vaga)</Tag>}
+        </Space>
+      ),
+    },
+    {
+      title: 'Comprovante', key: 'proof',
+      render: (_, r) => (
+        r.has_proof
+          ? <Button size="small" onClick={() => openProof(r.payment_id)}>Ver</Button>
+          : <span className={styles.muted}>—</span>
+      ),
+    },
+    {
+      title: 'Ações', key: 'actions',
+      render: (_, r) => {
+        if (r.reg_status !== 'pending' || r.payment_id === null) return null;
+        const approve = (
+          <Button
+            size="small" type="primary" loading={acting}
+            style={{ background: '#8A00C4', borderColor: '#8A00C4' }}
+            onClick={r.has_proof ? () => act(r.payment_id, 'confirm') : undefined}
+          >
+            Aprovar
+          </Button>
+        );
+        return (
+          <Space>
+            {r.has_proof ? approve : (
+              <Popconfirm
+                title="Aprovar sem comprovante?"
+                description="Este participante ainda não enviou o comprovante do PIX."
+                onConfirm={() => act(r.payment_id, 'confirm')}
+              >
+                {approve}
+              </Popconfirm>
+            )}
+            <Popconfirm title="Cancelar inscrição?" onConfirm={() => act(r.payment_id, 'cancel')}>
+              <Button size="small" danger loading={acting}>Cancelar</Button>
+            </Popconfirm>
+          </Space>
+        );
+      },
+    },
+  ];
+
+  const byStatus = (status) => rows.filter((r) => r.reg_status === status);
+  const tab = (key, label) => {
+    const list = byStatus(key);
+    return {
+      key,
+      label: `${label} (${list.length})`,
+      children: (
+        <Table
+          rowKey="registration_id"
+          dataSource={list}
+          columns={columns}
+          loading={loading}
+          pagination={list.length > 10 ? { pageSize: 10 } : false}
+          size="small"
+          scroll={{ x: 900 }}
+        />
+      ),
+    };
+  };
+
+  return (
+    <Tabs
+      size="small"
+      defaultActiveKey="confirmed"
+      items={[
+        tab('confirmed', 'Inscritos'),
+        tab('pending', 'Pendentes'),
+        tab('cancelled', 'Cancelados'),
+      ]}
+    />
   );
 }
 
@@ -420,6 +579,10 @@ function LotesTab() {
       render: (_, r) => `${r.enrolled}/${r.capacity}`,
     },
     {
+      title: 'Pagos', dataIndex: 'paid',
+      render: (v) => <Tag color="green">{v}</Tag>,
+    },
+    {
       title: 'Desconto Volunt.', dataIndex: 'discount',
       render: (v) => `${v}%`,
     },
@@ -449,7 +612,17 @@ function LotesTab() {
       title="Lotes"
       extra={<Button type="primary" onClick={openNew} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>Novo lote</Button>}
     >
-      <Table rowKey="id" dataSource={lotes} columns={columns} loading={loading} pagination={false} size="small" />
+      <Table
+        rowKey="id"
+        dataSource={lotes}
+        columns={columns}
+        loading={loading}
+        pagination={false}
+        size="small"
+        expandable={{
+          expandedRowRender: (lote) => <LoteRegistrations loteId={lote.id} onChanged={load} />,
+        }}
+      />
 
       <Modal
         title={editing ? 'Editar lote' : 'Novo lote'}
@@ -1044,6 +1217,8 @@ function UsersTab() {
       title: 'Tipo', dataIndex: 'participant_type',
       render: (v) => <Tag color={TYPE_COLORS[v]}>{TYPE_LABELS[v] ?? v}</Tag>,
     },
+    { title: 'Lote', dataIndex: 'lote_name', render: (v) => v ?? '—' },
+    { title: 'Índice', dataIndex: 'lote_index', render: (v) => (v === null ? '—' : `#${v}`) },
     {
       title: 'Permissões', dataIndex: 'permissions',
       render: (v) => (v?.length ? v.map((p) => <Tag key={p} color="geekblue">{p}</Tag>) : <Tag>—</Tag>),
