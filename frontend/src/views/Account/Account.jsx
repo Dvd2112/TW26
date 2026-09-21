@@ -206,7 +206,10 @@ export default function Account() {
                     <img
                       src={`/TW26/backend/api/lote-qr.php?lote_id=${registration.lote.id}`}
                       alt={`QR code PIX de R$ ${Number(payment.amount).toFixed(2)}`}
-                      style={{ width: 200, height: 200, objectFit: 'contain', background: '#fff', borderRadius: 10, padding: 8, marginBottom: 8 }}
+                      style={{
+                        display: 'block', width: '100%', maxWidth: 360, aspectRatio: '1 / 1', boxSizing: 'border-box',
+                        objectFit: 'contain', background: '#fff', borderRadius: 12, padding: 12, margin: '8px auto 12px',
+                      }}
                     />
                   )}
                   <p className={styles.line}><strong>Chave PIX:</strong> {pix?.key}</p>

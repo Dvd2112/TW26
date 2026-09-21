@@ -25,6 +25,31 @@ chgrp www-data storage storage/comprovantes storage/qrcodes \
   || echo "!! aviso: não consegui aplicar o grupo www-data em storage/ (o usuário de deploy está no grupo www-data?)"
 chmod 2775 storage storage/comprovantes storage/qrcodes
 
+echo "==> banco: migrations pendentes"
+# Aplica backend/database/migrations/*.sql em ordem, uma vez cada. Os arquivos
+# já aplicados ficam registrados em schema_migrations. Todas as migrations são
+# idempotentes, então na primeira execução (tabela vazia) reaplicá-las é seguro.
+DB_NAME="$(grep -E '^DB_NAME=' "${REPO_PATH}/backend/.env" | cut -d= -f2- | tr -d "\"'\r" || true)"
+DB_NAME="${DB_NAME:-tw26}"
+PSQL=(sudo -u postgres psql -v ON_ERROR_STOP=1 -q -d "${DB_NAME}")
+
+"${PSQL[@]}" -c "CREATE TABLE IF NOT EXISTS schema_migrations (
+  filename   TEXT        PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);"
+
+for migration in "${REPO_PATH}"/backend/database/migrations/*.sql; do
+  name="$(basename "${migration}")"
+  applied="$("${PSQL[@]}" -tA -c "SELECT 1 FROM schema_migrations WHERE filename = '${name}'")"
+  if [ -n "${applied}" ]; then
+    continue
+  fi
+  echo "   aplicando ${name}"
+  # Lido via stdin: o usuário postgres pode não ter acesso ao diretório do repo.
+  "${PSQL[@]}" < "${migration}"
+  "${PSQL[@]}" -c "INSERT INTO schema_migrations (filename) VALUES ('${name}')"
+done
+
 echo "==> backend: composer install"
 cd "${REPO_PATH}/backend"
 composer install --no-dev --no-progress --prefer-dist
