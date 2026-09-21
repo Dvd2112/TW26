@@ -16,6 +16,7 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/lotes.php';
 
 const TEST_EMAIL    = 'participante@teste.com';
 const TEST_PASSWORD = 'Teste@1234';
@@ -125,6 +126,12 @@ if ($pay === false) {
     $pdo->prepare(
         'UPDATE payments SET amount = :amount, status = :status, paid_at = :paid_at WHERE id = :id'
     )->execute([':amount' => $lotePrice, ':status' => $paymentStatus, ':paid_at' => $paidAt, ':id' => $pay['id']]);
+}
+
+if ($status === 'paid') {
+    $pdo->beginTransaction();
+    assignLoteIndex($pdo, $regId);
+    $pdo->commit();
 }
 
 fwrite(STDOUT, "[TW26] Inscrição de teste pronta (status=$status)\n");

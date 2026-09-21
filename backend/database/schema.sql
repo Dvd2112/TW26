@@ -79,8 +79,14 @@ CREATE TABLE IF NOT EXISTS registrations (
                           CHECK (payment_status IN ('unpaid', 'awaiting_confirmation', 'paid', 'refunded')),
     participant_type  TEXT,
     registered_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    confirmed_at      TIMESTAMPTZ
+    confirmed_at      TIMESTAMPTZ,
+    lote_index        INTEGER     CHECK (lote_index IS NULL OR lote_index >= 1) -- nº sequencial do pago no lote (1..N); NULL até pagar
 );
+
+-- Mesmo índice pode existir em lotes diferentes, nunca repetido dentro do mesmo lote.
+CREATE UNIQUE INDEX IF NOT EXISTS registrations_lote_index_uniq
+    ON registrations (lote_id, lote_index)
+    WHERE lote_index IS NOT NULL;
 
 -- ─── payments ─────────────────────────────────────────────────────────────────
 -- amount = snapshot do preço do lote no momento do pagamento.

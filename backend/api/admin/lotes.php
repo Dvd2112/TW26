@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
 require_once __DIR__ . '/../../config/storage.php';
+require_once __DIR__ . '/../../config/lotes.php';
 
 corsHeaders();
 requireCsrf();
@@ -76,13 +77,17 @@ if ($method === 'GET') {
         $lotes = $pdo->query(
             'SELECT l.*,
                     (SELECT count(*) FROM registrations r
-                      WHERE r.lote_id = l.id AND r.status <> \'cancelled\') AS enrolled
+                      WHERE r.lote_id = l.id AND ' . loteOccupiesSlotSql('r') . ') AS enrolled,
+                    (SELECT count(*) FROM registrations r
+                      WHERE r.lote_id = l.id AND r.status <> \'cancelled\'
+                        AND r.payment_status = \'paid\') AS paid
              FROM lotes l ORDER BY l.order_index'
         )->fetchAll();
         foreach ($lotes as &$lote) {
             $lote['price']     = (float) $lote['price'];
             $lote['discount']  = (float) $lote['volunteer_discount_percent'];
             $lote['enrolled']  = (int) $lote['enrolled'];
+            $lote['paid']      = (int) $lote['paid'];
             $lote['available'] = max(0, (int) $lote['capacity'] - $lote['enrolled']);
             $lote['is_active'] = dbBool($lote['is_active']);
             $lote['has_qr']    = $lote['qr_code_path'] !== null;
