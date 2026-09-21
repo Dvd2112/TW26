@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import NavBar from '../components/NavBar/NavBar';
 import Hero from '../views/Hero/Hero';
 import Vision from '../views/Vision/Vision';
@@ -99,11 +101,27 @@ const facts = [
 ];
 
 export default function HomePage() {
+  const [hasRegistration, setHasRegistration] = useState(false);
+
+  useEffect(() => {
+    axios
+      .get('/TW26/backend/api/my-registration.php')
+      .then((res) => setHasRegistration(Boolean(res.data?.registration)))
+      .catch(() => setHasRegistration(false));
+  }, []);
+
+  const heroActions = hasRegistration
+    ? []
+    : [
+        { label: 'Se inscrever agora', href: '?page=register', variant: 'primary' },
+        { label: 'Quero palestrar', href: 'mailto:techweekfb@gmail.com?subject=Proposta%20de%20palestra%20-%20TechWeek%202026', variant: 'secondary' },
+      ];
+
   return (
     <>
       <NavBar
         links={navLinks}
-        cta={{ label: 'Se inscrever', href: '?page=register' }}
+        cta={hasRegistration ? null : { label: 'Se inscrever', href: '?page=register' }}
         logoHref="./"
       />
       <main>
@@ -115,10 +133,7 @@ export default function HomePage() {
             'palco e comunidade',
           ]}
           subtitle="A TechWeek 2026 reúne quem quer aprender com profundidade, conhecer gente boa, enxergar o mercado com mais clareza e quem tem repertório para compartilhar no palco."
-          actions={[
-            { label: 'Se inscrever agora', href: '?page=register', variant: 'primary' },
-            { label: 'Quero palestrar', href: 'mailto:techweekfb@gmail.com?subject=Proposta%20de%20palestra%20-%20TechWeek%202026', variant: 'secondary' },
-          ]}
+          actions={heroActions}
           pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
         />
 
@@ -160,7 +175,7 @@ export default function HomePage() {
           }}
         />
 
-        <PreSaveBanner />
+        {!hasRegistration && <PreSaveBanner />}
       </main>
       <FooterSection
         sections={[
