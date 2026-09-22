@@ -1,0 +1,36 @@
+.wrapper {
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.reader {
+  width: 100%;
+  border: 1px solid rgba(191, 64, 255, 0.35);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0d0d0d;
+  min-height: 240px;
+}
+
+/* A lib injeta o <video> e um <img> de apoio; força o vídeo a caber na moldura. */
+.reader video {
+  width: 100% !important;
+  height: auto !important;
+  display: block;
+}
+
+.hint {
+  color: #aaa;
+  font-size: 0.8rem;
+  text-align: center;
+  margin: 8px 0 0;
+}
+
+.error {
+  color: #ff7875;
+  font-size: 0.8rem;
+  text-align: center;
+  line-height: 1.6;
+  margin: 8px 0 0;
+}

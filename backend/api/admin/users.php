@@ -41,6 +41,74 @@ function listPermissionsForUsers(PDO $pdo, array $users): array
     return $byUser;
 }
 
+/**
+ * Atividades designadas a cada usuário como credenciador (activity_credentialers).
+ *
+ * @return array<int, list<int>> user_id => [activity_id, ...]
+ */
+function listCredentialActivities(PDO $pdo, array $users): array
+{
+    $byUser = [];
+    foreach ($users as $u) {
+        $byUser[(int) $u['id']] = [];
+    }
+    if ($users) {
+        $in = implode(',', array_map('intval', array_keys($byUser)));
+        $stmt = $pdo->query(
+            "SELECT user_id, activity_id FROM activity_credentialers WHERE user_id IN ($in)"
+        );
+        foreach ($stmt->fetchAll() as $row) {
+            $byUser[(int) $row['user_id']][] = (int) $row['activity_id'];
+        }
+    }
+    return $byUser;
+}
+
+/**
+ * Regrava as atividades que o usuário pode credenciar (replace-all, como as
+ * permissões). Sem a permissão 'credentialer' a designação é apagada — não faz
+ * sentido manter escopo de credenciamento para quem não credencia.
+ *
+ * @param list<string>|null $perms      permissões enviadas (null = não mexeu)
+ * @param list<mixed>|null  $activities ids enviados (null = não mexeu)
+ */
+function syncCredentialActivities(
+    PDO $pdo,
+    int $targetId,
+    int $grantedBy,
+    ?array $perms,
+    ?array $activities
+): void {
+    $isCredentialer = $perms === null || in_array('credentialer', $perms, true);
+
+    if (!$isCredentialer) {
+        $pdo->prepare('DELETE FROM activity_credentialers WHERE user_id = :id')
+            ->execute([':id' => $targetId]);
+        return;
+    }
+
+    if ($activities === null) {
+        return;
+    }
+
+    $pdo->prepare('DELETE FROM activity_credentialers WHERE user_id = :id')
+        ->execute([':id' => $targetId]);
+
+    // SELECT ... FROM activities ignora silenciosamente id inexistente.
+    $assign = $pdo->prepare(
+        'INSERT INTO activity_credentialers (activity_id, user_id, assigned_by)
+         SELECT id, :uid, :by FROM activities WHERE id = :aid
+         ON CONFLICT (activity_id, user_id) DO NOTHING'
+    );
+    foreach ($activities as $activityId) {
+        $assign->execute([
+            ':uid' => $targetId,
+            ':by'  => $grantedBy,
+            ':aid' => (int) $activityId,
+        ]);
+    }
+}
+
 /* ─── GET: lista de usuários + permissões disponíveis ────────────────────── */
 if ($method === 'GET') {
     try {
@@ -54,19 +122,31 @@ if ($method === 'GET') {
         )->fetchAll();
 
         $permsByUser = listPermissionsForUsers($pdo, $users);
+        $actsByUser  = listCredentialActivities($pdo, $users);
         foreach ($users as &$u) {
             $u['id']        = (int) $u['id'];
             $u['lote_id']    = $u['lote_id'] !== null ? (int) $u['lote_id'] : null;
             $u['lote_index'] = $u['lote_index'] !== null ? (int) $u['lote_index'] : null;
             $u['permissions'] = $permsByUser[(int) $u['id']] ?? [];
+            $u['credential_activities'] = $actsByUser[(int) $u['id']] ?? [];
         }
         unset($u);
 
         $available = $pdo->query('SELECT slug, name FROM permissions ORDER BY slug')->fetchAll();
 
+        // Alimenta o select "Atividades que pode credenciar" do painel.
+        $activities = $pdo->query(
+            'SELECT id, title, type FROM activities ORDER BY start_at ASC NULLS LAST, id ASC'
+        )->fetchAll();
+        foreach ($activities as &$activity) {
+            $activity['id'] = (int) $activity['id'];
+        }
+        unset($activity);
+
         jsonResponse(200, true, 'ok', [
             'users'      => $users,
             'permissions' => $available,
+            'activities' => $activities,
         ]);
     } catch (Exception $e) {
         error_log('[TW26] admin/users GET: ' . $e->getMessage());
@@ -124,6 +204,14 @@ if ($method === 'POST') {
         foreach ($perms as $slug) {
             $assign->execute([':uid' => $userId, ':by' => $user['id'], ':slug' => $slug]);
         }
+
+        syncCredentialActivities(
+            $pdo,
+            $userId,
+            (int) $user['id'],
+            $perms,
+            $data['credential_activities'] ?? []
+        );
 
         jsonResponse(201, true, 'Usuário criado.');
     } catch (Exception $e) {
@@ -188,6 +276,14 @@ if ($method === 'PUT') {
                 $assign->execute([':uid' => $id, ':by' => $user['id'], ':slug' => $slug]);
             }
         }
+
+        syncCredentialActivities(
+            $pdo,
+            $id,
+            (int) $user['id'],
+            $perms,
+            $data['credential_activities'] ?? null
+        );
 
         jsonResponse(200, true, 'Usuário atualizado.');
     } catch (Exception $e) {

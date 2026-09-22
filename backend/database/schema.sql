@@ -1,4 +1,4 @@
--- TW26 — PostgreSQL schema (9 tabelas)
+-- TW26 — PostgreSQL schema (13 tabelas)
 -- Execução: psql -U tw26 -d tw26 -f backend/database/schema.sql
 
 BEGIN;
@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified_at     TIMESTAMPTZ,
     email_token           TEXT,
     email_token_expires   TIMESTAMPTZ,
+    -- "crachá" do participante: é este código que vira QR na Minha Conta e que o
+    -- credenciador lê/digita para registrar presença. DEFAULT volátil = um código
+    -- distinto por linha, inclusive no backfill de quem já estava cadastrado.
+    checkin_code          TEXT        NOT NULL UNIQUE
+                              DEFAULT upper(substr(md5(random()::text || clock_timestamp()::text), 1, 8)),
     created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -124,6 +129,9 @@ CREATE TABLE IF NOT EXISTS activities (
     start_at          TIMESTAMPTZ,
     end_at            TIMESTAMPTZ,
     is_published      BOOLEAN     NOT NULL DEFAULT FALSE,
+    -- código divulgado na sala; o participante inscrito digita para marcar presença
+    attendance_code   TEXT        NOT NULL
+                          DEFAULT upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6)),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -135,6 +143,32 @@ CREATE TABLE IF NOT EXISTS activity_enrollments (
     activity_id INTEGER     NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
     enrolled_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (user_id, activity_id)
+);
+
+-- ─── activity_attendance (presença) ──────────────────────────────────────────
+-- method: 'scan'   = credenciador leu o QR do participante
+--         'manual' = credenciador digitou o checkin_code do participante
+--         'self'   = participante digitou o attendance_code da atividade
+CREATE TABLE IF NOT EXISTS activity_attendance (
+    id            SERIAL      PRIMARY KEY,
+    user_id       INTEGER     NOT NULL REFERENCES users(id)      ON DELETE CASCADE,
+    activity_id   INTEGER     NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    method        TEXT        NOT NULL DEFAULT 'manual'
+                      CHECK (method IN ('scan', 'manual', 'self')),
+    checked_in_by INTEGER              REFERENCES users(id)      ON DELETE SET NULL,
+    checked_in_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (user_id, activity_id)
+);
+
+-- ─── activity_credentialers ──────────────────────────────────────────────────
+-- Quais atividades cada credenciador pode credenciar. Sem nenhuma linha o
+-- credenciador não credencia nada (default deny); super_admin ignora a tabela.
+CREATE TABLE IF NOT EXISTS activity_credentialers (
+    activity_id INTEGER     NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    user_id     INTEGER     NOT NULL REFERENCES users(id)      ON DELETE CASCADE,
+    assigned_by INTEGER              REFERENCES users(id)      ON DELETE SET NULL,
+    assigned_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (activity_id, user_id)
 );
 
 -- ─── expenses (saídas) ───────────────────────────────────────────────────────
@@ -171,5 +205,8 @@ CREATE INDEX IF NOT EXISTS idx_payments_reg         ON payments(registration_id)
 CREATE INDEX IF NOT EXISTS idx_payments_status      ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_enrollments_user     ON activity_enrollments(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_activity ON activity_enrollments(activity_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_activity    ON activity_attendance(activity_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_user        ON activity_attendance(user_id);
+CREATE INDEX IF NOT EXISTS idx_act_credentialers_user ON activity_credentialers(user_id);
 
 COMMIT;

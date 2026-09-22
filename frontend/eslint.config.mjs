@@ -28,4 +28,12 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]|^motion$' }],
     },
   },
+  {
+    // Arquivos de configuração na raiz (CommonJS, rodam no Node, não no browser).
+    files: ['craco.config.js'],
+    languageOptions: {
+      globals: globals.node,
+      sourceType: 'commonjs',
+    },
+  },
 ])
