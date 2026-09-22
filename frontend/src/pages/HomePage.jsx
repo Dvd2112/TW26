@@ -7,12 +7,24 @@ import Numbers from '../views/Numbers/Numbers';
 import Highlights from '../views/Highlights/Highlights';
 import Edition2026 from '../views/Edition2026/Edition2026';
 import PreSaveBanner from '../views/PreSaveBanner/PreSaveBanner';
+import Sponsors from '../views/Sponsors/Sponsors';
 import FooterSection from '../views/FooterSection/FooterSection';
+
+import logoCresol from '../assets/sponsors/cresol.png';
+import logoCsiCloud from '../assets/sponsors/csi-cloud.png';
+import logoDezTelecom from '../assets/sponsors/dez-telecom.png';
+import logoCiss from '../assets/sponsors/ciss.svg';
+import logoSischef from '../assets/sponsors/sischef.png';
+import logoGrifo from '../assets/sponsors/grifo.png';
+import logoPowerx from '../assets/sponsors/powerx.png';
+import logoMaxisCard from '../assets/sponsors/maxis-card.png';
+import logoVorbi from '../assets/sponsors/vorbi.png';
 
 const navLinks = [
   { label: 'O que você encontra', href: '#vision' },
   { label: 'Destaques', href: '#highlights' },
   { label: 'Edição 2026', href: '#edition2026' },
+  { label: 'Patrocinadores', href: '#sponsors' },
 ];
 
 const pillars = [
@@ -100,6 +112,42 @@ const facts = [
   { icon: 'ESG', label: 'tecnologia verde e impacto' },
 ];
 
+const sponsorTiers = [
+  {
+    name: 'Cota Ouro',
+    color: '#FFD700',
+    medal: '🥇',
+    size: 'lg',
+    sponsors: [
+      { name: 'Cresol', logo: logoCresol },
+      { name: 'CSI Cloud', logo: logoCsiCloud },
+    ],
+  },
+  {
+    name: 'Cota Prata',
+    color: '#C0C0C0',
+    medal: '🥈',
+    size: 'md',
+    sponsors: [
+      { name: 'Dez Telecom', logo: logoDezTelecom },
+      { name: 'Ciss', logo: logoCiss },
+    ],
+  },
+  {
+    name: 'Cota Bronze',
+    color: '#CD7F32',
+    medal: '🥉',
+    size: 'sm',
+    sponsors: [
+      { name: 'Sischef', logo: logoSischef },
+      { name: 'Grifo', logo: logoGrifo },
+      { name: 'PowerX', logo: logoPowerx },
+      { name: 'Maxis Card', logo: logoMaxisCard },
+      { name: 'Vorbi', logo: logoVorbi },
+    ],
+  },
+];
+
 export default function HomePage() {
   const [hasRegistration, setHasRegistration] = useState(false);
 
@@ -175,6 +223,14 @@ export default function HomePage() {
           }}
         />
 
+        <Sponsors
+          id="sponsors"
+          tag="// 05 – Patrocinadores"
+          title="Quem Torna a TechWeek Possível"
+          subtitle="Empresas que acreditam no potencial da tecnologia da região e caminham junto com a comunidade."
+          tiers={sponsorTiers}
+        />
+
         {!hasRegistration && <PreSaveBanner />}
       </main>
       <FooterSection
@@ -183,6 +239,7 @@ export default function HomePage() {
           ['#numbers', 'O que esperar'],
           ['#highlights', 'Destaques'],
           ['#edition2026', 'A edição'],
+          ['#sponsors', 'Patrocinadores'],
           ['mailto:techweekfb@gmail.com', 'Contato'],
         ]}
         quickLinks={[]}

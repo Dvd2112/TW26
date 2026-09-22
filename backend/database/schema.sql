@@ -1,4 +1,4 @@
--- TW26 — PostgreSQL schema (13 tabelas)
+-- TW26 — PostgreSQL schema (15 tabelas)
 -- Execução: psql -U tw26 -d tw26 -f backend/database/schema.sql
 
 BEGIN;
@@ -171,6 +171,37 @@ CREATE TABLE IF NOT EXISTS activity_credentialers (
     PRIMARY KEY (activity_id, user_id)
 );
 
+-- ─── volunteer_applications ───────────────────────────────────────────────────
+-- Candidatura a voluntário feita em Minha Conta, após o cadastro.
+-- roles = CSV de 'credenciamento'/'montagem'/'hackathon'.
+-- event_days = CSV de dias do evento principal (subconjunto de 19,20,21,22).
+-- hackathon_days = CSV de dias do hackathon (subconjunto de 17,18).
+-- Aprovar marca users.participant_type = 'volunteer'; rejeitar só encerra a candidatura.
+CREATE TABLE IF NOT EXISTS volunteer_applications (
+    id             SERIAL      PRIMARY KEY,
+    user_id        INTEGER     NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    phone          TEXT        NOT NULL,
+    roles          TEXT        NOT NULL,
+    event_days     TEXT        NOT NULL DEFAULT '',
+    hackathon_days TEXT        NOT NULL DEFAULT '',
+    motivation     TEXT        NOT NULL,
+    status         TEXT        NOT NULL DEFAULT 'pending'
+                       CHECK (status IN ('pending', 'approved', 'rejected')),
+    reviewed_by    INTEGER              REFERENCES users(id) ON DELETE SET NULL,
+    reviewed_at    TIMESTAMPTZ,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ─── volunteer_settings ────────────────────────────────────────────────────────
+-- Linha única (id fixo em 1) que liga/desliga o recebimento de novas candidaturas.
+CREATE TABLE IF NOT EXISTS volunteer_settings (
+    id                INTEGER     PRIMARY KEY DEFAULT 1 CHECK (id = 1),
+    applications_open BOOLEAN     NOT NULL DEFAULT TRUE,
+    updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO volunteer_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
 -- ─── expenses (saídas) ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS expenses (
     id           SERIAL         PRIMARY KEY,
@@ -208,5 +239,6 @@ CREATE INDEX IF NOT EXISTS idx_enrollments_activity ON activity_enrollments(acti
 CREATE INDEX IF NOT EXISTS idx_attendance_activity    ON activity_attendance(activity_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_user        ON activity_attendance(user_id);
 CREATE INDEX IF NOT EXISTS idx_act_credentialers_user ON activity_credentialers(user_id);
+CREATE INDEX IF NOT EXISTS idx_volunteer_applications_status ON volunteer_applications(status);
 
 COMMIT;
