@@ -3,55 +3,45 @@ import { motion, useInView } from 'framer-motion';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from '../../styles/Sponsors.module.css';
 
-const sponsorGroups = [
-  {
-    category: 'Patrocinadores Master',
-    sponsors: ['Cresol', 'CISS S.A.', 'DEZ Telecom', 'Megasult', 'Maxis Card'],
-  },
-  {
-    category: 'Apoio Tï¿½cnico e Governamental',
-    sponsors: ['SEBRAE', 'Prefeitura de Francisco Beltrï¿½o', 'Sudovalley & Dev Paranï¿½', 'Sec. de Ciï¿½ncia e Tecnologia'],
-  },
-  {
-    category: 'Instituiï¿½ï¿½es de Ensino',
-    sponsors: ['UTFPR', 'CESUL', 'UNIPAR'],
-  },
-];
-
-export default function Sponsors() {
+export default function Sponsors({ id, tag, title, subtitle, tiers = [] }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
 
   return (
-    <section id="sponsors" className={styles.section}>
+    <section id={id} className={styles.section}>
       <div className={styles.wrapper}>
-        <SectionTitle
-          tag="// 03 ï¿½ Chancelas de Sucesso"
-          title="Quem Caminha Conosco"
-          subtitle="Sua marca estarï¿½ acompanhada pelos lï¿½deres que movem a economia e a tecnologia da regiï¿½o."
-          center
-        />
+        <SectionTitle tag={tag} title={title} subtitle={subtitle} center />
 
         <div ref={ref} className={styles.groups}>
-          {sponsorGroups.map((group, gi) => (
+          {tiers.map((tier, gi) => (
             <motion.div
-              key={group.category}
+              key={tier.name}
               className={styles.groupBlock}
               initial={{ opacity: 0, y: 20 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: gi * 0.15 }}
             >
-              <h3 className={styles.groupTitle}>{group.category}</h3>
+              <div className={styles.groupHeader}>
+                <span className={styles.medal} style={{ color: tier.color }}>{tier.medal}</span>
+                <h3 className={styles.groupTitle} style={{ color: tier.color }}>{tier.name}</h3>
+              </div>
+
               <div className={styles.logoGrid}>
-                {group.sponsors.map((name, si) => (
+                {tier.sponsors.map((sponsor, si) => (
                   <motion.div
-                    key={name}
-                    className={styles.logoCard}
+                    key={sponsor.name}
+                    className={`${styles.logoCard} ${styles[`logoCard-${tier.size}`] || ''}`}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={inView ? { opacity: 1, scale: 1 } : {}}
                     transition={{ duration: 0.35, delay: gi * 0.15 + si * 0.07 }}
                   >
-                    <span className={styles.logoName}>{name}</span>
+                    <img
+                      className={`${styles.logoImg} ${styles[`logoImg-${tier.size}`] || ''}`}
+                      src={sponsor.logo}
+                      alt={sponsor.name}
+                      loading="lazy"
+                    />
+                    <span className={styles.logoName}>{sponsor.name}</span>
                   </motion.div>
                 ))}
               </div>
