@@ -4,7 +4,7 @@
 
 ## 1. Visão geral
 
-Site institucional + sistema de pré-inscrição da **TechWeek 2026** (evento de tecnologia em Dois Vizinhos, PR). Monorepo com duas aplicações independentes:
+Site institucional + sistema de pré-inscrição da **TechWeek 2026** (evento de tecnologia em Francisco Beltrão, PR). Monorepo com duas aplicações independentes:
 
 | Camada | Stack | Deploy |
 |---|---|---|

@@ -173,7 +173,7 @@ function buildEmailShell(string $eyebrow, string $bodyHtml): string
           <tr>
             <td style="padding:24px 48px;border-top:1px solid #1a1a1a;text-align:center;">
               <p style="margin:0;font-size:12px;color:#555555;">
-                © 2026 TechWeek — Dois Vizinhos, PR · Este é um e-mail automático, não responda.
+                © 2026 TechWeek — Francisco Beltrão, PR · Este é um e-mail automático, não responda.
               </p>
             </td>
           </tr>
@@ -240,7 +240,7 @@ function buildWelcomeText(string $name): string
     return "Olá, $name!\n\n"
          . "Sua inscrição na TechWeek 2026 foi recebida com sucesso. Seja bem-vindo(a)!\n\n"
          . "Acompanhe sua inscrição, o status do pagamento e as oficinas na sua conta:\n"
-         . "https://techweekfb.com.br/?page=account\n\n"
+         . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/?page=account\n\n"
          . "Equipe TechWeek 2026\n";
 }
 endif;
@@ -308,7 +308,7 @@ function buildPaymentConfirmedText(string $name, string $loteName, string $amoun
          . "Recebemos e validamos seu pagamento. Sua vaga na TechWeek 2026 está garantida.\n\n"
          . "Lote: $loteName\n"
          . "Valor pago: R$ $amount\n\n"
-         . "Escolha suas oficinas em: https://techweekfb.com.br/?page=oficinas\n\n"
+         . "Escolha suas oficinas em: " . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/?page=oficinas\n\n"
          . "Nos vemos na TechWeek 2026!\n"
          . "Equipe TechWeek 2026\n";
 }
