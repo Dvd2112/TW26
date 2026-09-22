@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Button, Tag, message, Upload } from 'antd';
+import { Button, Tag, message, Upload, Input, Space } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
+import { QRCodeSVG } from 'qrcode.react';
 import axios from 'axios';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from '../../styles/Account.module.css';
@@ -51,14 +52,17 @@ export default function Account() {
   const [paying, setPaying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [proofFile, setProofFile] = useState(null);
+  // código de presença digitado, por atividade: { [activityId]: 'ABC123' }
+  const [codes, setCodes] = useState({});
+  const [checkingIn, setCheckingIn] = useState(null);
+
+  const loadEnrollments = () => axios
+    .get('/TW26/backend/api/enrollments.php')
+    .then((res) => setEnrollments(res.data.enrollments ?? []))
+    .catch(() => setEnrollments([]));
 
   useEffect(() => {
-    loadData(setData, setError).then(() => {
-      axios
-        .get('/TW26/backend/api/enrollments.php')
-        .then((res) => setEnrollments(res.data.enrollments ?? []))
-        .catch(() => setEnrollments([]));
-    });
+    loadData(setData, setError).then(loadEnrollments);
   }, []);
 
   const confirmPayment = async () => {
@@ -91,6 +95,28 @@ export default function Account() {
       message.error(err.response?.data?.message ?? 'Erro ao cancelar.');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const submitCode = async (activityId) => {
+    const code = (codes[activityId] ?? '').trim();
+    if (!code) {
+      message.error('Digite o código da atividade.');
+      return;
+    }
+    setCheckingIn(activityId);
+    try {
+      const res = await axios.post('/TW26/backend/api/attendance.php', {
+        activity_id: activityId,
+        code,
+      });
+      message.success(res.data?.message ?? 'Presença confirmada!');
+      setCodes((prev) => ({ ...prev, [activityId]: '' }));
+      loadEnrollments();
+    } catch (err) {
+      message.error(err.response?.data?.message ?? 'Erro ao registrar presença.');
+    } finally {
+      setCheckingIn(null);
     }
   };
 
@@ -167,6 +193,25 @@ export default function Account() {
               Sair
             </Button>
           </div>
+        </div>
+
+        {/* Crachá / código de check-in */}
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Meu código de check-in</h3>
+          <p className={styles.line}>
+            Mostre este QR code ao credenciador na entrada das oficinas e palestras.
+            Se a câmera não ler, ele pode digitar o código abaixo.
+          </p>
+          {user.checkin_code ? (
+            <>
+              <div className={styles.qrBox}>
+                <QRCodeSVG value={user.checkin_code} size={180} level="M" />
+              </div>
+              <p className={styles.code}>{user.checkin_code}</p>
+            </>
+          ) : (
+            <p className={styles.line}>Código indisponível. Fale com a organização.</p>
+          )}
         </div>
 
         {/* Inscrição */}
@@ -270,26 +315,54 @@ export default function Account() {
           {enrollments.length === 0 ? (
             <p className={styles.line}>Você ainda não se inscreveu em nenhuma oficina.</p>
           ) : (
-            <div className={styles.enrollList}>
-              {enrollments.map((act) => (
-                <div className={styles.enrollItem} key={act.id}>
-                  <div>
-                    <p className={styles.enrollTitle}>{act.title}</p>
-                    <p className={styles.enrollMeta}>
-                      {act.type} {act.location ? `· ${act.location}` : ''}
-                    </p>
+            <>
+              <p className={styles.line}>
+                Já está na sala? Digite o código informado pelo palestrante para
+                registrar sua presença.
+              </p>
+              <div className={styles.enrollList}>
+                {enrollments.map((act) => (
+                  <div className={styles.enrollItem} key={act.id}>
+                    <div>
+                      <p className={styles.enrollTitle}>{act.title}</p>
+                      <p className={styles.enrollMeta}>
+                        {act.type} {act.location ? `· ${act.location}` : ''}
+                      </p>
+                    </div>
+                    {act.attended_at ? (
+                      <Tag color="green">Presença confirmada</Tag>
+                    ) : (
+                      <Space.Compact>
+                        <Input
+                          placeholder="Código"
+                          maxLength={12}
+                          value={codes[act.id] ?? ''}
+                          onChange={(e) => setCodes((prev) => ({ ...prev, [act.id]: e.target.value }))}
+                          onPressEnter={() => submitCode(act.id)}
+                          style={{ width: 110, textTransform: 'uppercase' }}
+                        />
+                        <Button
+                          type="primary"
+                          loading={checkingIn === act.id}
+                          onClick={() => submitCode(act.id)}
+                          style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}
+                        >
+                          Presença
+                        </Button>
+                      </Space.Compact>
+                    )}
+                    <Button
+                      size="small"
+                      danger
+                      loading={cancelling}
+                      onClick={() => cancelEnrollment(act.id)}
+                    >
+                      Cancelar
+                    </Button>
                   </div>
-                  <Button
-                    size="small"
-                    danger
-                    loading={cancelling}
-                    onClick={() => cancelEnrollment(act.id)}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>

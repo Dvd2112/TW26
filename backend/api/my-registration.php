@@ -58,12 +58,18 @@ try {
         ];
     }
 
+    // checkin_code não vem de currentUser(); é o "crachá" mostrado como QR na conta.
+    $codeStmt = $pdo->prepare('SELECT checkin_code FROM users WHERE id = :id');
+    $codeStmt->execute([':id' => $user['id']]);
+    $checkinCode = (string) ($codeStmt->fetchColumn() ?: '');
+
     jsonResponse(200, true, 'ok', [
         'user' => [
             'id'               => (int) $user['id'],
             'name'             => $user['name'],
             'email'            => $user['email'],
             'participant_type' => $user['participant_type'],
+            'checkin_code'     => $checkinCode,
         ],
         'registration' => $registration,
         'payment'      => $payment,

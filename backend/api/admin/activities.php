@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
+require_once __DIR__ . '/../../config/attendance.php';
 
 corsHeaders();
 requireCsrf();
@@ -35,11 +36,13 @@ if ($method === 'GET') {
 
         $activities = $pdo->query(
             'SELECT a.*,
-                    (SELECT count(*) FROM activity_enrollments e WHERE e.activity_id = a.id) AS enrolled
+                    (SELECT count(*) FROM activity_enrollments e WHERE e.activity_id = a.id) AS enrolled,
+                    (SELECT count(*) FROM activity_attendance at WHERE at.activity_id = a.id) AS attended
              FROM activities a ORDER BY a.start_at ASC NULLS LAST, a.id ASC'
         )->fetchAll();
         foreach ($activities as &$activity) {
             $activity['enrolled'] = (int) $activity['enrolled'];
+            $activity['attended'] = (int) $activity['attended'];
             $activity['capacity'] = $activity['capacity'] !== null ? (int) $activity['capacity'] : null;
             // PDO_PGSQL retorna boolean como texto 't'/'f', não como PHP bool
             $activity['is_published'] = $activity['is_published'] === 't';
@@ -116,6 +119,25 @@ if ($method === 'PUT') {
     }
 
     $id       = (int) ($data['id'] ?? 0);
+
+    // Gerar um novo código de presença é uma ação isolada: não exige o resto do
+    // formulário (serve para invalidar um código que vazou durante o evento).
+    if (($data['regenerate_code'] ?? false) === true) {
+        if ($id <= 0) {
+            jsonResponse(422, false, 'Atividade inválida.');
+        }
+        try {
+            $code = generateAttendanceCode(3);
+            $pdo->prepare(
+                'UPDATE activities SET attendance_code = :code, updated_at = NOW() WHERE id = :id'
+            )->execute([':code' => $code, ':id' => $id]);
+            jsonResponse(200, true, 'Novo código gerado.', ['attendance_code' => $code]);
+        } catch (Exception $e) {
+            error_log('[TW26] admin/activities regenerate: ' . $e->getMessage());
+            jsonResponse(500, false, 'Erro ao gerar novo código.');
+        }
+    }
+
     $title    = cleanActText($data['title'] ?? '');
     $type     = cleanActText($data['type'] ?? '');
     $allowed  = ['palestra', 'workshop', 'oficina'];

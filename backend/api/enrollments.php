@@ -19,7 +19,9 @@ if ($method === 'GET') {
     try {
         $stmt = $pdo->prepare(
             'SELECT a.id, a.title, a.type, a.location, a.start_at, a.end_at,
-                    a.speaker_name, e.enrolled_at
+                    a.speaker_name, e.enrolled_at,
+                    (SELECT at.checked_in_at FROM activity_attendance at
+                      WHERE at.activity_id = a.id AND at.user_id = e.user_id) AS attended_at
              FROM activity_enrollments e
              JOIN activities a ON a.id = e.activity_id
              WHERE e.user_id = :uid
