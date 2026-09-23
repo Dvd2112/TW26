@@ -14,11 +14,6 @@ import logoCresol from '../assets/sponsors/cresol.png';
 import logoCsiCloud from '../assets/sponsors/csi-cloud.png';
 import logoDezTelecom from '../assets/sponsors/dez-telecom.png';
 import logoCiss from '../assets/sponsors/ciss.svg';
-import logoSischef from '../assets/sponsors/sischef.png';
-import logoGrifo from '../assets/sponsors/grifo.png';
-import logoPowerx from '../assets/sponsors/powerx.png';
-import logoMaxisCard from '../assets/sponsors/maxis-card.png';
-import logoVorbi from '../assets/sponsors/vorbi.png';
 
 const navLinks = [
   { label: 'O que você encontra', href: '#vision' },
@@ -114,7 +109,14 @@ const facts = [
 
 const sponsorTiers = [
   {
-    name: 'Cota Ouro',
+    name: 'Patrocínio Diamante',
+    color: '#8A00C4',
+    medal: '💎',
+    size: 'lg',
+    sponsors: [],
+  },
+  {
+    name: 'Patrocínio Ouro',
     color: '#FFD700',
     medal: '🥇',
     size: 'lg',
@@ -124,26 +126,13 @@ const sponsorTiers = [
     ],
   },
   {
-    name: 'Cota Prata',
+    name: 'Patrocínio Prata',
     color: '#C0C0C0',
     medal: '🥈',
     size: 'md',
     sponsors: [
       { name: 'Dez Telecom', logo: logoDezTelecom },
       { name: 'Ciss', logo: logoCiss },
-    ],
-  },
-  {
-    name: 'Cota Bronze',
-    color: '#CD7F32',
-    medal: '🥉',
-    size: 'sm',
-    sponsors: [
-      { name: 'Sischef', logo: logoSischef },
-      { name: 'Grifo', logo: logoGrifo },
-      { name: 'PowerX', logo: logoPowerx },
-      { name: 'Maxis Card', logo: logoMaxisCard },
-      { name: 'Vorbi', logo: logoVorbi },
     ],
   },
 ];

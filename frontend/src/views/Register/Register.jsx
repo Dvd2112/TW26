@@ -387,6 +387,11 @@ function Step3() {
               Falta só o pagamento de <strong>R$ {result.amount}</strong> para
               confirmar sua vaga. Transfira o valor via PIX:
             </p>
+            <p className={styles.successText} style={{ color: '#8A00C4', fontWeight: 600 }}>
+              ⚠️ Sua vaga neste lote fica <strong>reservada por apenas 30 minutos</strong>.
+              Depois desse prazo, será necessário enviar o comprovante para manter a reserva.
+              Se você já pagou, envie o comprovante <strong>imediatamente</strong> abaixo.
+            </p>
             {result.has_qr && (
               <img
                 src={`/TW26/backend/api/lote-qr.php?lote_id=${result.lote_id}`}
