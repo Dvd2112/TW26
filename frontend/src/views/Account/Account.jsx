@@ -208,6 +208,7 @@ export default function Account() {
   // código de presença digitado, por atividade: { [activityId]: 'ABC123' }
   const [codes, setCodes] = useState({});
   const [checkingIn, setCheckingIn] = useState(null);
+  const [downloadingCert, setDownloadingCert] = useState(false);
 
   const loadEnrollments = () => axios
     .get('/TW26/backend/api/enrollments.php')
@@ -270,6 +271,33 @@ export default function Account() {
       message.error(err.response?.data?.message ?? 'Erro ao registrar presença.');
     } finally {
       setCheckingIn(null);
+    }
+  };
+
+  const downloadCertificate = async () => {
+    setDownloadingCert(true);
+    try {
+      const res = await axios.get('/TW26/backend/api/certificate.php', { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'certificado-techweek2026.pdf';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      let msg = 'Erro ao gerar o certificado.';
+      if (err.response?.data instanceof Blob) {
+        try {
+          msg = JSON.parse(await err.response.data.text())?.message ?? msg;
+        } catch {
+          // resposta não era JSON — mantém a mensagem padrão
+        }
+      }
+      message.error(msg);
+    } finally {
+      setDownloadingCert(false);
     }
   };
 
@@ -520,6 +548,23 @@ export default function Account() {
               </div>
             </>
           )}
+        </div>
+
+        {/* Certificado */}
+        <div className={styles.card}>
+          <h3 className={styles.cardTitle}>Certificado</h3>
+          <p className={styles.line}>
+            Gere seu certificado de participação com a carga horária das atividades
+            em que você confirmou presença.
+          </p>
+          <Button
+            type="primary"
+            loading={downloadingCert}
+            onClick={downloadCertificate}
+            style={{ background: '#8A00C4', border: 'none', fontWeight: 700, marginTop: 8 }}
+          >
+            Baixar certificado
+          </Button>
         </div>
       </div>
     </Section>
