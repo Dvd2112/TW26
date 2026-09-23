@@ -1,4 +1,4 @@
--- TW26 — PostgreSQL schema (15 tabelas)
+-- TW26 — PostgreSQL schema (16 tabelas)
 -- Execução: psql -U tw26 -d tw26 -f backend/database/schema.sql
 
 BEGIN;
@@ -202,6 +202,18 @@ CREATE TABLE IF NOT EXISTS volunteer_settings (
 
 INSERT INTO volunteer_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
+-- ─── certificates (certificados de participação) ─────────────────────────────
+-- total_hours = snapshot da carga horária calculada a partir de activity_attendance
+-- (soma de end_at - start_at das atividades com presença) no momento da emissão.
+-- code é usado na verificação pública (?page=verify-certificate&code=...).
+CREATE TABLE IF NOT EXISTS certificates (
+    id           SERIAL         PRIMARY KEY,
+    user_id      INTEGER        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    code         TEXT           NOT NULL UNIQUE,
+    total_hours  NUMERIC(5, 1)  NOT NULL,
+    issued_at    TIMESTAMPTZ    NOT NULL DEFAULT NOW()
+);
+
 -- ─── expenses (saídas) ───────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS expenses (
     id           SERIAL         PRIMARY KEY,
@@ -240,5 +252,7 @@ CREATE INDEX IF NOT EXISTS idx_attendance_activity    ON activity_attendance(act
 CREATE INDEX IF NOT EXISTS idx_attendance_user        ON activity_attendance(user_id);
 CREATE INDEX IF NOT EXISTS idx_act_credentialers_user ON activity_credentialers(user_id);
 CREATE INDEX IF NOT EXISTS idx_volunteer_applications_status ON volunteer_applications(status);
+CREATE INDEX IF NOT EXISTS idx_certificates_user ON certificates(user_id);
+CREATE INDEX IF NOT EXISTS idx_certificates_code ON certificates(code);
 
 COMMIT;
