@@ -18,14 +18,14 @@ const TYPE_LABELS = { participant: 'Normal', volunteer: 'Voluntário', staff: 'S
 const TYPE_COLORS = { participant: 'default', volunteer: 'purple', staff: 'blue' };
 
 const PAY_LABELS = {
-  unpaid: 'Aguardando pagamento',
+  pending: 'Aguardando pagamento',
   awaiting_confirmation: 'Em confirmação',
   paid: 'Pago',
   failed: 'Falhou',
   refunded: 'Reembolsado',
 };
 const PAY_COLORS = {
-  unpaid: 'orange',
+  pending: 'orange',
   awaiting_confirmation: 'gold',
   paid: 'green',
   failed: 'red',
@@ -220,7 +220,12 @@ function RegistrationsTab() {
     setConfirming(true);
     try {
       await axios.post('/TW26/backend/api/admin/payments.php', { payment_id: paymentId, action });
-      message.success(action === 'confirm' ? 'Pagamento confirmado!' : 'Inscrição cancelada.');
+      const successMsg = {
+        confirm: 'Pagamento confirmado!',
+        revert: 'Aprovação revertida.',
+        cancel: 'Inscrição cancelada.',
+      };
+      message.success(successMsg[action] ?? 'Ação concluída.');
       load();
     } catch (err) {
       message.error(err.response?.data?.message ?? 'Erro na ação.');
@@ -279,9 +284,20 @@ function RegistrationsTab() {
       render: (_, r) => {
         if (r.payment_status === 'paid') {
           return (
-            <Popconfirm title="Cancelar inscrição e reembolsar?" onConfirm={() => act(r.payment_id, 'cancel')}>
-              <Button size="small" danger loading={confirming}>Cancelar</Button>
-            </Popconfirm>
+            <Space>
+              <Popconfirm
+                title="Reverter aprovação?"
+                description={r.has_proof
+                  ? 'A inscrição volta a ficar pendente e o pagamento, em confirmação (já tem comprovante).'
+                  : 'A inscrição volta a ficar pendente e o pagamento, aguardando.'}
+                onConfirm={() => act(r.payment_id, 'revert')}
+              >
+                <Button size="small" loading={confirming}>Reverter</Button>
+              </Popconfirm>
+              <Popconfirm title="Cancelar inscrição e reembolsar?" onConfirm={() => act(r.payment_id, 'cancel')}>
+                <Button size="small" danger loading={confirming}>Cancelar</Button>
+              </Popconfirm>
+            </Space>
           );
         }
         if (r.payment_status === 'awaiting_confirmation') {
@@ -297,11 +313,24 @@ function RegistrationsTab() {
             </Space>
           );
         }
-        if (r.payment_status === 'unpaid' || r.payment_status === 'failed') {
+        if (r.reg_status === 'pending' && !r.has_proof
+          && (r.payment_status === 'pending' || r.payment_status === 'failed')) {
           return (
-            <Popconfirm title="Cancelar inscrição?" onConfirm={() => act(r.payment_id, 'cancel')}>
-              <Button size="small" danger loading={confirming}>Cancelar</Button>
-            </Popconfirm>
+            <Space>
+              <Popconfirm
+                title="Aprovar sem comprovante?"
+                description="Este participante ainda não enviou o comprovante do PIX."
+                onConfirm={() => act(r.payment_id, 'confirm')}
+              >
+                <Button size="small" type="primary" loading={confirming}
+                  style={{ background: '#FAAD14', borderColor: '#FAAD14', color: '#000' }}>
+                  Aprovar
+                </Button>
+              </Popconfirm>
+              <Popconfirm title="Cancelar inscrição?" onConfirm={() => act(r.payment_id, 'cancel')}>
+                <Button size="small" danger loading={confirming}>Cancelar</Button>
+              </Popconfirm>
+            </Space>
           );
         }
         return null;
@@ -323,7 +352,7 @@ function RegistrationsTab() {
           value={fIndex} onChange={changeIndex}
         />
         <Select placeholder="Status do pagamento" allowClear style={{ width: 220 }} value={fStatus || undefined} onChange={changeStatus}>
-          <Option value="unpaid">Aguardando pagamento</Option>
+          <Option value="pending">Aguardando pagamento</Option>
           <Option value="awaiting_confirmation">Em confirmação</Option>
           <Option value="paid">Pago</Option>
           <Option value="refunded">Reembolsado</Option>
@@ -374,7 +403,12 @@ function LoteRegistrations({ loteId, onChanged }) {
     setActing(true);
     try {
       await axios.post('/TW26/backend/api/admin/payments.php', { payment_id: paymentId, action });
-      message.success(action === 'confirm' ? 'Inscrição aprovada!' : 'Inscrição cancelada.');
+      const successMsg = {
+        confirm: 'Inscrição aprovada!',
+        revert: 'Aprovação revertida.',
+        cancel: 'Inscrição cancelada.',
+      };
+      message.success(successMsg[action] ?? 'Ação concluída.');
       load();
       onChanged?.();
     } catch (err) {
@@ -420,11 +454,27 @@ function LoteRegistrations({ loteId, onChanged }) {
     {
       title: 'Ações', key: 'actions',
       render: (_, r) => {
-        if (r.reg_status !== 'pending' || r.payment_id === null) return null;
+        if (r.payment_id === null) return null;
+        if (r.reg_status === 'confirmed') {
+          return (
+            <Popconfirm
+              title="Reverter aprovação?"
+              description={r.has_proof
+                ? 'A inscrição volta a ficar pendente e o pagamento, em confirmação (já tem comprovante).'
+                : 'A inscrição volta a ficar pendente e o pagamento, aguardando.'}
+              onConfirm={() => act(r.payment_id, 'revert')}
+            >
+              <Button size="small" loading={acting}>Reverter</Button>
+            </Popconfirm>
+          );
+        }
+        if (r.reg_status !== 'pending') return null;
         const approve = (
           <Button
             size="small" type="primary" loading={acting}
-            style={{ background: '#8A00C4', borderColor: '#8A00C4' }}
+            style={r.has_proof
+              ? { background: '#8A00C4', borderColor: '#8A00C4' }
+              : { background: '#FAAD14', borderColor: '#FAAD14', color: '#000' }}
             onClick={r.has_proof ? () => act(r.payment_id, 'confirm') : undefined}
           >
             Aprovar

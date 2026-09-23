@@ -401,6 +401,11 @@ export default function Account() {
 
               {payment && (payment.status === 'pending' || payment.status === 'failed') && (
                 <div className={styles.pixCard}>
+                  <p className={styles.line} style={{ color: '#8A00C4', fontWeight: 600 }}>
+                    ⚠️ Sua vaga neste lote fica <strong>reservada por apenas 30 minutos</strong>.
+                    Depois desse prazo, será necessário enviar o comprovante para manter a reserva.
+                    Se você já pagou, envie o comprovante <strong>imediatamente</strong> abaixo.
+                  </p>
                   <p className={styles.line}><strong>Valor:</strong> R$ {Number(payment.amount).toFixed(2)}</p>
                   {registration.lote?.has_qr && (
                     <img
