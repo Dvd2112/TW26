@@ -25,6 +25,11 @@ CREATE TABLE IF NOT EXISTS users (
     email_verified_at     TIMESTAMPTZ,
     email_token           TEXT,
     email_token_expires   TIMESTAMPTZ,
+    -- recuperação de senha: só o hash SHA-256 do código de 8 caracteres é guardado
+    reset_code_hash       TEXT,
+    reset_code_expires    TIMESTAMPTZ,
+    reset_code_attempts   SMALLINT    NOT NULL DEFAULT 0,
+    reset_code_sent_at    TIMESTAMPTZ,
     -- "crachá" do participante: é este código que vira QR na Minha Conta e que o
     -- credenciador lê/digita para registrar presença. DEFAULT volátil = um código
     -- distinto por linha, inclusive no backfill de quem já estava cadastrado.

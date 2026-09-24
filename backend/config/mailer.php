@@ -102,6 +102,74 @@ function sendPaymentConfirmedEmail(string $toEmail, string $toName, string $lote
 }
 endif;
 
+if (!function_exists('sendPasswordResetEmail')):
+/**
+ * Envia o código de recuperação de senha (8 caracteres, válido por 15 min).
+ *
+ * @throws MailException Em caso de falha no envio
+ */
+function sendPasswordResetEmail(string $toEmail, string $toName, string $code): void
+{
+    $mail = createMailer();
+    $mail->addAddress($toEmail, $toName);
+    $mail->Subject = '[TechWeek 2026] Seu código de recuperação de senha';
+    $mail->isHTML(true);
+    $mail->Body    = buildPasswordResetHtml($toName, $code);
+    $mail->AltBody = buildPasswordResetText($toName, $code);
+    $mail->send();
+}
+endif;
+
+if (!function_exists('buildPasswordResetHtml')):
+function buildPasswordResetHtml(string $name, string $code): string
+{
+    $nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
+    $codeSafe = htmlspecialchars($code, ENT_QUOTES, 'UTF-8');
+
+    $body = <<<HTML
+<p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">
+  Olá, {$nameSafe}!
+</p>
+<p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Recebemos um pedido para redefinir a senha da sua conta na
+  <strong style="color:#ffffff;">TechWeek 2026</strong>. Use o código abaixo na tela de recuperação:
+</p>
+
+<table width="100%" cellpadding="0" cellspacing="0"
+       style="background:#111111;border:1px solid #1a1a1a;border-radius:8px;margin:0 0 24px;">
+  <tr>
+    <td align="center" style="padding:24px;">
+      <p style="margin:0;font-size:34px;font-weight:700;color:#bf40ff;letter-spacing:8px;font-family:'Courier New',monospace;">
+        {$codeSafe}
+      </p>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0 0 16px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Este código é válido por <strong style="color:#ffffff;">15 minutos</strong> e pode ser usado uma única vez.
+</p>
+<p style="margin:0;font-size:13px;color:#666666;">
+  Se você não pediu a recuperação de senha, ignore este e-mail — sua senha continua a mesma.
+</p>
+HTML;
+
+    return buildEmailShell('Recuperação de senha', $body);
+}
+endif;
+
+if (!function_exists('buildPasswordResetText')):
+function buildPasswordResetText(string $name, string $code): string
+{
+    return "Olá, $name!\n\n"
+         . "Recebemos um pedido para redefinir a senha da sua conta na TechWeek 2026.\n\n"
+         . "Seu código: $code\n\n"
+         . "O código é válido por 15 minutos e pode ser usado uma única vez.\n"
+         . "Se você não pediu a recuperação, ignore este e-mail.\n\n"
+         . "Equipe TechWeek 2026\n";
+}
+endif;
+
 if (!function_exists('sendAdminNotification')):
 /**
  * Envia notificação interna de nova pré-inscrição ao administrador.
