@@ -8,6 +8,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import AccountPage from './pages/AccountPage';
 import OficinasPage from './pages/OficinasPage';
 import AdminPage from './pages/AdminPage';
+import HackathonPage from './pages/HackathonPage';
 import './styles/global.css';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
     : page === 'recuperar-senha' ? ForgotPasswordPage
     : page === 'conta'    ? AccountPage
     : page === 'oficinas' ? OficinasPage
+    : page === 'hackathon' ? HackathonPage
     : page === 'admin'    ? AdminPage
     : HomePage;
 
