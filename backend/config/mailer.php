@@ -191,6 +191,62 @@ function sendAdminNotification(string $name, string $maskedCpf, string $email, s
 }
 endif;
 
+if (!function_exists('sendHackathonInviteEmail')):
+/**
+ * Avisa alguém que foi incluído numa equipe do hackathon e precisa aceitar ou
+ * rejeitar o vínculo (feito em ?page=hackathon, com a conta do próprio convidado).
+ *
+ * @throws MailException Em caso de falha no envio
+ */
+function sendHackathonInviteEmail(string $toEmail, string $toName, string $teamName, string $leaderName): void
+{
+    $link = rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=hackathon';
+
+    $nameSafe   = htmlspecialchars($toName, ENT_QUOTES, 'UTF-8');
+    $teamSafe   = htmlspecialchars($teamName, ENT_QUOTES, 'UTF-8');
+    $leaderSafe = htmlspecialchars($leaderName, ENT_QUOTES, 'UTF-8');
+    $linkSafe   = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+
+    $body = <<<HTML
+<p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">
+  Olá, {$nameSafe}!
+</p>
+<p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  <strong style="color:#ffffff;">{$leaderSafe}</strong> incluiu você na equipe
+  <strong style="color:#bf40ff;">{$teamSafe}</strong> para o Hackathon da
+  <strong style="color:#ffffff;">TechWeek 2026</strong>.
+</p>
+<p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Entre na sua conta (ou crie uma, usando este mesmo e-mail ou o CPF informado pelo líder)
+  e aceite ou rejeite o convite:
+</p>
+<p style="margin:0 0 24px;">
+  <a href="{$linkSafe}" style="display:inline-block;background:#8a00c4;color:#ffffff;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:8px;">
+    Ver convite
+  </a>
+</p>
+<p style="margin:0;font-size:13px;color:#666666;">
+  Se você não conhece esta equipe, é só rejeitar o convite ou ignorar este e-mail.
+</p>
+HTML;
+
+    $mail = createMailer();
+    $mail->addAddress($toEmail, $toName);
+    $mail->Subject = '[TechWeek 2026] Você foi convidado para uma equipe do Hackathon';
+    $mail->isHTML(true);
+    $mail->Body    = buildEmailShell('Convite de equipe', $body);
+    $mail->AltBody = "Olá, $toName!
+
+$leaderName incluiu você na equipe \"$teamName\" do Hackathon da TechWeek 2026.
+"
+                   . "Aceite ou rejeite o convite em: $link
+
+Equipe TechWeek 2026
+";
+    $mail->send();
+}
+endif;
+
 // ─── layout compartilhado (cores do software: preto + roxo) ───────────────────
 
 if (!function_exists('buildEmailShell')):

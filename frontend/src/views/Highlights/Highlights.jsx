@@ -33,7 +33,7 @@ const defaultHighlights = [
     icon: '⚡',
     title: 'Maratona de Inovação',
     description:
-      'Em 2026, 48h ininterruptas de desenvolvimento. Times resolvem desafios reais propostos por empresas parceiras. Recrutamento acontece em tempo real.',
+      'Em 2026, 48h ininterruptas de desenvolvimento. Times criam projetos e escrevem código com mentoria ao longo da maratona.',
     accent: '#8A00C4',
   },
 ];
