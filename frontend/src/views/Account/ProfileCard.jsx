@@ -18,6 +18,11 @@ export default function ProfileCard({ user }) {
             Ver oficinas
           </Button>
         </a>
+        <a href="?page=recuperar-senha">
+          <Button style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent' }}>
+            Alterar senha
+          </Button>
+        </a>
         <Button
           danger
           onClick={async () => {
