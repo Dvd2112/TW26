@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage';
 import AccountPage from './pages/AccountPage';
 import OficinasPage from './pages/OficinasPage';
 import AdminPage from './pages/AdminPage';
+import VerifyCertificatePage from './pages/VerifyCertificatePage';
 import './styles/global.css';
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
     : page === 'conta'    ? AccountPage
     : page === 'oficinas' ? OficinasPage
     : page === 'admin'    ? AdminPage
+    : page === 'verificar' ? VerifyCertificatePage
     : HomePage;
 
   return (

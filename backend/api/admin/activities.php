@@ -44,8 +44,7 @@ if ($method === 'GET') {
             $activity['enrolled'] = (int) $activity['enrolled'];
             $activity['attended'] = (int) $activity['attended'];
             $activity['capacity'] = $activity['capacity'] !== null ? (int) $activity['capacity'] : null;
-            // PDO_PGSQL retorna boolean como texto 't'/'f', não como PHP bool
-            $activity['is_published'] = $activity['is_published'] === 't';
+            $activity['is_published'] = dbBool($activity['is_published']);
         }
         unset($activity);
         jsonResponse(200, true, 'ok', ['activities' => $activities]);

@@ -5,6 +5,7 @@ const defaultSections = [
   ['#journeys', 'Jornadas'],
   ['#highlights', 'Destaques'],
   ['#contact', 'Contato'],
+  ['?page=verificar', 'Verificar certificado'],
 ];
 
 const defaultQuickLinks = [];

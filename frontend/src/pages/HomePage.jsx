@@ -240,6 +240,7 @@ export default function HomePage() {
           ['#highlights', 'Destaques'],
           ['#edition2026', 'A edição'],
           ['#sponsors', 'Patrocinadores'],
+          ['?page=verificar', 'Verificar certificado'],
           ['mailto:techweekfb@gmail.com', 'Contato'],
         ]}
         quickLinks={[]}

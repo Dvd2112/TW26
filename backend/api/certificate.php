@@ -13,8 +13,13 @@ $user = requireLogin();
 try {
     $attendance = calculateAttendanceHours((int) $user['id']);
 
-    if ($attendance['total'] <= 0) {
+    if ($attendance['activities'] === []) {
         jsonResponse(404, false, 'Nenhuma presença registrada ainda — o certificado fica disponível assim que você confirmar presença em alguma atividade.');
+    }
+
+    if ($attendance['total'] <= 0) {
+        appLog('certificate.zero_hours', ['user_id' => $user['id'], 'activities' => count($attendance['activities'])]);
+        jsonResponse(422, false, 'Suas presenças foram registradas, mas as atividades ainda estão sem horário de início e término válidos. Fale com a organização.');
     }
 
     $certificate = issueCertificate((int) $user['id'], $attendance['total']);
