@@ -7,7 +7,7 @@
 -- atividades em que o participante confirmou presença).
 --
 -- Idempotente: pode ser rodada de novo sem efeito colateral.
--- Execução: psql -U postgres -d techweek26 -f backend/database/migrations/014_certificates.sql
+-- Execução: psql -U postgres -d techweek26 -f backend/database/migrations/016_certificates.sql
 
 BEGIN;
 

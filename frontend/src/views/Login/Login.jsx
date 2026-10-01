@@ -69,6 +69,12 @@ export default function Login() {
               <Input.Password placeholder="Sua senha" size="large" />
             </Form.Item>
 
+            <p className={styles.footerText} style={{ textAlign: 'right', marginBottom: 8 }}>
+              <a href="?page=recuperar-senha" className={styles.link}>
+                Esqueci minha senha
+              </a>
+            </p>
+
             <Form.Item style={{ marginTop: 8, marginBottom: 12 }}>
               <Button
                 type="primary"

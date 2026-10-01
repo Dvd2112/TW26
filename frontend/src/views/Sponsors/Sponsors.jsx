@@ -13,7 +13,7 @@ export default function Sponsors({ id, tag, title, subtitle, tiers = [] }) {
         <SectionTitle tag={tag} title={title} subtitle={subtitle} center />
 
         <div ref={ref} className={styles.groups}>
-          {tiers.map((tier, gi) => (
+          {tiers.filter((tier) => tier.sponsors.length > 0).map((tier, gi) => (
             <motion.div
               key={tier.name}
               className={styles.groupBlock}

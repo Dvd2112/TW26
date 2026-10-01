@@ -95,13 +95,14 @@ if ($method === 'POST') {
     $paymentId = (int) ($data['payment_id'] ?? 0);
     $note      = htmlspecialchars(strip_tags(trim((string) ($data['note'] ?? ''))), ENT_QUOTES, 'UTF-8');
 
-    if (!in_array($action, ['confirm', 'cancel'], true) || $paymentId <= 0) {
+    if (!in_array($action, ['confirm', 'cancel', 'revert'], true) || $paymentId <= 0) {
         jsonResponse(422, false, 'Ação inválida.');
     }
 
     try {
         $stmt = $pdo->prepare(
             'SELECT p.id, p.registration_id, p.status AS payment_status, p.amount,
+                    (p.proof_path IS NOT NULL) AS has_proof,
                     r.status AS registration_status,
                     u.name AS user_name, u.email AS user_email,
                     l.name AS lote_name
@@ -169,6 +170,47 @@ if ($method === 'POST') {
             }
 
             jsonResponse(200, true, 'Inscrição aprovada e confirmada!');
+        }
+
+        if ($action === 'revert') {
+            // Desfaz uma aprovação: volta a inscrição pra pendente e o
+            // pagamento pra aguardando, sem mexer no lote_index (índices
+            // já atribuídos nunca são reaproveitados).
+            if ($pay['registration_status'] !== 'confirmed') {
+                jsonResponse(409, false, 'Só é possível reverter inscrições confirmadas.');
+            }
+
+            $hasProof = dbBool($pay['has_proof']);
+            $paymentStatus = $hasProof ? 'awaiting_confirmation' : 'pending';
+            $regPaymentStatus = $hasProof ? 'awaiting_confirmation' : 'unpaid';
+
+            $pdo->beginTransaction();
+
+            $pdo->prepare(
+                'UPDATE payments
+                 SET status = :status, paid_at = NULL, confirmed_by = :by, confirmed_note = :note
+                 WHERE id = :id'
+            )->execute([
+                ':status' => $paymentStatus,
+                ':by'     => $user['id'],
+                ':note'   => $note !== '' ? $note : 'Aprovação revertida pelo admin',
+                ':id'     => $paymentId,
+            ]);
+
+            $pdo->prepare(
+                'UPDATE registrations SET status = \'pending\', payment_status = :payStatus, confirmed_at = NULL
+                 WHERE id = :rid'
+            )->execute([':payStatus' => $regPaymentStatus, ':rid' => $pay['registration_id']]);
+
+            $pdo->commit();
+
+            appLog('admin.registration_reverted', [
+                'admin_id'        => $user['id'],
+                'registration_id' => $pay['registration_id'],
+                'payment_id'      => $paymentId,
+            ]);
+
+            jsonResponse(200, true, 'Aprovação revertida.');
         }
 
         // cancel
