@@ -9,6 +9,7 @@ import AccountPage from './pages/AccountPage';
 import OficinasPage from './pages/OficinasPage';
 import AdminPage from './pages/AdminPage';
 import HackathonPage from './pages/HackathonPage';
+import VerifyCertificatePage from './pages/VerifyCertificatePage';
 import './styles/global.css';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
     : page === 'oficinas' ? OficinasPage
     : page === 'hackathon' ? HackathonPage
     : page === 'admin'    ? AdminPage
+    : page === 'verificar' ? VerifyCertificatePage
     : HomePage;
 
   return (

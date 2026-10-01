@@ -57,7 +57,7 @@ if ($method === 'POST') {
         $stmt->execute([':id' => $activityId]);
         $activity = $stmt->fetch();
 
-        if ($activity === false || !$activity['is_published']) {
+        if ($activity === false || !dbBool($activity['is_published'])) {
             $pdo->rollBack();
             jsonResponse(422, false, 'Atividade indisponível.');
         }
