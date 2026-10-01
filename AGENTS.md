@@ -180,6 +180,12 @@ usuário clica link → verify-email.php → UPDATE users SET email_verified_at=
 ```
 Tabelas `presaves`, `lotes`, `registrations`, `payments`, `activities`, `activity_enrollments`, `permissions`, `user_permissions` **já existem no schema mas ainda não têm endpoints** — é o roadmap natural do projeto (lotes/inscrições/pagamentos/atividades/RBAC).
 
+### 5.7 Hackathon (inscrição por equipe)
+- Página `?page=hackathon` (`pages/HackathonPage` → `views/Hackathon/`) + seção `views/HackathonPromo` na home (`#hackathon`). Aba **Hackathon** no admin (`tabs/HackathonTab.jsx`).
+- Backend: `api/hackathon.php` (GET público + POST por `action`: `create_team`, `respond`, `add_member`, `remove_member`, `leave`, `disband`), `api/hackathon-payments.php` (comprovante PIX do integrante), `api/hackathon-qr.php`, `api/admin/hackathon.php` (config, confirmar/recusar/reverter pagamento, QR, excluir equipe), `api/admin/hackathon-proof.php`. Regras de preço em `config/hackathon.php`.
+- Modelo (migration `015_hackathon.sql`): `hackathon_settings` (linha única: abertura, preço, `free_for_paid_participants`, `charge_others`, limites), `hackathon_teams`, `hackathon_members`. Quem inscreve é o líder (aceito automaticamente); os demais são vinculados por **CPF ou e-mail** ao aceitarem o convite logados. Cada integrante paga/é isento individualmente (`free|unpaid|awaiting_confirmation|paid`).
+- Preço do integrante: já pagou o evento → grátis se `free_for_paid_participants`; senão → grátis se `!charge_others`; senão `price`. Reavaliado enquanto `unpaid` sem comprovante.
+
 ## 6. Banco de dados (PostgreSQL)
 
 - Convenções: `snake_case`, PK `SERIAL id`, timestamps `TIMESTAMPTZ DEFAULT NOW()`, FKs com `ON DELETE CASCADE` (ou `SET NULL` para referências opcionais tipo `granted_by`, `lote_id`).

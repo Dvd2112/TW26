@@ -8,11 +8,11 @@ import axios from 'axios';
  * bloqueia o popup, pois deixa de ser um gesto direto do usuário. O link "Abrir
  * em nova aba" é um toque real, então funciona (inclusive para PDF).
  */
-export async function openProof(paymentId) {
+export async function openProof(id, { url: endpoint = '/TW26/backend/api/admin/payment-proof.php', param = 'payment_id' } = {}) {
   let url;
   try {
-    const res = await axios.get('/TW26/backend/api/admin/payment-proof.php', {
-      params: { payment_id: paymentId },
+    const res = await axios.get(endpoint, {
+      params: { [param]: id },
       responseType: 'blob',
     });
     url = URL.createObjectURL(res.data);

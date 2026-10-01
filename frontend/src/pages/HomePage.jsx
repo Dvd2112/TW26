@@ -6,6 +6,7 @@ import Vision from '../views/Vision/Vision';
 import Numbers from '../views/Numbers/Numbers';
 import Highlights from '../views/Highlights/Highlights';
 import Edition2026 from '../views/Edition2026/Edition2026';
+import HackathonPromo from '../views/HackathonPromo/HackathonPromo';
 import PreSaveBanner from '../views/PreSaveBanner/PreSaveBanner';
 import Sponsors from '../views/Sponsors/Sponsors';
 import FooterSection from '../views/FooterSection/FooterSection';
@@ -22,6 +23,7 @@ import logoVorbi from '../assets/sponsors/vorbi.png';
 
 const navLinks = [
   { label: 'O que você encontra', href: '#vision' },
+  { label: 'Hackathon', href: '#hackathon' },
   { label: 'Destaques', href: '#highlights' },
   { label: 'Edição 2026', href: '#edition2026' },
   { label: 'Patrocinadores', href: '#sponsors' },
@@ -112,6 +114,18 @@ const facts = [
   { icon: 'ESG', label: 'tecnologia verde e impacto' },
 ];
 
+const hackathonParagraphs = [
+  'O Hackathon é a maratona de inovação de 48 horas que abre a TechWeek 2026. Equipes se reúnem para tirar uma ideia do papel e transformá-la em um projeto funcional, escrevendo código do começo ao fim: da arquitetura à primeira versão rodando.',
+  'Durante a maratona você conta com mentoria para destravar decisões técnicas, revisar a solução e evoluir o projeto. É programar de verdade, em equipe: dividir tarefas, integrar o código, lidar com prazo e apresentar o que foi construído.',
+  'Não precisa ser expert: o que conta é vontade de construir e de programar. Estudantes, profissionais em início de carreira e quem está migrando de área são muito bem-vindos.',
+];
+
+const hackathonSteps = [
+  { title: 'Monte sua equipe', desc: 'Uma pessoa faz a inscrição da equipe, informa o nome do time e os dados (nome, CPF e e-mail) de cada integrante.' },
+  { title: 'Cada integrante aceita o vínculo', desc: 'Todos os convidados entram no site com a própria conta e aceitam (ou rejeitam) o convite para a equipe.' },
+  { title: 'Confirme o pagamento, se houver', desc: 'Cada integrante acompanha a própria situação: isento ou com PIX e comprovante. Assim que estiver tudo certo, a vaga da equipe está garantida.' },
+];
+
 const sponsorTiers = [
   {
     name: 'Patrocínio Diamante',
@@ -148,15 +162,42 @@ const sponsorTiers = [
   },
 ];
 
+function hackathonPricingNotes(s) {
+  const price = `R$ ${Number(s.price).toFixed(2).replace('.', ',')}`;
+  const notes = [];
+  notes.push(s.free_for_paid_participants
+    ? 'Gratuito para quem já pagou a inscrição no evento.'
+    : `Quem já pagou a inscrição no evento paga ${price}.`);
+  notes.push(s.charge_others && s.price > 0
+    ? `Demais participantes: ${price} por integrante.`
+    : 'Demais participantes: gratuito.');
+  return notes;
+}
+
 export default function HomePage() {
   const [hasRegistration, setHasRegistration] = useState(false);
+  const [hackathon, setHackathon] = useState(null);
 
   useEffect(() => {
     axios
       .get('/TW26/backend/api/my-registration.php')
       .then((res) => setHasRegistration(Boolean(res.data?.registration)))
       .catch(() => setHasRegistration(false));
+
+    axios
+      .get('/TW26/backend/api/hackathon.php')
+      .then((res) => setHackathon(res.data?.settings ?? null))
+      .catch(() => setHackathon(null));
   }, []);
+
+  const hackathonOpen = Boolean(hackathon?.registrations_open) && !hackathon?.is_full;
+  const hackathonStatus = hackathon
+    ? {
+        open: hackathonOpen,
+        label: hackathon.is_full ? 'Vagas esgotadas' : hackathon.registrations_open ? 'Inscrições abertas' : 'Inscrições em breve',
+      }
+    : null;
+  const hackathonNotes = hackathon ? hackathonPricingNotes(hackathon) : [];
 
   const heroActions = hasRegistration
     ? []
@@ -202,9 +243,29 @@ export default function HomePage() {
           stats={stats}
         />
 
+        <HackathonPromo
+          id="hackathon"
+          tag="// 03 – Hackathon 48h"
+          title="Hackathon"
+          brand="TechWeek"
+          subtitle="Uma maratona de inovação para criar projetos e escrever código em equipe, com mentoria durante as 48 horas."
+          paragraphs={hackathonParagraphs}
+          steps={hackathonSteps}
+          details={[
+            { icon: '📅', label: 'Quando', value: '17 e 18 de outubro' },
+            { icon: '⏱️', label: 'Duração', value: '48 horas de maratona' },
+            { icon: '👥', label: 'Equipes', value: hackathon ? `De ${hackathon.min_team_size} a ${hackathon.max_team_size} pessoas` : 'Em times' },
+            { icon: '💻', label: 'Foco', value: 'Programação, código e criação de projetos' },
+            { icon: '🧠', label: 'Apoio', value: 'Mentoria durante a maratona' },
+          ]}
+          status={hackathonStatus}
+          notes={hackathonNotes}
+          cta={{ label: hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
+        />
+
         <Highlights
           id="highlights"
-          tag="// 03 – Destaques"
+          tag="// 04 – Destaques"
           title="O Tipo de Experiência Que Faz Ficar"
           subtitle="Mais do que acompanhar uma programação, você entra em uma semana desenhada para estimular presença, conversa e construção de trajetória."
           highlights={highlights}
@@ -212,7 +273,7 @@ export default function HomePage() {
 
         <Edition2026
           id="edition2026"
-          tag="// 04 – A Edição 2026"
+          tag="// 05 – A Edição 2026"
           title="Como a TechWeek 2026 Ganha Ritmo"
           subtitle="A programação se distribui ao longo de vários dias, criando um fluxo em que conteúdo, conexão e experimentação se reforçam mutuamente."
           timeline={timeline}
@@ -225,7 +286,7 @@ export default function HomePage() {
 
         <Sponsors
           id="sponsors"
-          tag="// 05 – Patrocinadores"
+          tag="// 06 – Patrocinadores"
           title="Quem Torna a TechWeek Possível"
           subtitle="Empresas que acreditam no potencial da tecnologia da região e caminham junto com a comunidade."
           tiers={sponsorTiers}
@@ -237,6 +298,7 @@ export default function HomePage() {
         sections={[
           ['#vision', 'O que você encontra'],
           ['#numbers', 'O que esperar'],
+          ['#hackathon', 'Hackathon'],
           ['#highlights', 'Destaques'],
           ['#edition2026', 'A edição'],
           ['#sponsors', 'Patrocinadores'],
