@@ -13,6 +13,8 @@ requireCsrf();
 
 $user = requireLogin();
 
+jsonResponse(409, false, 'O Ideathon é gratuito e não requer comprovante de pagamento.');
+
 // ─── comprovante (obrigatório) ─────────────────────────────────────────────────
 
 const MAX_PROOF_BYTES = 5 * 1024 * 1024; // 5MB

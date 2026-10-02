@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS lotes (
 -- ─── registrations ────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS registrations (
     id                SERIAL      PRIMARY KEY,
-    user_id           INTEGER     NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    user_id           INTEGER     NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     lote_id           INTEGER              REFERENCES lotes(id)        ON DELETE SET NULL,
     came_from_presave BOOLEAN     NOT NULL DEFAULT FALSE,
     status            TEXT        NOT NULL DEFAULT 'pending'
@@ -247,12 +247,12 @@ CREATE TABLE IF NOT EXISTS revenues (
 CREATE TABLE IF NOT EXISTS hackathon_settings (
     id                         INTEGER        PRIMARY KEY DEFAULT 1 CHECK (id = 1),
     registrations_open         BOOLEAN        NOT NULL DEFAULT FALSE,
-    price                      NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (price >= 0),
+    price                      NUMERIC(10, 2) NOT NULL DEFAULT 0 CHECK (price = 0),
     free_for_paid_participants BOOLEAN        NOT NULL DEFAULT TRUE,
-    charge_others              BOOLEAN        NOT NULL DEFAULT TRUE,
+    charge_others              BOOLEAN        NOT NULL DEFAULT FALSE,
     max_teams                  INTEGER        CHECK (max_teams IS NULL OR max_teams > 0), -- NULL = sem limite
-    min_team_size              SMALLINT       NOT NULL DEFAULT 2 CHECK (min_team_size >= 1),
-    max_team_size              SMALLINT       NOT NULL DEFAULT 5 CHECK (max_team_size >= 1),
+    min_team_size              SMALLINT       NOT NULL DEFAULT 3 CHECK (min_team_size = 3),
+    max_team_size              SMALLINT       NOT NULL DEFAULT 6 CHECK (max_team_size = 6),
     qr_code_path               TEXT,
     pix_link                   TEXT,
     updated_at                 TIMESTAMPTZ    NOT NULL DEFAULT NOW()
@@ -261,10 +261,14 @@ CREATE TABLE IF NOT EXISTS hackathon_settings (
 INSERT INTO hackathon_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS hackathon_teams (
-    id         SERIAL      PRIMARY KEY,
-    name       TEXT        NOT NULL,
-    created_by INTEGER     NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    id                             SERIAL      PRIMARY KEY,
+    name                           TEXT        NOT NULL,
+    created_by                     INTEGER     NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    lgpd_consent                   BOOLEAN     NOT NULL DEFAULT FALSE,
+    diversity_requirement_confirmed BOOLEAN    NOT NULL DEFAULT FALSE,
+    career_outlook                 TEXT,
+    future_plans                   TEXT,
+    created_at                     TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS hackathon_teams_name_uniq ON hackathon_teams (lower(name));
@@ -278,6 +282,8 @@ CREATE TABLE IF NOT EXISTS hackathon_members (
     name              TEXT           NOT NULL,
     cpf               TEXT           NOT NULL, -- só dígitos
     email             TEXT           NOT NULL, -- minúsculas
+    phone             TEXT,
+    birth_date        DATE,
     is_leader         BOOLEAN        NOT NULL DEFAULT FALSE,
     invite_status     TEXT           NOT NULL DEFAULT 'pending'
                           CHECK (invite_status IN ('pending', 'accepted', 'rejected')),

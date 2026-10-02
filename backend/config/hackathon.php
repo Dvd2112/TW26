@@ -37,24 +37,11 @@ endif;
 
 if (!function_exists('hackathonPriceFor')):
 /**
- * Quanto o usuário paga no hackathon:
- *  - já pagou a inscrição do evento → grátis se free_for_paid_participants;
- *  - não tem inscrição paga         → grátis se !charge_others;
- *  - senão o preço configurado.
+ * O Ideathon é gratuito para todos os participantes.
  */
 function hackathonPriceFor(PDO $pdo, int $userId, array $settings): float
 {
-    $stmt = $pdo->prepare(
-        "SELECT 1 FROM registrations
-         WHERE user_id = :uid AND status <> 'cancelled' AND payment_status = 'paid' LIMIT 1"
-    );
-    $stmt->execute([':uid' => $userId]);
-    $paidEvent = $stmt->fetchColumn() !== false;
-
-    if ($paidEvent) {
-        return $settings['free_for_paid_participants'] ? 0.0 : $settings['price'];
-    }
-    return $settings['charge_others'] ? $settings['price'] : 0.0;
+    return 0.0;
 }
 endif;
 

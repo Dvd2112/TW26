@@ -13,15 +13,18 @@ requireMethod('GET');
 try {
     $pdo = getDbConnection();
 
-    // Cada lote é visível apenas ao tipo de usuário (e à instituição) a que se
-    // destina. Visitante sem login enxerga apenas lotes de participante normal.
+    // Lotes do perfil atual são exibidos normalmente. O lote de voluntário é
+    // uma vitrine para todos, mas a API de inscrição só o aceita para quem já
+    // possui esse perfil.
     $viewer     = currentUser();
     $viewerType = $viewer['participant_type'] ?? 'participant';
 
     $params = [':participant_type' => $viewerType];
     $institutionClause = '';
     if ($viewer !== null) {
-        $institutionClause = 'AND (l.institution = :institution OR l.institution IS NULL)';
+        // A frente de voluntariado é comum ao evento inteiro; por isso seus
+        // lotes não são ocultados por instituição.
+        $institutionClause = "AND (l.participant_type = 'volunteer' OR l.institution = :institution OR l.institution IS NULL)";
         $params[':institution'] = $viewer['institution'];
     }
 
@@ -33,7 +36,7 @@ try {
                   WHERE r.lote_id = l.id AND ' . loteOccupiesSlotSql('r') . ') AS enrolled
          FROM lotes l
          WHERE l.is_active = true
-           AND l.participant_type = :participant_type
+           AND (l.participant_type = :participant_type OR l.participant_type = \'volunteer\')
            ' . $institutionClause . '
            AND (l.starts_at IS NULL OR l.starts_at <= NOW())
            AND (l.ends_at   IS NULL OR l.ends_at   >= NOW())
