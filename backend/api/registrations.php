@@ -22,33 +22,41 @@ if ($requestedLoteId <= 0) {
 try {
     $pdo = getDbConnection();
 
-    // Já possui inscrição ativa?
-    $has = $pdo->prepare('SELECT id FROM registrations WHERE user_id = :uid LIMIT 1');
-    $has->execute([':uid' => $user['id']]);
-    if ($has->fetch() !== false) {
-        jsonResponse(409, false, 'Você já possui uma inscrição para a TechWeek 2026.');
-    }
-
     $pdo->beginTransaction();
 
-    // O participante escolhe o lote, mas só pode escolher um lote do próprio
-    // tipo (normal/voluntário/staff), aberto e da instituição dele (ou genérico,
-    // institution IS NULL). Trava a linha (FOR UPDATE) para evitar estouro de
-    // vagas em cadastros concorrentes.
+    // Serializa tentativas simultâneas do mesmo usuário. A trava permite
+    // manter o histórico de inscrições, sem criar duas reservas ativas.
+    $userLock = $pdo->prepare('SELECT id FROM users WHERE id = :id FOR UPDATE');
+    $userLock->execute([':id' => $user['id']]);
+
+    // Uma inscrição só bloqueia uma nova escolha enquanto ainda reserva vaga:
+    // até 30 minutos sem comprovante, ou enquanto o comprovante/pagamento existir.
+    // Inscrições canceladas e reservas expiradas permanecem no histórico, mas não
+    // impedem que a pessoa escolha este ou outro lote novamente.
+    $has = $pdo->prepare(
+        'SELECT id FROM registrations r WHERE r.user_id = :uid AND ' . loteOccupiesSlotSql('r') . ' LIMIT 1'
+    );
+    $has->execute([':uid' => $user['id']]);
+    if ($has->fetch() !== false) {
+        $pdo->rollBack();
+        jsonResponse(409, false, 'Você já possui uma reserva ou inscrição ativa para a TechWeek 2026.');
+    }
+
+    // O lote de voluntário é exibido para todas as pessoas, mas só pode ser
+    // escolhido por quem já foi aprovado como voluntário. Os demais tipos
+    // continuam restritos ao perfil do usuário.
     $loteStmt = $pdo->prepare(
         "SELECT id, name, price, capacity, volunteer_discount_percent, starts_at, ends_at,
-                (qr_code_path IS NOT NULL) AS has_qr, pix_link
+                (qr_code_path IS NOT NULL) AS has_qr, pix_link, participant_type
          FROM lotes
          WHERE id = :id
            AND is_active = true
-           AND participant_type = :participant_type
-           AND (institution = :institution OR institution IS NULL)
+           AND (participant_type = 'volunteer' OR institution = :institution OR institution IS NULL)
          FOR UPDATE"
     );
     $loteStmt->execute([
-        ':id'               => $requestedLoteId,
-        ':participant_type' => $user['participant_type'],
-        ':institution'      => $user['institution'],
+        ':id'          => $requestedLoteId,
+        ':institution' => $user['institution'],
     ]);
     $lote = $loteStmt->fetch();
 
@@ -57,6 +65,15 @@ try {
         jsonResponse(422, false, 'Este lote não está disponível para o seu perfil e instituição.');
     }
     $loteId = (int) $lote['id'];
+
+    if ($lote['participant_type'] === 'volunteer' && $user['participant_type'] !== 'volunteer') {
+        $pdo->rollBack();
+        jsonResponse(422, false, 'Você ainda não é voluntário(a). Inscreva-se para ser voluntário(a) e venha fazer a TW26 acontecer!');
+    }
+    if ($lote['participant_type'] !== $user['participant_type']) {
+        $pdo->rollBack();
+        jsonResponse(422, false, 'Este lote não está disponível para o seu perfil e instituição.');
+    }
 
     // Janela de datas
     $now = new DateTimeImmutable('now');

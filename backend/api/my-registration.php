@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/http.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/lotes.php';
 
 corsHeaders();
 requireMethod('GET');
@@ -17,6 +18,7 @@ try {
     $stmt = $pdo->prepare(
         'SELECT r.id AS registration_id, r.status, r.payment_status, r.participant_type,
                 r.registered_at, r.confirmed_at,
+                (NOT ' . loteOccupiesSlotSql('r') . ') AS can_choose_lote,
                 l.id AS lote_id, l.name AS lote_name, l.price AS lote_price,
                 (l.qr_code_path IS NOT NULL) AS lote_has_qr, l.pix_link AS lote_pix_link,
                 p.id AS payment_id, p.amount, p.status AS payment_row_status,
@@ -41,6 +43,7 @@ try {
             'participant_type' => $row['participant_type'],
             'registered_at'    => $row['registered_at'],
             'confirmed_at'     => $row['confirmed_at'],
+            'can_choose_lote'  => dbBool($row['can_choose_lote']),
             'lote'             => [
                 'id'    => $row['lote_id'] !== null ? (int) $row['lote_id'] : null,
                 'name'  => $row['lote_name'],

@@ -20,7 +20,13 @@ CREATE TABLE IF NOT EXISTS hackathon_settings (
     updated_at                 TIMESTAMPTZ    NOT NULL DEFAULT NOW()
 );
 
-INSERT INTO hackathon_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+-- Valores já compatíveis com as regras atuais do Ideathon (migrations 017 e
+-- 018). Também são aceitos pelas restrições originais desta migration, então
+-- a execução funciona tanto num banco novo quanto num banco já atualizado.
+INSERT INTO hackathon_settings (
+    id, price, free_for_paid_participants, charge_others, min_team_size, max_team_size
+) VALUES (1, 0, TRUE, FALSE, 3, 6)
+ON CONFLICT (id) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS hackathon_teams (
     id         SERIAL      PRIMARY KEY,

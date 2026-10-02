@@ -193,7 +193,7 @@ endif;
 
 if (!function_exists('sendHackathonInviteEmail')):
 /**
- * Avisa alguém que foi incluído numa equipe do hackathon e precisa aceitar ou
+ * Avisa alguém que foi incluído numa equipe do Ideathon e precisa aceitar ou
  * rejeitar o vínculo (feito em ?page=hackathon, com a conta do próprio convidado).
  *
  * @throws MailException Em caso de falha no envio
@@ -213,8 +213,7 @@ function sendHackathonInviteEmail(string $toEmail, string $toName, string $teamN
 </p>
 <p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
   <strong style="color:#ffffff;">{$leaderSafe}</strong> incluiu você na equipe
-  <strong style="color:#bf40ff;">{$teamSafe}</strong> para o Hackathon da
-  <strong style="color:#ffffff;">TechWeek 2026</strong>.
+  <strong style="color:#bf40ff;">{$teamSafe}</strong> para o Ideathon - Jornada GovTech.
 </p>
 <p style="margin:0 0 24px;font-size:15px;color:#d9d9d9;line-height:1.7;">
   Entre na sua conta (ou crie uma, usando este mesmo e-mail ou o CPF informado pelo líder)
@@ -232,16 +231,16 @@ HTML;
 
     $mail = createMailer();
     $mail->addAddress($toEmail, $toName);
-    $mail->Subject = '[TechWeek 2026] Você foi convidado para uma equipe do Hackathon';
+    $mail->Subject = '[Jornada GovTech] Você foi convidado para uma equipe do Ideathon';
     $mail->isHTML(true);
     $mail->Body    = buildEmailShell('Convite de equipe', $body);
     $mail->AltBody = "Olá, $toName!
 
-$leaderName incluiu você na equipe \"$teamName\" do Hackathon da TechWeek 2026.
+$leaderName incluiu você na equipe \"$teamName\" do Ideathon - Jornada GovTech.
 "
                    . "Aceite ou rejeite o convite em: $link
 
-Equipe TechWeek 2026
+Equipe Jornada GovTech
 ";
     $mail->send();
 }

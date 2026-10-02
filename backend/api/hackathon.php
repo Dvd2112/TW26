@@ -28,7 +28,7 @@ function maskCpf(string $cpf): string
 /**
  * Valida e sanitiza um integrante vindo do formulário.
  *
- * @return array{0: ?array{name:string,cpf:string,email:string}, 1: ?string} [dados, erro]
+ * @return array{0: ?array{name:string,cpf:string,email:string,phone:string,birth_date:string}, 1: ?string} [dados, erro]
  */
 function cleanMemberInput(mixed $raw): array
 {
@@ -39,6 +39,8 @@ function cleanMemberInput(mixed $raw): array
     $name  = htmlspecialchars(strip_tags(trim((string) ($raw['name'] ?? ''))), ENT_QUOTES, 'UTF-8');
     $cpf   = normalizeCpf((string) ($raw['cpf'] ?? ''));
     $email = filter_var(strtolower(trim((string) ($raw['email'] ?? ''))), FILTER_VALIDATE_EMAIL);
+    $phone = preg_replace('/\D+/', '', (string) ($raw['phone'] ?? '')) ?? '';
+    $birthDate = trim((string) ($raw['birth_date'] ?? ''));
 
     if ($name === '' || mb_strlen($name) > 120) {
         return [null, 'Informe o nome de cada integrante.'];
@@ -49,8 +51,18 @@ function cleanMemberInput(mixed $raw): array
     if ($email === false || strlen($email) > 254) {
         return [null, "E-mail inválido para {$name}."];
     }
+    if (strlen($phone) < 10 || strlen($phone) > 13) {
+        return [null, "Informe um telefone válido para {$name}."];
+    }
+    $date = DateTimeImmutable::createFromFormat('!Y-m-d', $birthDate);
+    if ($date === false || $date->format('Y-m-d') !== $birthDate) {
+        return [null, "Informe a data de nascimento de {$name}."];
+    }
 
-    return [['name' => $name, 'cpf' => $cpf, 'email' => $email], null];
+    return [[
+        'name' => $name, 'cpf' => $cpf, 'email' => $email,
+        'phone' => $phone, 'birth_date' => $birthDate,
+    ], null];
 }
 
 /** Equipe do usuário (como integrante aceito) ou null. */
@@ -82,8 +94,8 @@ function isAlreadyInATeam(PDO $pdo, string $cpf, string $email): bool
 function insertMember(PDO $pdo, int $teamId, array $m, bool $leader, ?int $userId): int
 {
     $stmt = $pdo->prepare(
-        'INSERT INTO hackathon_members (team_id, user_id, name, cpf, email, is_leader, invite_status, responded_at)
-         VALUES (:team, :uid, :name, :cpf, :email, :leader, :status, :responded)
+        'INSERT INTO hackathon_members (team_id, user_id, name, cpf, email, phone, birth_date, is_leader, invite_status, responded_at)
+         VALUES (:team, :uid, :name, :cpf, :email, :phone, :birth_date, :leader, :status, :responded)
          RETURNING id'
     );
     $stmt->bindValue(':team', $teamId, PDO::PARAM_INT);
@@ -91,6 +103,8 @@ function insertMember(PDO $pdo, int $teamId, array $m, bool $leader, ?int $userI
     $stmt->bindValue(':name', $m['name']);
     $stmt->bindValue(':cpf', $m['cpf']);
     $stmt->bindValue(':email', $m['email']);
+    $stmt->bindValue(':phone', $m['phone']);
+    $stmt->bindValue(':birth_date', $m['birth_date']);
     $stmt->bindValue(':leader', $leader, PDO::PARAM_BOOL);
     $stmt->bindValue(':status', $leader ? 'accepted' : 'pending');
     $stmt->bindValue(':responded', $leader ? (new DateTimeImmutable('now'))->format('Y-m-d H:i:sP') : null);
@@ -136,8 +150,8 @@ if ($method === 'GET') {
                 'price'                      => $settings['price'],
                 'free_for_paid_participants' => $settings['free_for_paid_participants'],
                 'charge_others'              => $settings['charge_others'],
-                'min_team_size'              => $settings['min_team_size'],
-                'max_team_size'              => $settings['max_team_size'],
+                'min_team_size'              => 3,
+                'max_team_size'              => 6,
                 'max_teams'                  => $settings['max_teams'],
                 'teams_count'                => $teams,
                 'is_full'                    => $settings['max_teams'] !== null && $teams >= $settings['max_teams'],
@@ -146,6 +160,7 @@ if ($method === 'GET') {
             'team'         => null,
             'invites'      => [],
             'price_for_me' => null,
+            'identity'     => null,
         ];
 
         if ($user === null) {
@@ -153,6 +168,7 @@ if ($method === 'GET') {
         }
 
         $me         = loadUserIdentity($pdo, (int) $user['id']);
+        $response['identity'] = $me;
         $membership = findMyMembership($pdo, (int) $user['id']);
 
         $response['price_for_me'] = hackathonPriceFor($pdo, (int) $user['id'], $settings);
@@ -164,7 +180,7 @@ if ($method === 'GET') {
             $pdo->commit();
 
             $stmt = $pdo->prepare(
-                'SELECT id, name, cpf, email, is_leader, invite_status, amount, payment_status
+                'SELECT id, name, cpf, email, phone, birth_date, is_leader, invite_status, amount, payment_status
                  FROM hackathon_members WHERE team_id = :team
                  ORDER BY is_leader DESC, id ASC'
             );
@@ -178,6 +194,8 @@ if ($method === 'GET') {
                     'name'           => $row['name'],
                     'email'          => $row['email'],
                     'cpf'            => maskCpf($row['cpf']),
+                    'phone'          => $row['phone'],
+                    'birth_date'     => $row['birth_date'],
                     'is_leader'      => dbBool($row['is_leader']),
                     'invite_status'  => $row['invite_status'],
                     'amount'         => (float) $row['amount'],
@@ -256,21 +274,31 @@ try {
     if ($action === 'create_team') {
         if (!$settings['registrations_open']) {
             $pdo->rollBack();
-            jsonResponse(422, false, 'As inscrições do hackathon não estão abertas.');
+            jsonResponse(422, false, 'As inscrições do Ideathon estão fechadas.');
         }
         if ($settings['max_teams'] !== null && hackathonTeamCount($pdo) >= $settings['max_teams']) {
             $pdo->rollBack();
-            jsonResponse(409, false, 'As vagas de equipes do hackathon estão esgotadas.');
+            jsonResponse(409, false, 'As vagas de equipes do Ideathon estão esgotadas.');
         }
         if ($membership !== null) {
             $pdo->rollBack();
-            jsonResponse(409, false, 'Você já faz parte de uma equipe do hackathon.');
+            jsonResponse(409, false, 'Você já faz parte de uma equipe do Ideathon.');
         }
 
         $teamName = htmlspecialchars(strip_tags(trim((string) ($data['team_name'] ?? ''))), ENT_QUOTES, 'UTF-8');
         if (mb_strlen($teamName) < TEAM_NAME_MIN || mb_strlen($teamName) > TEAM_NAME_MAX) {
             $pdo->rollBack();
             jsonResponse(422, false, 'O nome da equipe deve ter entre ' . TEAM_NAME_MIN . ' e ' . TEAM_NAME_MAX . ' caracteres.');
+        }
+
+        [$leader, $leaderError] = cleanMemberInput($data['leader'] ?? null);
+        if ($leader === null) {
+            $pdo->rollBack();
+            jsonResponse(422, false, $leaderError);
+        }
+        if ($leader['cpf'] !== $me['cpf'] || $leader['email'] !== $me['email']) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'Os dados de CPF e e-mail do participante 1 devem ser os da sua conta.');
         }
 
         $rawMembers = is_array($data['members'] ?? null) ? array_values($data['members']) : [];
@@ -284,8 +312,8 @@ try {
             ));
         }
 
-        $seenCpf   = [$me['cpf'] => true];
-        $seenEmail = [$me['email'] => true];
+        $seenCpf   = [$leader['cpf'] => true];
+        $seenEmail = [$leader['email'] => true];
         $members   = [];
         foreach ($rawMembers as $raw) {
             [$m, $err] = cleanMemberInput($raw);
@@ -312,11 +340,39 @@ try {
             jsonResponse(409, false, 'Já existe uma equipe com este nome.');
         }
 
-        $pdo->prepare('INSERT INTO hackathon_teams (name, created_by) VALUES (:name, :uid)')
-            ->execute([':name' => $teamName, ':uid' => $uid]);
+        $lgpdConsent = !empty($data['lgpd_consent']);
+        $diversityConfirmed = !empty($data['diversity_requirement_confirmed']);
+        $careerOutlook = trim((string) ($data['career_outlook'] ?? ''));
+        $futurePlans = htmlspecialchars(strip_tags(trim((string) ($data['future_plans'] ?? ''))), ENT_QUOTES, 'UTF-8');
+        $careerOptions = ['empreendendo', 'grande_empresa', 'academia_pesquisa', 'setor_publico', 'outro'];
+        if (!$lgpdConsent) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'É necessário concordar com os termos de privacidade para participar.');
+        }
+        if (!$diversityConfirmed) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'Confirme que a equipe possui integrante de outro curso ou instituição/organização.');
+        }
+        if (!in_array($careerOutlook, $careerOptions, true)) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'Selecione como a equipe se imagina no mercado daqui a 5 anos.');
+        }
+        if (mb_strlen($futurePlans) > 2000) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'O texto sobre planos futuros pode ter até 2.000 caracteres.');
+        }
+
+        $pdo->prepare(
+            'INSERT INTO hackathon_teams (name, created_by, lgpd_consent, diversity_requirement_confirmed, career_outlook, future_plans)
+             VALUES (:name, :uid, :lgpd, :diversity, :career, :plans)'
+        )->execute([
+            ':name' => $teamName, ':uid' => $uid, ':lgpd' => $lgpdConsent,
+            ':diversity' => $diversityConfirmed, ':career' => $careerOutlook,
+            ':plans' => $futurePlans !== '' ? $futurePlans : null,
+        ]);
         $teamId = (int) $pdo->lastInsertId('hackathon_teams_id_seq');
 
-        $leaderMemberId = insertMember($pdo, $teamId, $me, true, $uid);
+        $leaderMemberId = insertMember($pdo, $teamId, $leader, true, $uid);
         hackathonApplyPrice($pdo, $leaderMemberId, $uid, $settings);
         foreach ($members as $m) {
             insertMember($pdo, $teamId, $m, false, null);

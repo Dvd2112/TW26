@@ -41,13 +41,13 @@ if ($method === 'GET') {
         $settings = hackathonSettings($pdo);
 
         $teams = $pdo->query(
-            'SELECT t.id, t.name, t.created_at, u.name AS leader_name, u.email AS leader_email
+            'SELECT t.id, t.name, t.created_at, t.career_outlook, t.future_plans, u.name AS leader_name, u.email AS leader_email
              FROM hackathon_teams t JOIN users u ON u.id = t.created_by
              ORDER BY t.created_at DESC'
         )->fetchAll();
 
         $members = $pdo->query(
-            'SELECT id, team_id, user_id, name, cpf, email, is_leader, invite_status, amount,
+            'SELECT id, team_id, user_id, name, cpf, email, phone, birth_date, is_leader, invite_status, amount,
                     payment_status, (proof_path IS NOT NULL) AS has_proof, proof_uploaded_at, paid_at, confirmed_note
              FROM hackathon_members ORDER BY is_leader DESC, id ASC'
         )->fetchAll();
@@ -58,6 +58,8 @@ if ($method === 'GET') {
                 'id'                => (int) $m['id'],
                 'name'              => $m['name'],
                 'email'             => $m['email'],
+                'phone'             => $m['phone'],
+                'birth_date'        => $m['birth_date'],
                 'cpf'               => substr($m['cpf'], 0, 3) . '.***.***-' . substr($m['cpf'], 9, 2),
                 'is_leader'         => dbBool($m['is_leader']),
                 'linked'            => $m['user_id'] !== null,
@@ -141,24 +143,14 @@ $action = (string) ($data['action'] ?? '');
 
 try {
     if ($action === 'set_settings') {
-        $price = round((float) ($data['price'] ?? 0), 2);
-        $min   = (int) ($data['min_team_size'] ?? 0);
-        $max   = (int) ($data['max_team_size'] ?? 0);
+        $price = 0.0;
+        $min   = 3;
+        $max   = 6;
         $teams = $data['max_teams'] ?? null;
         $teams = ($teams === null || $teams === '') ? null : (int) $teams;
-        $link  = trim((string) ($data['pix_link'] ?? ''));
 
-        if ($price < 0 || $price > 99999999) {
-            jsonResponse(422, false, 'Preço inválido.');
-        }
-        if ($min < 1 || $max < $min || $max > 20) {
-            jsonResponse(422, false, 'Tamanho de equipe inválido (mínimo ≥ 1 e máximo ≥ mínimo, até 20).');
-        }
         if ($teams !== null && $teams < 1) {
             jsonResponse(422, false, 'O limite de equipes deve ser positivo (ou vazio para sem limite).');
-        }
-        if ($link !== '' && (!filter_var($link, FILTER_VALIDATE_URL) || !preg_match('#^https?://#i', $link))) {
-            jsonResponse(422, false, 'O link do PIX deve começar com http:// ou https://.');
         }
 
         hackathonSettings($pdo); // garante a linha id = 1
@@ -166,19 +158,16 @@ try {
         $stmt = $pdo->prepare(
             'UPDATE hackathon_settings
              SET registrations_open = :open, price = :price,
-                 free_for_paid_participants = :free_paid, charge_others = :charge,
+                 free_for_paid_participants = TRUE, charge_others = FALSE,
                  max_teams = :teams, min_team_size = :min, max_team_size = :max,
-                 pix_link = :link, updated_at = NOW()
+                 pix_link = NULL, updated_at = NOW()
              WHERE id = 1'
         );
         $stmt->bindValue(':open', !empty($data['registrations_open']), PDO::PARAM_BOOL);
         $stmt->bindValue(':price', sprintf('%.2f', $price));
-        $stmt->bindValue(':free_paid', !empty($data['free_for_paid_participants']), PDO::PARAM_BOOL);
-        $stmt->bindValue(':charge', !empty($data['charge_others']), PDO::PARAM_BOOL);
         $stmt->bindValue(':teams', $teams, $teams === null ? PDO::PARAM_NULL : PDO::PARAM_INT);
         $stmt->bindValue(':min', $min, PDO::PARAM_INT);
         $stmt->bindValue(':max', $max, PDO::PARAM_INT);
-        $stmt->bindValue(':link', $link !== '' ? $link : null, $link !== '' ? PDO::PARAM_STR : PDO::PARAM_NULL);
         $stmt->execute();
 
         // Reaplica as regras a quem ainda não pagou (isenta/cobra conforme a nova configuração).

@@ -11,6 +11,9 @@
             "TW26\\": "src/"
         }
     },
+    "scripts": {
+        "migrate": "@php bin/migrate.php"
+    },
     "config": {
         "vendor-dir": "vendor"
     }

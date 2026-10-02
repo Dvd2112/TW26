@@ -47,10 +47,10 @@ try {
 
     // Pagamento da inscrição do usuário logado
     $stmt = $pdo->prepare(
-        'SELECT p.id, p.status, r.payment_status
+        'SELECT p.id, p.registration_id, p.status, r.payment_status
          FROM payments p
          JOIN registrations r ON r.id = p.registration_id
-         WHERE r.user_id = :uid
+         WHERE r.user_id = :uid AND r.status <> \'cancelled\'
          ORDER BY p.id DESC
          LIMIT 1'
     );
@@ -83,8 +83,8 @@ try {
     )->execute([':now' => $now, ':proof' => $filename, ':id' => $pay['id']]);
 
     $pdo->prepare(
-        'UPDATE registrations SET payment_status = \'awaiting_confirmation\' WHERE user_id = :uid'
-    )->execute([':uid' => $user['id']]);
+        'UPDATE registrations SET payment_status = \'awaiting_confirmation\' WHERE id = :id'
+    )->execute([':id' => $pay['registration_id']]);
 
     appLog('payments.proof_submitted', ['user_id' => $user['id'], 'payment_id' => $pay['id']]);
 
