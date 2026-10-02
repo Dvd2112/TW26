@@ -1,28 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, Button, Tag, Space, Popconfirm, message, Switch, InputNumber, Input, Form, Upload, Alert } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Card, Button, Tag, Space, Popconfirm, message, Switch, InputNumber, Input, Form, Alert } from 'antd';
 import axios from 'axios';
-import styles from '../../../styles/Admin.module.css';
 import { filterRows } from '../shared/utils';
-import { openProof } from '../shared/openProof';
 import SearchInput from '../shared/SearchInput';
 import ResponsiveTable from '../shared/ResponsiveTable';
 
 const API = '/TW26/backend/api/admin/hackathon.php';
-const PROOF_ENDPOINT = { url: '/TW26/backend/api/admin/hackathon-proof.php', param: 'member_id' };
-
-const PAY_LABELS = { free: 'Isento', unpaid: 'Aguardando', awaiting_confirmation: 'Em análise', paid: 'Pago' };
-const PAY_COLORS = { free: 'blue', unpaid: 'orange', awaiting_confirmation: 'gold', paid: 'green' };
 const INVITE_LABELS = { pending: 'Convite pendente', accepted: 'Aceito', rejected: 'Rejeitado' };
 const INVITE_COLORS = { pending: 'gold', accepted: 'green', rejected: 'red' };
-
-const money = (v) => `R$ ${Number(v ?? 0).toFixed(2).replace('.', ',')}`;
 
 function SettingsCard({ settings, onSaved }) {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
-  const [qrFile, setQrFile] = useState(null);
-  const [uploadingQr, setUploadingQr] = useState(false);
 
   useEffect(() => {
     form.setFieldsValue({ ...settings, pix_link: settings.pix_link ?? '' });
@@ -41,105 +30,30 @@ function SettingsCard({ settings, onSaved }) {
     }
   };
 
-  const uploadQr = async () => {
-    setUploadingQr(true);
-    try {
-      const formData = new FormData();
-      formData.append('qr', qrFile);
-      await axios.post(API, formData);
-      message.success('QR code salvo.');
-      setQrFile(null);
-      onSaved();
-    } catch (err) {
-      message.error(err.response?.data?.message ?? 'Erro ao enviar o QR code.');
-    } finally {
-      setUploadingQr(false);
-    }
-  };
-
-  const removeQr = async () => {
-    try {
-      await axios.post(API, { action: 'delete_qr' });
-      message.success('QR code removido.');
-      onSaved();
-    } catch (err) {
-      message.error(err.response?.data?.message ?? 'Erro ao remover o QR code.');
-    }
-  };
-
   return (
-    <Card title="Configurações do hackathon" style={{ marginBottom: 16 }}>
+    <Card title="Configurações do Ideathon GovTech" style={{ marginBottom: 16 }}>
       <Form form={form} layout="vertical" onFinish={save} requiredMark={false}>
         <Space size="large" wrap align="start">
           <Form.Item name="registrations_open" label="Inscrições abertas" valuePropName="checked">
             <Switch />
           </Form.Item>
-          <Form.Item
-            name="free_for_paid_participants"
-            label="Grátis para quem já pagou o evento"
-            valuePropName="checked"
-            tooltip="Quem tem inscrição paga na TechWeek não paga o hackathon."
-          >
-            <Switch />
-          </Form.Item>
-          <Form.Item
-            name="charge_others"
-            label="Cobrar quem não pagou o evento"
-            valuePropName="checked"
-            tooltip="Desligado: o hackathon é gratuito para quem não tem inscrição paga no evento."
-          >
-            <Switch />
-          </Form.Item>
         </Space>
 
         <Space size="large" wrap align="start">
-          <Form.Item name="price" label="Valor por integrante (R$)" rules={[{ required: true, message: 'Informe o valor' }]}>
-            <InputNumber min={0} step={0.5} precision={2} style={{ width: 160 }} />
-          </Form.Item>
-          <Form.Item name="min_team_size" label="Mínimo por equipe" rules={[{ required: true }]}>
-            <InputNumber min={1} max={20} style={{ width: 130 }} />
-          </Form.Item>
-          <Form.Item name="max_team_size" label="Máximo por equipe" rules={[{ required: true }]}>
-            <InputNumber min={1} max={20} style={{ width: 130 }} />
+          <Form.Item label="Inscrição"><Input value="100% gratuita" disabled style={{ width: 180 }} /></Form.Item>
+          <Form.Item label="Tamanho da equipe">
+            <Input value="De 3 a 6 pessoas" disabled style={{ width: 180 }} />
           </Form.Item>
           <Form.Item name="max_teams" label="Limite de equipes" tooltip="Vazio = sem limite.">
             <InputNumber min={1} style={{ width: 130 }} placeholder="Sem limite" />
           </Form.Item>
         </Space>
 
-        <Form.Item name="pix_link" label="Link do PIX (opcional)" rules={[{ type: 'url', message: 'Informe uma URL válida' }]}>
-          <Input placeholder="https://..." />
-        </Form.Item>
-
         <Button type="primary" htmlType="submit" loading={saving} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>
           Salvar configurações
         </Button>
       </Form>
 
-      <div style={{ marginTop: 24 }}>
-        <p className={styles.muted} style={{ marginBottom: 8 }}>
-          QR code do PIX do hackathon: {settings.has_qr ? 'enviado' : 'não enviado'}. (JPG, PNG ou WEBP, até 2MB)
-        </p>
-        <Space wrap>
-          <Upload
-            accept=".jpg,.jpeg,.png,.webp"
-            maxCount={1}
-            beforeUpload={(f) => { setQrFile(f); return false; }}
-            onRemove={() => setQrFile(null)}
-            fileList={qrFile ? [qrFile] : []}
-          >
-            <Button icon={<UploadOutlined />}>Selecionar imagem</Button>
-          </Upload>
-          <Button type="primary" disabled={!qrFile} loading={uploadingQr} onClick={uploadQr} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>
-            {settings.has_qr ? 'Substituir QR' : 'Enviar QR'}
-          </Button>
-          {settings.has_qr && (
-            <Popconfirm title="Remover o QR code?" onConfirm={removeQr}>
-              <Button danger>Remover QR</Button>
-            </Popconfirm>
-          )}
-        </Space>
-      </div>
     </Card>
   );
 }
@@ -184,50 +98,12 @@ export default function HackathonTab() {
     },
     { title: 'E-mail', dataIndex: 'email', key: 'email' },
     { title: 'CPF', dataIndex: 'cpf', key: 'cpf' },
+    { title: 'Telefone', dataIndex: 'phone', key: 'phone', render: (v) => v || '—' },
+    { title: 'Nascimento', dataIndex: 'birth_date', key: 'birth_date', render: (v) => v || '—' },
     {
       title: 'Vínculo',
       key: 'invite',
       render: (_, m) => <Tag color={INVITE_COLORS[m.invite_status]}>{INVITE_LABELS[m.invite_status]}</Tag>,
-    },
-    {
-      title: 'Pagamento',
-      key: 'payment',
-      render: (_, m) => (m.invite_status === 'accepted'
-        ? <><Tag color={PAY_COLORS[m.payment_status]}>{PAY_LABELS[m.payment_status]}</Tag> {money(m.amount)}</>
-        : '—'),
-    },
-    {
-      title: 'Ações',
-      key: 'actions',
-      render: (_, m) => {
-        if (m.invite_status !== 'accepted') return <span className={styles.muted}>—</span>;
-        return (
-          <Space wrap>
-            {m.has_proof && <Button size="small" onClick={() => openProof(m.id, PROOF_ENDPOINT)}>Comprovante</Button>}
-            {(m.payment_status === 'unpaid' || m.payment_status === 'awaiting_confirmation') && (
-              <Button
-                size="small"
-                type="primary"
-                loading={acting}
-                onClick={() => act({ action: 'confirm', member_id: m.id }, 'Pagamento confirmado.')}
-                style={{ background: '#8A00C4', borderColor: '#8A00C4' }}
-              >
-                Confirmar
-              </Button>
-            )}
-            {m.payment_status === 'awaiting_confirmation' && (
-              <Popconfirm title="Recusar o comprovante?" onConfirm={() => act({ action: 'reject', member_id: m.id }, 'Comprovante recusado.')}>
-                <Button size="small" danger loading={acting}>Recusar</Button>
-              </Popconfirm>
-            )}
-            {m.payment_status === 'paid' && (
-              <Popconfirm title="Reverter a confirmação?" onConfirm={() => act({ action: 'revert', member_id: m.id }, 'Confirmação revertida.')}>
-                <Button size="small" loading={acting}>Reverter</Button>
-              </Popconfirm>
-            )}
-          </Space>
-        );
-      },
     },
   ];
 
@@ -243,12 +119,16 @@ export default function HackathonTab() {
       },
     },
     {
-      title: 'Pagamentos',
-      key: 'paid',
-      render: (_, t) => {
-        const ok = t.members.filter((m) => ['paid', 'free'].includes(m.payment_status) && m.invite_status === 'accepted').length;
-        return `${ok} quitados`;
-      },
+      title: 'Visão de futuro',
+      dataIndex: 'career_outlook',
+      key: 'career_outlook',
+      render: (v) => ({
+        empreendendo: 'Empreender',
+        grande_empresa: 'Grande empresa',
+        academia_pesquisa: 'Academia/pesquisa',
+        setor_publico: 'Setor público',
+        outro: 'Outro',
+      }[v] ?? '—'),
     },
     {
       title: 'Ações',
@@ -256,7 +136,7 @@ export default function HackathonTab() {
       render: (_, t) => (
         <Popconfirm
           title="Excluir a equipe?"
-          description="Remove a equipe e todos os integrantes (inclusive pagamentos)."
+          description="Remove a equipe e todos os integrantes."
           okText="Excluir"
           onConfirm={() => act({ action: 'delete_team', team_id: t.id }, 'Equipe removida.')}
         >
@@ -270,7 +150,7 @@ export default function HackathonTab() {
     <div>
       {settings && <SettingsCard settings={settings} onSaved={load} />}
       {settings && !settings.registrations_open && (
-        <Alert type="info" showIcon style={{ marginBottom: 16 }} message="As inscrições do hackathon estão fechadas: só quem já tem equipe consegue aceitar convites e pagar." />
+        <Alert type="info" showIcon style={{ marginBottom: 16 }} message="As inscrições do Ideathon estão fechadas: só quem já tem equipe consegue aceitar convites e pagar." />
       )}
       <Card title={`Equipes (${teams.length})`}>
         <Space style={{ marginBottom: 16 }} wrap>
@@ -278,7 +158,7 @@ export default function HackathonTab() {
         </Space>
         <ResponsiveTable
           rowKey="id"
-          dataSource={filterRows(teams, search, (t) => [t.name, t.leader_name, t.leader_email, ...t.members.flatMap((m) => [m.name, m.email])].join(' '))}
+          dataSource={filterRows(teams, search, (t) => [t.name, t.leader_name, t.leader_email, t.future_plans, ...t.members.flatMap((m) => [m.name, m.email, m.phone])].join(' '))}
           columns={columns}
           loading={loading}
           pagination={{ pageSize: 10 }}
