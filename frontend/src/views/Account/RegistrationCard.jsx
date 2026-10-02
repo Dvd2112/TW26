@@ -20,6 +20,18 @@ export default function RegistrationCard({ registration, payment, pix, proofFile
         </>
       ) : (
         <>
+          {registration.can_choose_lote && (
+            <>
+              <p className={styles.line}>
+                Esta inscrição não está mais ativa. Escolha um novo lote para continuar sua inscrição.
+              </p>
+              <a href="?page=register&step=3">
+                <Button type="primary" style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}>
+                  Escolher lote
+                </Button>
+              </a>
+            </>
+          )}
           <p className={styles.line}>
             <strong>Lote:</strong> {registration.lote?.name} — R$ {Number(payment?.amount ?? registration.lote?.price ?? 0).toFixed(2)}
           </p>
@@ -36,7 +48,7 @@ export default function RegistrationCard({ registration, payment, pix, proofFile
             </Tag>
           </p>
 
-          {payment && (payment.status === 'pending' || payment.status === 'failed') && (
+          {!registration.can_choose_lote && payment && (payment.status === 'pending' || payment.status === 'failed') && (
             <div className={styles.pixCard}>
               <p className={styles.line} style={{ color: '#8A00C4', fontWeight: 600 }}>
                 ⚠️ Sua vaga neste lote fica <strong>reservada por apenas 30 minutos</strong>.

@@ -7,21 +7,8 @@ import styles from '../../styles/Hackathon.module.css';
 import TeamForm from './TeamForm';
 import TeamCard from './TeamCard';
 import InvitesCard from './InvitesCard';
-import { formatMoney } from './constants';
 
-function pricingLines(s, priceForMe) {
-  const lines = [];
-  if (s.free_for_paid_participants) lines.push('Gratuito para quem já pagou a inscrição no evento.');
-  else if (s.price > 0) lines.push(`Quem já pagou a inscrição no evento paga ${formatMoney(s.price)}.`);
-  if (s.charge_others && s.price > 0) lines.push(`Demais participantes: ${formatMoney(s.price)} por integrante.`);
-  else lines.push('Para quem ainda não pagou a inscrição no evento, o hackathon é gratuito.');
-  if (priceForMe !== null && priceForMe !== undefined) {
-    lines.push(priceForMe > 0 ? `Para você: ${formatMoney(priceForMe)}.` : 'Para você: gratuito.');
-  }
-  return lines;
-}
-
-export default function Hackathon({ tag, title, subtitle }) {
+export default function Hackathon({ tag, title, subtitle, information = [] }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
 
@@ -36,21 +23,21 @@ export default function Hackathon({ tag, title, subtitle }) {
 
   let content;
   if (error) {
-    content = <p className={styles.line}>Não foi possível carregar o hackathon. Tente novamente mais tarde.</p>;
+    content = <p className={styles.line}>Não foi possível carregar o Ideathon. Tente novamente mais tarde.</p>;
   } else if (!data) {
     content = <p className={styles.line}>Carregando...</p>;
   } else {
     content = (
       <>
         <div className={styles.card}>
+          {information.map((line) => <p className={styles.line} key={line}>{line}</p>)}
+        </div>
+        <div className={styles.card}>
           <h3 className={styles.cardTitle}>
             Inscrições{' '}
             <Tag color={s.registrations_open ? 'green' : 'default'}>{s.registrations_open ? 'Abertas' : 'Encerradas'}</Tag>
             {s.is_full && <Tag color="red">Vagas esgotadas</Tag>}
           </h3>
-          {pricingLines(s, data.logged_in ? data.price_for_me : null).map((l) => (
-            <p className={styles.line} key={l}>{l}</p>
-          ))}
           {s.max_teams !== null && (
             <p className={styles.line}>Vagas: {Math.max(0, s.max_teams - s.teams_count)} de {s.max_teams} equipes.</p>
           )}
@@ -71,7 +58,7 @@ export default function Hackathon({ tag, title, subtitle }) {
         {data.team && <TeamCard team={data.team} settings={s} onDone={load} />}
 
         {data.logged_in && !data.team && s.registrations_open && !s.is_full && (
-          <TeamForm settings={s} onDone={load} />
+          <TeamForm settings={s} identity={data.identity} onDone={load} />
         )}
       </>
     );

@@ -23,7 +23,7 @@ const ADMIN_TABS = [
   { key: 'checkin', label: 'Credenciamento', perms: ['super_admin', 'credentialer'], render: (active) => <CheckinTab visible={active === 'checkin'} /> },
   { key: 'registrations', label: 'Inscrições', perms: ['super_admin', 'registration_admin'], render: () => <RegistrationsTab /> },
   { key: 'lotes', label: 'Lotes', perms: ['super_admin', 'registration_admin'], render: () => <LotesTab /> },
-  { key: 'hackathon', label: 'Hackathon', perms: ['super_admin', 'registration_admin'], render: () => <HackathonTab /> },
+  { key: 'hackathon', label: 'Ideathon GovTech', perms: ['super_admin', 'registration_admin'], render: () => <HackathonTab /> },
   { key: 'volunteers', label: 'Voluntários', perms: ['super_admin', 'registration_admin'], render: () => <VolunteersTab /> },
   { key: 'financeiro', label: 'Financeiro', perms: ['super_admin'], render: () => <FinanceiroTab /> },
   { key: 'activities', label: 'Oficinas', perms: ['super_admin', 'content_admin'], render: () => <AdminActivitiesTab /> },

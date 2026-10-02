@@ -23,7 +23,7 @@ import logoVorbi from '../assets/sponsors/vorbi.png';
 
 const navLinks = [
   { label: 'O que você encontra', href: '#vision' },
-  { label: 'Hackathon', href: '#hackathon' },
+  { label: 'Ideathon GovTech', href: '#hackathon' },
   { label: 'Destaques', href: '#highlights' },
   { label: 'Edição 2026', href: '#edition2026' },
   { label: 'Patrocinadores', href: '#sponsors' },
@@ -43,14 +43,14 @@ const pillars = [
   {
     icon: '⚡',
     title: 'Experiência intensa, não evento morno',
-    description: 'Entre trilhas, workshops, painéis e hackathon, a edição foi desenhada para gerar energia, troca e memória de participação.',
+    description: 'Entre trilhas, workshops, painéis e Ideathon GovTech, a edição foi desenhada para gerar energia, troca e memória de participação.',
   },
 ];
 
 const stats = [
   { value: 500, suffix: '+', label: 'participantes esperados em 2026', icon: '👥', delay: 0 },
   { value: 40, suffix: 'h', label: 'de conteúdo e experiências na semana', icon: '📚', delay: 0.1 },
-  { value: 48, suffix: 'h', label: 'de hackathon para quem quer ir além', icon: '⚡', delay: 0.2 },
+  { value: 2, suffix: ' dias', label: 'de Ideathon GovTech para criar soluções públicas', icon: '⚡', delay: 0.2 },
   { value: 3, suffix: '', label: 'trilhas centrais para explorar tecnologia', icon: '🗺️', delay: 0.3 },
   { value: 80, suffix: '%', label: 'de público em formação técnica ou carreira inicial', icon: '🎓', delay: 0.4 },
   { value: 1, suffix: ' região', label: 'com baixa oferta de eventos tech desse porte', icon: '📍', delay: 0.5 },
@@ -74,8 +74,8 @@ const highlights = [
   {
     tag: 'Experiência',
     icon: '🔥',
-    title: 'Hackathon e programação com ritmo',
-    description: 'A edição começa com a maratona de inovação e segue com o evento principal, criando uma experiência mais viva para quem quer participar de verdade.',
+    title: 'Ideathon GovTech e programação com ritmo',
+    description: 'A edição começa com uma jornada de ideação para soluções públicas e segue com o evento principal, criando uma experiência mais viva para quem quer participar de verdade.',
     accent: '#8A00C4',
   },
 ];
@@ -89,8 +89,8 @@ const timeline = [
   },
   {
     date: '17–18 Out',
-    label: 'Hackathon 48h',
-    desc: 'Para quem quer vivência mais intensa, o hackathon abre a edição com prototipação, colaboração, desafio e muita energia prática.',
+    label: 'Ideathon - Jornada GovTech',
+    desc: 'A jornada reúne equipes para criar soluções inovadoras a desafios reais do poder público de Francisco Beltrão.',
     icon: '⚡',
   },
   {
@@ -115,15 +115,15 @@ const facts = [
 ];
 
 const hackathonParagraphs = [
-  'O Hackathon é a maratona de inovação de 48 horas que abre a TechWeek 2026. Equipes se reúnem para tirar uma ideia do papel e transformá-la em um projeto funcional, escrevendo código do começo ao fim: da arquitetura à primeira versão rodando.',
-  'Durante a maratona você conta com mentoria para destravar decisões técnicas, revisar a solução e evoluir o projeto. É programar de verdade, em equipe: dividir tarefas, integrar o código, lidar com prazo e apresentar o que foi construído.',
-  'Não precisa ser expert: o que conta é vontade de construir e de programar. Estudantes, profissionais em início de carreira e quem está migrando de área são muito bem-vindos.',
+  'O Ideathon - Jornada GovTech é um evento de ideação para desenvolver soluções inovadoras a problemas reais do poder público de Francisco Beltrão.',
+  'As equipes colaboram para transformar ideias em projetos, com foco em impacto público, empreendedorismo e tecnologia.',
+  'Estudantes e pessoas de diferentes organizações são bem-vindos. Cada equipe deve reunir de 3 a 6 integrantes e ter pelo menos uma pessoa de outro curso ou instituição/organização.',
 ];
 
 const hackathonSteps = [
-  { title: 'Monte sua equipe', desc: 'Uma pessoa faz a inscrição da equipe, informa o nome do time e os dados (nome, CPF e e-mail) de cada integrante.' },
+  { title: 'Monte sua equipe', desc: 'Uma pessoa faz a inscrição e informa os dados de 3 a 6 participantes, incluindo telefone e data de nascimento.' },
   { title: 'Cada integrante aceita o vínculo', desc: 'Todos os convidados entram no site com a própria conta e aceitam (ou rejeitam) o convite para a equipe.' },
-  { title: 'Confirme o pagamento, se houver', desc: 'Cada integrante acompanha a própria situação: isento ou com PIX e comprovante. Assim que estiver tudo certo, a vaga da equipe está garantida.' },
+  { title: 'Preparem o pitch', desc: 'No dia 26/10, os projetos serão apresentados na banca junto à abertura da Semana Municipal de Ciência, Tecnologia e Inovação.' },
 ];
 
 const sponsorTiers = [
@@ -162,18 +162,6 @@ const sponsorTiers = [
   },
 ];
 
-function hackathonPricingNotes(s) {
-  const price = `R$ ${Number(s.price).toFixed(2).replace('.', ',')}`;
-  const notes = [];
-  notes.push(s.free_for_paid_participants
-    ? 'Gratuito para quem já pagou a inscrição no evento.'
-    : `Quem já pagou a inscrição no evento paga ${price}.`);
-  notes.push(s.charge_others && s.price > 0
-    ? `Demais participantes: ${price} por integrante.`
-    : 'Demais participantes: gratuito.');
-  return notes;
-}
-
 export default function HomePage() {
   const [hasRegistration, setHasRegistration] = useState(false);
   const [hackathon, setHackathon] = useState(null);
@@ -197,7 +185,6 @@ export default function HomePage() {
         label: hackathon.is_full ? 'Vagas esgotadas' : hackathon.registrations_open ? 'Inscrições abertas' : 'Inscrições em breve',
       }
     : null;
-  const hackathonNotes = hackathon ? hackathonPricingNotes(hackathon) : [];
 
   const heroActions = hasRegistration
     ? []
@@ -223,7 +210,7 @@ export default function HomePage() {
           ]}
           subtitle="A TechWeek 2026 reúne quem quer aprender com profundidade, conhecer gente boa, enxergar o mercado com mais clareza e quem tem repertório para compartilhar no palco."
           actions={heroActions}
-          pills={['Talks', 'Workshops', 'Networking', 'Hackathon 48h', 'Mercado tech']}
+          pills={['Talks', 'Workshops', 'Networking', 'Ideathon GovTech', 'Mercado tech']}
         />
 
         <Vision
@@ -245,21 +232,20 @@ export default function HomePage() {
 
         <HackathonPromo
           id="hackathon"
-          tag="// 03 – Hackathon 48h"
-          title="Hackathon"
-          brand="TechWeek"
-          subtitle="Uma maratona de inovação para criar projetos e escrever código em equipe, com mentoria durante as 48 horas."
+          tag="// 03 – Ideathon - Jornada GovTech"
+          title="Ideathon"
+          brand="GovTech"
+          subtitle="Uma jornada de ideação para criar soluções inovadoras para desafios reais do poder público de Francisco Beltrão."
           paragraphs={hackathonParagraphs}
           steps={hackathonSteps}
           details={[
-            { icon: '📅', label: 'Quando', value: '17 e 18 de outubro' },
-            { icon: '⏱️', label: 'Duração', value: '48 horas de maratona' },
-            { icon: '👥', label: 'Equipes', value: hackathon ? `De ${hackathon.min_team_size} a ${hackathon.max_team_size} pessoas` : 'Em times' },
-            { icon: '💻', label: 'Foco', value: 'Programação, código e criação de projetos' },
-            { icon: '🧠', label: 'Apoio', value: 'Mentoria durante a maratona' },
+            { icon: '📅', label: 'Encontros', value: '17 e 18 de outubro' },
+            { icon: '⏱️', label: 'Apresentação', value: '26 de outubro' },
+            { icon: '👥', label: 'Equipes', value: 'De 3 a 6 pessoas' },
+            { icon: '🏛️', label: 'Foco', value: 'Soluções para o poder público' },
+            { icon: '📍', label: 'Local', value: 'Sebrae Francisco Beltrão' },
           ]}
           status={hackathonStatus}
-          notes={hackathonNotes}
           cta={{ label: hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
         />
 
@@ -298,7 +284,7 @@ export default function HomePage() {
         sections={[
           ['#vision', 'O que você encontra'],
           ['#numbers', 'O que esperar'],
-          ['#hackathon', 'Hackathon'],
+          ['#hackathon', 'Ideathon GovTech'],
           ['#highlights', 'Destaques'],
           ['#edition2026', 'A edição'],
           ['#sponsors', 'Patrocinadores'],
