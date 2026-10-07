@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/http.php';
 require_once __DIR__ . '/../config/auth.php';
+require_once __DIR__ . '/../config/activities.php';
 
 corsHeaders();
 requireCsrf();
@@ -60,6 +61,19 @@ if ($method === 'POST') {
         if ($activity === false || !dbBool($activity['is_published'])) {
             $pdo->rollBack();
             jsonResponse(422, false, 'Atividade indisponível.');
+        }
+
+        $open = $pdo->prepare(
+            'SELECT (' . activityGeneralOpensAtSql('a') . ' IS NULL
+                     OR ' . activityGeneralOpensAtSql('a') . ' <= NOW()) AS is_open,
+                    ' . userHasEarlyAccessSql('a') . ' AS has_early_access
+             FROM activities a WHERE a.id = :id'
+        );
+        $open->execute([':id' => $activityId, ':uid' => $user['id']]);
+        $access = $open->fetch();
+        if ($access !== false && !dbBool($access['is_open']) && !dbBool($access['has_early_access'])) {
+            $pdo->rollBack();
+            jsonResponse(403, false, 'As inscrições nesta atividade ainda não abriram. Quem garantiu um lote com acesso antecipado já pode se inscrever.');
         }
 
         $dup = $pdo->prepare(

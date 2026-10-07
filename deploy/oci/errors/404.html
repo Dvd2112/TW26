@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>Página não encontrada | TechWeek 2026</title>
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #0d0d0d;
+      --neon: #8a00c4;
+      --accent: #bf40ff;
+      --text: #ffffff;
+      --muted: #a8a8a8;
+      --border: #2a2a2a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(ellipse at 50% 0%, rgba(138, 0, 196, 0.25), transparent 60%), var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    }
+    .card {
+      width: 100%;
+      max-width: 560px;
+      padding: 48px 32px;
+      text-align: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 0 40px rgba(138, 0, 196, 0.2);
+    }
+    .tag {
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+    .code {
+      margin: 12px 0 8px;
+      font-family: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+      font-size: clamp(72px, 22vw, 120px);
+      line-height: 1;
+      color: var(--neon);
+      text-shadow: 0 0 24px rgba(138, 0, 196, 0.7);
+    }
+    h1 {
+      font-family: 'Anton', Impact, 'Arial Narrow Bold', sans-serif;
+      font-weight: 400;
+      font-size: 24px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    p { margin-top: 12px; color: var(--muted); font-size: 15px; line-height: 1.6; }
+    .url {
+      margin-top: 24px;
+      padding: 12px 14px;
+      text-align: left;
+      font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+      font-size: 13px;
+      color: var(--muted);
+      background: #050505;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-wrap: anywhere;
+    }
+    .url strong { display: block; margin-bottom: 4px; color: var(--accent); font-weight: 600; }
+    .url a { color: var(--text); text-decoration: underline; }
+    .actions { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn {
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      text-decoration: none;
+      color: var(--text);
+      background: var(--neon);
+      border: 1px solid var(--neon);
+    }
+    .btn.ghost { background: transparent; border-color: var(--border); }
+    .btn:hover { filter: brightness(1.15); }
+    [hidden] { display: none; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="tag">TechWeek 2026</span>
+    <div class="code">404</div>
+    <h1>Página não encontrada</h1>
+    <p>O endereço que você abriu não existe ou foi digitado de forma incompleta.</p>
+
+    <div class="url">
+      <strong>Você acessou</strong>
+      <span id="current"></span>
+    </div>
+    <div class="url" id="suggestion" hidden>
+      <strong>Endereço correto</strong>
+      <a id="suggestion-link" href="#"></a>
+    </div>
+    <p id="redirecting" hidden>Redirecionando em <span id="count">3</span>s…</p>
+
+    <div class="actions">
+      <a class="btn" id="home" href="/TW26/">Ir para o início</a>
+      <a class="btn ghost" href="/TW26/?page=login">Entrar</a>
+    </div>
+  </main>
+
+  <script>
+    // Normaliza o endereço digitado para o formato servido pelo site (/TW26/...).
+    (function () {
+      var BASE = '/TW26';
+      var loc = window.location;
+      var path = loc.pathname || '/';
+      var tail = (loc.search || '') + (loc.hash || '');
+
+      document.getElementById('current').textContent = loc.href;
+
+      var fixed = null;
+      var backend = new RegExp('^' + BASE + '/backend(/|$)');
+      if (backend.test(path)) {
+        fixed = null; // endpoint da API inexistente: não há para onde normalizar
+      } else if (path === BASE || path.indexOf(BASE + '/') === 0) {
+        fixed = BASE + '/' + tail; // dentro do prefixo, mas sem rota válida: volta à home
+      } else {
+        fixed = BASE + '/' + tail; // sem o prefixo /TW26: reaproveita só query/hash
+      }
+
+      if (!fixed) return;
+
+      var abs = loc.origin + fixed;
+      var link = document.getElementById('suggestion-link');
+      link.href = fixed;
+      link.textContent = abs;
+      document.getElementById('suggestion').hidden = false;
+      document.getElementById('home').href = fixed;
+
+      // Só redireciona sozinho quando a causa é o prefixo ausente e há query (ex.: ?page=hackathon).
+      if (path.indexOf(BASE) !== 0 && loc.search) {
+        var seconds = 3;
+        var count = document.getElementById('count');
+        document.getElementById('redirecting').hidden = false;
+        var timer = setInterval(function () {
+          seconds -= 1;
+          count.textContent = String(seconds);
+          if (seconds <= 0) { clearInterval(timer); loc.replace(fixed); }
+        }, 1000);
+      }
+    })();
+  </script>
+</body>
+</html>

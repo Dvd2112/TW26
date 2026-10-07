@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
 require_once __DIR__ . '/../../config/attendance.php';
+require_once __DIR__ . '/../../config/activities.php';
 
 corsHeaders();
 requireCsrf();
@@ -40,14 +41,23 @@ if ($method === 'GET') {
                     (SELECT count(*) FROM activity_attendance at WHERE at.activity_id = a.id) AS attended
              FROM activities a ORDER BY a.start_at ASC NULLS LAST, a.id ASC'
         )->fetchAll();
+        $earlyRows = $pdo->query('SELECT activity_id, lote_id FROM activity_early_lotes')->fetchAll();
+        $earlyByActivity = [];
+        foreach ($earlyRows as $er) {
+            $earlyByActivity[(int) $er['activity_id']][] = (int) $er['lote_id'];
+        }
         foreach ($activities as &$activity) {
+            $activity['early_lote_ids'] = $earlyByActivity[(int) $activity['id']] ?? [];
+            $activity['early_window_minutes'] = $activity['early_window_minutes'] !== null
+                ? (int) $activity['early_window_minutes'] : null;
             $activity['enrolled'] = (int) $activity['enrolled'];
             $activity['attended'] = (int) $activity['attended'];
             $activity['capacity'] = $activity['capacity'] !== null ? (int) $activity['capacity'] : null;
             $activity['is_published'] = dbBool($activity['is_published']);
         }
         unset($activity);
-        jsonResponse(200, true, 'ok', ['activities' => $activities]);
+        $lotes = $pdo->query('SELECT id, name FROM lotes ORDER BY order_index, id')->fetchAll();
+        jsonResponse(200, true, 'ok', ['activities' => $activities, 'lotes' => $lotes]);
     } catch (Exception $e) {
         error_log('[TW26] admin/activities GET: ' . $e->getMessage());
         jsonResponse(500, false, 'Erro ao carregar atividades.');
@@ -85,12 +95,20 @@ if ($method === 'POST') {
         jsonResponse(422, false, 'Capacidade inválida.');
     }
 
+    $early = parseEarlyAccess($pdo, $data);
+    if (is_string($early)) {
+        jsonResponse(422, false, $early);
+    }
+
     try {
-        $pdo->prepare(
+        $pdo->beginTransaction();
+        $ins = $pdo->prepare(
             'INSERT INTO activities (title, type, description, speaker_name, speaker_bio,
-                                     location, capacity, start_at, end_at, is_published)
-             VALUES (:title, :type, :desc, :speaker, :bio, :location, :capacity, :start, :end, :pub)'
-        )->execute([
+                                     location, capacity, start_at, end_at, is_published, published_at, early_window_minutes)
+             VALUES (:title, :type, :desc, :speaker, :bio, :location, :capacity, :start, :end, :pub, CASE WHEN :pub2 THEN NOW() END, :early_min)
+             RETURNING id'
+        );
+        $ins->execute([
             ':title'    => $title,
             ':type'     => $type,
             ':desc'     => $desc,
@@ -101,9 +119,16 @@ if ($method === 'POST') {
             ':start'    => $startAt,
             ':end'      => $endAt,
             ':pub'      => $published,
+            ':pub2'     => $published,
+            ':early_min' => $early['minutes'],
         ]);
+        saveEarlyLotes($pdo, (int) $ins->fetchColumn(), $early['lotes']);
+        $pdo->commit();
         jsonResponse(201, true, 'Atividade criada.');
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('[TW26] admin/activities POST: ' . $e->getMessage());
         jsonResponse(500, false, 'Erro ao criar atividade.');
     }
@@ -137,6 +162,27 @@ if ($method === 'PUT') {
         }
     }
 
+    // Publicar é uma ação isolada: não exige o resto do formulário. A contagem do
+    // acesso antecipado começa na publicação (published_at).
+    $action = $data['action'] ?? '';
+    if ($action === 'publish' || $action === 'publish_all') {
+        if ($action === 'publish' && $id <= 0) {
+            jsonResponse(422, false, 'Atividade inválida.');
+        }
+        try {
+            $sql = 'UPDATE activities
+                    SET is_published = true, published_at = NOW(), updated_at = NOW()
+                    WHERE is_published = false' . ($action === 'publish' ? ' AND id = :id' : '');
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($action === 'publish' ? [':id' => $id] : []);
+            $count = $stmt->rowCount();
+            jsonResponse(200, true, $count === 1 ? '1 atividade publicada.' : "{$count} atividades publicadas.", ['published' => $count]);
+        } catch (Exception $e) {
+            error_log('[TW26] admin/activities publish: ' . $e->getMessage());
+            jsonResponse(500, false, 'Erro ao publicar.');
+        }
+    }
+
     $title    = cleanActText($data['title'] ?? '');
     $type     = cleanActText($data['type'] ?? '');
     $allowed  = ['palestra', 'workshop', 'oficina'];
@@ -161,12 +207,37 @@ if ($method === 'PUT') {
         jsonResponse(422, false, 'Capacidade inválida.');
     }
 
+    $early = parseEarlyAccess($pdo, $data);
+    if (is_string($early)) {
+        jsonResponse(422, false, $early);
+    }
+
     try {
+        $pdo->beginTransaction();
+
+        // Mudou lotes ou antecedência de uma atividade já publicada: a contagem
+        // recomeça agora (senão a janela antiga já teria expirado e todos entrariam).
+        $cur = $pdo->prepare(
+            'SELECT early_window_minutes,
+                    COALESCE((SELECT array_agg(lote_id ORDER BY lote_id) FROM activity_early_lotes WHERE activity_id = :id), \'{}\') AS lotes
+             FROM activities WHERE id = :id2'
+        );
+        $cur->execute([':id' => $id, ':id2' => $id]);
+        $before = $cur->fetch();
+        $newLotes = $early['lotes'];
+        sort($newLotes);
+        $oldLotes = $before !== false ? array_map('intval', array_filter(explode(',', trim((string) $before['lotes'], '{}')), 'strlen')) : [];
+        $oldMin   = $before !== false && $before['early_window_minutes'] !== null ? (int) $before['early_window_minutes'] : null;
+        $restart  = ($newLotes !== $oldLotes || $early['minutes'] !== $oldMin) && $newLotes !== [];
+
         $pdo->prepare(
             'UPDATE activities
              SET title = :title, type = :type, description = :desc, speaker_name = :speaker,
                  speaker_bio = :bio, location = :location, capacity = :capacity,
-                 start_at = :start, end_at = :end, is_published = :pub, updated_at = NOW()
+                 start_at = :start, end_at = :end, is_published = :pub,
+                 published_at = CASE WHEN :pub2 THEN (CASE WHEN :restart THEN NOW() ELSE COALESCE(published_at, NOW()) END) END,
+                 early_window_minutes = :early_min,
+                 updated_at = NOW()
              WHERE id = :id'
         )->execute([
             ':title'    => $title,
@@ -179,10 +250,18 @@ if ($method === 'PUT') {
             ':start'    => $startAt,
             ':end'      => $endAt,
             ':pub'      => $published,
+            ':pub2'     => $published,
+            ':restart'  => $restart ? 'true' : 'false',
+            ':early_min' => $early['minutes'],
             ':id'       => $id,
         ]);
+        saveEarlyLotes($pdo, $id, $early['lotes']);
+        $pdo->commit();
         jsonResponse(200, true, 'Atividade atualizada.');
     } catch (Exception $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         error_log('[TW26] admin/activities PUT: ' . $e->getMessage());
         jsonResponse(500, false, 'Erro ao atualizar atividade.');
     }

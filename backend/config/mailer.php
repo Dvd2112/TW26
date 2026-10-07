@@ -200,7 +200,7 @@ if (!function_exists('sendHackathonInviteEmail')):
  */
 function sendHackathonInviteEmail(string $toEmail, string $toName, string $teamName, string $leaderName): void
 {
-    $link = rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=hackathon';
+    $link = rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/TW26/?page=hackathon';
 
     $nameSafe   = htmlspecialchars($toName, ENT_QUOTES, 'UTF-8');
     $teamSafe   = htmlspecialchars($teamName, ENT_QUOTES, 'UTF-8');
@@ -318,7 +318,7 @@ function buildWelcomeHtml(string $name): string
 {
     $nameSafe = htmlspecialchars($name, ENT_QUOTES, 'UTF-8');
     $accountUrl = htmlspecialchars(
-        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=account',
+        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/TW26/?page=conta',
         ENT_QUOTES,
         'UTF-8'
     );
@@ -363,7 +363,7 @@ function buildWelcomeText(string $name): string
     return "Olá, $name!\n\n"
          . "Sua inscrição na TechWeek 2026 foi recebida com sucesso. Seja bem-vindo(a)!\n\n"
          . "Acompanhe sua inscrição, o status do pagamento e as oficinas na sua conta:\n"
-         . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/?page=account\n\n"
+         . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/TW26/?page=conta\n\n"
          . "Equipe TechWeek 2026\n";
 }
 endif;
@@ -377,7 +377,7 @@ function buildPaymentConfirmedHtml(string $name, string $loteName, string $amoun
     $loteSafe = htmlspecialchars($loteName, ENT_QUOTES, 'UTF-8');
     $amountSafe = htmlspecialchars($amount, ENT_QUOTES, 'UTF-8');
     $oficinasUrl = htmlspecialchars(
-        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/?page=oficinas',
+        rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/TW26/?page=oficinas',
         ENT_QUOTES,
         'UTF-8'
     );
@@ -431,7 +431,7 @@ function buildPaymentConfirmedText(string $name, string $loteName, string $amoun
          . "Recebemos e validamos seu pagamento. Sua vaga na TechWeek 2026 está garantida.\n\n"
          . "Lote: $loteName\n"
          . "Valor pago: R$ $amount\n\n"
-         . "Escolha suas oficinas em: " . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/?page=oficinas\n\n"
+         . "Escolha suas oficinas em: " . rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . "/TW26/?page=oficinas\n\n"
          . "Nos vemos na TechWeek 2026!\n"
          . "Equipe TechWeek 2026\n";
 }

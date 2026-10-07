@@ -134,11 +134,23 @@ CREATE TABLE IF NOT EXISTS activities (
     start_at          TIMESTAMPTZ,
     end_at            TIMESTAMPTZ,
     is_published      BOOLEAN     NOT NULL DEFAULT FALSE,
+    published_at      TIMESTAMPTZ, -- quando foi publicada (base da janela de acesso antecipado)
+    -- minutos de antecedência dos lotes em activity_early_lotes; NULL = aberta a todos ao publicar
+    early_window_minutes INTEGER CHECK (early_window_minutes IS NULL OR early_window_minutes > 0),
     -- código divulgado na sala; o participante inscrito digita para marcar presença
     attendance_code   TEXT        NOT NULL
                           DEFAULT upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6)),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ─── activity_early_lotes ────────────────────────────────────────────────────
+-- Lotes cujos pagantes se inscrevem na atividade antes da abertura geral
+-- (published_at + early_window_minutes). Sem linhas = aberta a todos ao publicar.
+CREATE TABLE IF NOT EXISTS activity_early_lotes (
+    activity_id INTEGER NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    lote_id     INTEGER NOT NULL REFERENCES lotes(id)      ON DELETE CASCADE,
+    PRIMARY KEY (activity_id, lote_id)
 );
 
 -- ─── activity_enrollments ─────────────────────────────────────────────────────

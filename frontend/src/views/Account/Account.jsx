@@ -9,6 +9,7 @@ import CheckinCard from './CheckinCard';
 import RegistrationCard from './RegistrationCard';
 import VolunteerCard from './VolunteerCard';
 import EnrollmentsCard from './EnrollmentsCard';
+import HackathonInviteCard from './HackathonInviteCard';
 
 function loadData(setData, setError) {
   return axios
@@ -24,6 +25,7 @@ export default function Account() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
+  const [hackathonInvites, setHackathonInvites] = useState([]);
   const [paying, setPaying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [proofFile, setProofFile] = useState(null);
@@ -39,6 +41,10 @@ export default function Account() {
 
   useEffect(() => {
     loadData(setData, setError).then(loadEnrollments);
+    axios
+      .get('/TW26/backend/api/hackathon.php')
+      .then((res) => setHackathonInvites(res.data?.invites ?? []))
+      .catch(() => setHackathonInvites([]));
   }, []);
 
   const confirmPayment = async () => {
@@ -177,6 +183,7 @@ export default function Account() {
           paying={paying}
           confirmPayment={confirmPayment}
         />
+        {hackathonInvites.length > 0 && <HackathonInviteCard invites={hackathonInvites} />}
         <VolunteerCard />
         <EnrollmentsCard
           enrollments={enrollments}

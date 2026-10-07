@@ -18,11 +18,15 @@ export default function AdminActivitiesTab() {
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
   const [enrollSearch, setEnrollSearch] = useState('');
+  const [lotes, setLotes] = useState([]);
   const [form] = Form.useForm();
 
   const load = () => {
     axios.get('/TW26/backend/api/admin/activities.php')
-      .then((res) => setActivities(res.data.activities ?? []))
+      .then((res) => {
+        setActivities(res.data.activities ?? []);
+        setLotes(res.data.lotes ?? []);
+      })
       .catch(() => message.error('Erro ao carregar atividades.'));
     axios.get('/TW26/backend/api/admin/activities.php?enrollments=1')
       .then((res) => setEnrollments(res.data.enrollments ?? []))
@@ -34,7 +38,7 @@ export default function AdminActivitiesTab() {
   const openNew = () => {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ type: 'oficina', is_published: '0' });
+    form.setFieldsValue({ type: 'oficina', is_published: '0', early_lote_ids: [] });
     setOpen(true);
   };
 
@@ -46,6 +50,9 @@ export default function AdminActivitiesTab() {
       title: act.title, type: act.type, description: act.description,
       speaker_name: act.speaker_name, location: act.location,
       capacity: act.capacity, is_published: act.is_published ? '1' : '0',
+      early_lote_ids: act.early_lote_ids ?? [],
+      early_hours: act.early_window_minutes ? Math.floor(act.early_window_minutes / 60) : null,
+      early_minutes: act.early_window_minutes ? act.early_window_minutes % 60 : null,
       start_date: start, start_time: start,
       end_date: end, end_time: end,
     });
@@ -64,6 +71,10 @@ export default function AdminActivitiesTab() {
       speaker_name: v.speaker_name, location: v.location,
       is_published: v.is_published === '1',
       capacity: v.capacity ?? null,
+      early_lote_ids: v.early_lote_ids ?? [],
+      early_window_minutes: (v.early_lote_ids ?? []).length > 0
+        ? (v.early_hours ?? 0) * 60 + (v.early_minutes ?? 0)
+        : null,
       start_at: combineDateTime(v.start_date, v.start_time),
       end_at: combineDateTime(v.end_date, v.end_time),
     };
@@ -91,6 +102,28 @@ export default function AdminActivitiesTab() {
     }
   };
 
+  const publish = async (id) => {
+    try {
+      const res = await axios.put('/TW26/backend/api/admin/activities.php', { id, action: 'publish' });
+      message.success(res.data.message);
+      load();
+    } catch (err) {
+      message.error(err.response?.data?.message ?? 'Erro ao publicar.');
+    }
+  };
+
+  const publishAll = async () => {
+    try {
+      const res = await axios.put('/TW26/backend/api/admin/activities.php', { action: 'publish_all' });
+      message.success(res.data.message);
+      load();
+    } catch (err) {
+      message.error(err.response?.data?.message ?? 'Erro ao publicar.');
+    }
+  };
+
+  const unpublishedCount = activities.filter((a) => !a.is_published).length;
+
   const enrolledCount = (id) => enrollments.filter((e) => Number(e.activity_id) === Number(id)).length;
 
   const regenerateCode = async (id) => {
@@ -109,6 +142,14 @@ export default function AdminActivitiesTab() {
         <Button type="primary" style={{ background: '#8A00C4', borderColor: '#8A00C4' }} onClick={openNew}>
           Nova atividade
         </Button>
+        <Popconfirm
+          title={`Publicar ${unpublishedCount} atividade(s)?`}
+          description="Começa agora a contagem do acesso antecipado de cada uma."
+          disabled={unpublishedCount === 0}
+          onConfirm={publishAll}
+        >
+          <Button disabled={unpublishedCount === 0}>Publicar todas ({unpublishedCount})</Button>
+        </Popconfirm>
         <SearchInput value={search} onChange={setSearch} placeholder="Buscar título, palestrante, local..." width={300} />
       </Space>
 
@@ -155,6 +196,11 @@ export default function AdminActivitiesTab() {
             title: 'Ações', key: 'actions',
             render: (_, r) => (
               <Space>
+                {!r.is_published && (
+                  <Button size="small" type="primary" style={{ background: '#8A00C4', borderColor: '#8A00C4' }} onClick={() => publish(r.id)}>
+                    Publicar
+                  </Button>
+                )}
                 <Button size="small" onClick={() => openEdit(r)}>Editar</Button>
                 <Popconfirm title="Remover atividade?" onConfirm={() => remove(r.id)}>
                   <Button size="small" danger>Remover</Button>
@@ -267,6 +313,47 @@ export default function AdminActivitiesTab() {
             Data de início e de término são independentes — oficinas que atravessam mais de um dia
             (ex.: começa às 22h e termina 1h da manhã seguinte) são suportadas normalmente.
           </p>
+          <Form.Item
+            name="early_lote_ids"
+            label="Acesso antecipado — lotes"
+            extra="Quem pagou algum destes lotes se inscreve assim que a atividade é publicada; os demais só depois da antecedência. Vazio = aberta para todos ao publicar."
+          >
+            <Select
+              mode="multiple"
+              allowClear
+              placeholder="Nenhum (aberta para todos)"
+              options={lotes.map((l) => ({ value: l.id, label: l.name }))}
+            />
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, cur) => prev.early_lote_ids !== cur.early_lote_ids}
+          >
+            {({ getFieldValue }) => (getFieldValue('early_lote_ids') ?? []).length > 0 && (
+              <Row gutter={16}>
+                <Col xs={12} md={6}>
+                  <Form.Item name="early_hours" label="Antecedência — horas" initialValue={0}>
+                    <InputNumber min={0} max={8760} style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+                <Col xs={12} md={6}>
+                  <Form.Item
+                    name="early_minutes"
+                    label="Antecedência — minutos"
+                    initialValue={0}
+                    dependencies={['early_hours']}
+                    rules={[({ getFieldValue: get }) => ({
+                      validator: (_, value) => ((get('early_hours') ?? 0) * 60 + (value ?? 0) > 0
+                        ? Promise.resolve()
+                        : Promise.reject(new Error('Informe horas e/ou minutos.'))),
+                    })]}
+                  >
+                    <InputNumber min={0} max={59} style={{ width: '100%' }} />
+                  </Form.Item>
+                </Col>
+              </Row>
+            )}
+          </Form.Item>
         </Form>
       </Modal>
     </div>
