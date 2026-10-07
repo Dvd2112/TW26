@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, Button, Modal, Form, Input, Select, Tag, Row, Col, Space, Popconfirm, message } from 'antd';
 import axios from 'axios';
 import styles from '../../../styles/Admin.module.css';
-import { TYPE_LABELS, TYPE_COLORS, ACTIVITY_TYPE_LABELS } from '../shared/constants';
+import { TYPE_LABELS, TYPE_COLORS, ACTIVITY_TYPE_LABELS, INSTITUTION_LABELS } from '../shared/constants';
 import { filterRows } from '../shared/utils';
 import SearchInput from '../shared/SearchInput';
 import ResponsiveTable from '../shared/ResponsiveTable';
@@ -20,6 +20,7 @@ export default function UsersTab() {
   // O escopo de credenciamento só faz sentido para quem tem a permissão.
   const selectedPerms = Form.useWatch('permissions', form) ?? [];
   const isCredentialer = selectedPerms.includes('credentialer');
+  const institution = Form.useWatch('institution', form);
 
   const load = () => {
     axios.get('/TW26/backend/api/admin/users.php')
@@ -43,7 +44,7 @@ export default function UsersTab() {
   const openEdit = (u) => {
     setEditing(u);
     form.setFieldsValue({
-      name: u.name, email: u.email, cpf: u.cpf, institution: u.institution,
+      name: u.name, email: u.email, cpf: u.cpf, institution: u.institution, school: u.school,
       participant_type: u.participant_type, permissions: u.permissions ?? [],
       credential_activities: u.credential_activities ?? [],
     });
@@ -59,7 +60,7 @@ export default function UsersTab() {
     }
     const payload = {
       name: v.name, email: v.email, cpf: v.cpf.replace(/\D/g, ''),
-      institution: v.institution ?? '', participant_type: v.participant_type,
+      institution: v.institution ?? '', school: v.school ?? '', participant_type: v.participant_type,
       permissions: v.permissions ?? [],
       credential_activities: v.credential_activities ?? [],
     };
@@ -136,7 +137,7 @@ export default function UsersTab() {
       <ResponsiveTable
         rowKey="id"
         dataSource={filterRows(users, search, (u) => [
-          u.name, u.email, u.cpf, u.institution, TYPE_LABELS[u.participant_type], u.lote_name,
+          u.name, u.email, u.cpf, u.institution, u.school, TYPE_LABELS[u.participant_type], u.lote_name,
           u.lote_index === null ? '' : `#${u.lote_index} ${u.lote_index}`,
           (u.permissions ?? []).join(' '),
         ].join(' '))}
@@ -174,9 +175,19 @@ export default function UsersTab() {
             </Col>
             <Col xs={12} md={8}>
               <Form.Item name="institution" label="Instituição">
-                <Input />
+                <Select
+                  allowClear
+                  options={Object.entries(INSTITUTION_LABELS).map(([value, label]) => ({ value, label }))}
+                />
               </Form.Item>
             </Col>
+            {institution === 'ensino_medio' && (
+              <Col xs={24} md={8}>
+                <Form.Item name="school" label="Escola" rules={[{ required: true, message: 'Informe a escola' }]}>
+                  <Input maxLength={120} />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} md={8}>
               <Form.Item name="participant_type" label="Tipo" rules={[{ required: true }]}>
                 <Select>

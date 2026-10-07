@@ -13,6 +13,7 @@ import FinanceiroTab from './tabs/FinanceiroTab';
 import AdminActivitiesTab from './tabs/AdminActivitiesTab';
 import UsersTab from './tabs/UsersTab';
 import HackathonTab from './tabs/HackathonTab';
+import ReportsTab from './tabs/ReportsTab';
 
 /**
  * Abas por permissão: cada aba lista quem pode vê-la. Evita que um credenciador
@@ -28,6 +29,7 @@ const ADMIN_TABS = [
   { key: 'financeiro', label: 'Financeiro', perms: ['super_admin'], render: () => <FinanceiroTab /> },
   { key: 'activities', label: 'Oficinas', perms: ['super_admin', 'content_admin'], render: () => <AdminActivitiesTab /> },
   { key: 'users', label: 'Usuários', perms: ['super_admin'], render: () => <UsersTab /> },
+  { key: 'reports', label: 'Relatórios', perms: ['super_admin', 'registration_admin', 'content_admin'], render: (_active, perms) => <ReportsTab perms={perms} /> },
 ];
 
 export default function Admin() {
@@ -75,7 +77,7 @@ export default function Admin() {
             title="Gestão TechWeek 2026"
             subtitle={onlyCheckin
               ? 'Registre a presença dos participantes nas atividades designadas a você.'
-              : 'Inscrições, lotes, financeiro, oficinas e usuários.'}
+              : 'Inscrições, lotes, financeiro, oficinas, usuários e relatórios.'}
             center
           />
         </motion.div>
@@ -84,7 +86,7 @@ export default function Admin() {
           size="large"
           activeKey={current}
           onChange={setActiveKey}
-          items={tabs.map((t) => ({ key: t.key, label: t.label, children: t.render(current) }))}
+          items={tabs.map((t) => ({ key: t.key, label: t.label, children: t.render(current, perms) }))}
         />
       </div>
     </section>

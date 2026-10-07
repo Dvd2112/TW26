@@ -19,3 +19,8 @@ export const PAY_COLORS = {
 export const REG_LABELS = { pending: 'Pendente', confirmed: 'Confirmado', cancelled: 'Cancelado' };
 
 export const ACTIVITY_TYPE_LABELS = { palestra: 'Palestra', workshop: 'Workshop', oficina: 'Oficina' };
+
+export const INSTITUTION_LABELS = {
+  UTFPR: 'UTFPR', CESUL: 'CESUL', UNIPAR: 'UNIPAR', ensino_medio: 'Ensino Médio', outros: 'Outros',
+};
+export const institutionLabel = (v) => INSTITUTION_LABELS[v] ?? v;

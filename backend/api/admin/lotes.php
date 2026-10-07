@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
 require_once __DIR__ . '/../../config/storage.php';
 require_once __DIR__ . '/../../config/lotes.php';
+require_once __DIR__ . '/../../config/institutions.php';
 
 corsHeaders();
 requireCsrf();
@@ -18,8 +19,6 @@ function sanitizeText(mixed $value): string
 {
     return htmlspecialchars(strip_tags(trim((string) $value)), ENT_QUOTES, 'UTF-8');
 }
-
-const ALLOWED_LOTE_INSTITUTIONS = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
 
 /** '' ou ausente = NULL (lote genérico, vale para qualquer instituição). */
 function parseLoteInstitution(mixed $value): ?string
@@ -133,7 +132,7 @@ if ($method === 'POST') {
     if ($discount < 0 || $discount > 100) {
         jsonResponse(422, false, 'Desconto deve estar entre 0 e 100.');
     }
-    if ($institution !== null && !in_array($institution, ALLOWED_LOTE_INSTITUTIONS, true)) {
+    if ($institution !== null && !in_array($institution, ALLOWED_INSTITUTIONS, true)) {
         jsonResponse(422, false, 'Instituição inválida.');
     }
     if (!in_array($type, ALLOWED_LOTE_PARTICIPANT_TYPES, true)) {
@@ -198,7 +197,7 @@ if ($method === 'PUT') {
     if ($pixLink === false) {
         jsonResponse(422, false, 'Link do PIX inválido. Use um endereço começando com http:// ou https://.');
     }
-    if ($institution !== null && !in_array($institution, ALLOWED_LOTE_INSTITUTIONS, true)) {
+    if ($institution !== null && !in_array($institution, ALLOWED_INSTITUTIONS, true)) {
         jsonResponse(422, false, 'Instituição inválida.');
     }
     if (!in_array($type, ALLOWED_LOTE_PARTICIPANT_TYPES, true)) {

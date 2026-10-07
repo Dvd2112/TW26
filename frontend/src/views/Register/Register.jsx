@@ -88,6 +88,7 @@ function Step1() {
 function Step2() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const institution = Form.useWatch('institution', form);
 
   const saved = (() => {
     try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}'); }
@@ -102,6 +103,7 @@ function Step2() {
         email: saved.email,
         cpf: values.cpf.replace(/\D/g, ''),
         institution: values.institution,
+        school: values.institution === 'ensino_medio' ? values.school : undefined,
         password: values.password,
       });
       goToStep(3);
@@ -166,10 +168,24 @@ function Step2() {
               <Option value="UTFPR">UTFPR</Option>
               <Option value="CESUL">CESUL</Option>
               <Option value="UNIPAR">UNIPAR</Option>
+              <Option value="ensino_medio">Ensino Médio</Option>
               <Option value="outros">Outros</Option>
             </Select>
           </Form.Item>
         </div>
+
+        {institution === 'ensino_medio' && (
+          <Form.Item
+            name="school"
+            label="Qual escola?"
+            rules={[
+              { required: true, whitespace: true, message: 'Informe o nome da sua escola' },
+              { min: 2, message: 'Informe o nome da escola' },
+            ]}
+          >
+            <Input placeholder="Nome da escola" size="large" maxLength={120} />
+          </Form.Item>
+        )}
 
         <div className={styles.row}>
           <Form.Item
