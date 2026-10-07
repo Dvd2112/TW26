@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
     cpf                   TEXT        NOT NULL UNIQUE,
     email                 TEXT        NOT NULL UNIQUE,
     institution           TEXT,
+    school                TEXT, -- nome da escola; só quando institution = 'ensino_medio'
     password_hash         TEXT        NOT NULL,
     participant_type      TEXT        NOT NULL DEFAULT 'participant'
                               CHECK (participant_type IN ('participant', 'volunteer', 'staff')),

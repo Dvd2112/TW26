@@ -4,7 +4,7 @@ import { UploadOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import styles from '../../../styles/Admin.module.css';
-import { TYPE_LABELS } from '../shared/constants';
+import { TYPE_LABELS, institutionLabel } from '../shared/constants';
 import { filterRows, combineDateTime } from '../shared/utils';
 import SearchInput from '../shared/SearchInput';
 import ResponsiveTable from '../shared/ResponsiveTable';
@@ -134,7 +134,7 @@ export default function LotesTab() {
     },
     {
       title: 'Instituição', dataIndex: 'institution',
-      render: (v) => (v ? <Tag color="geekblue">{v}</Tag> : <Tag>Todas</Tag>),
+      render: (v) => (v ? <Tag color="geekblue">{institutionLabel(v)}</Tag> : <Tag>Todas</Tag>),
     },
     {
       title: 'Preço', dataIndex: 'price',
@@ -186,7 +186,7 @@ export default function LotesTab() {
       <ResponsiveTable
         rowKey="id"
         dataSource={filterRows(lotes, search, (l) => [
-          l.name, TYPE_LABELS[l.participant_type], l.institution || 'Todas',
+          l.name, TYPE_LABELS[l.participant_type], institutionLabel(l.institution) || 'Todas',
           l.is_active ? 'Aberto' : 'Fechado', l.has_qr ? 'QR enviado' : 'Sem QR',
         ].join(' '))}
         columns={columns}
@@ -238,6 +238,7 @@ export default function LotesTab() {
                   <Option value="UTFPR">UTFPR</Option>
                   <Option value="CESUL">CESUL</Option>
                   <Option value="UNIPAR">UNIPAR</Option>
+                  <Option value="ensino_medio">Ensino Médio</Option>
                   <Option value="outros">Outros</Option>
                 </Select>
               </Form.Item>

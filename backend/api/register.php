@@ -4,6 +4,7 @@ declare(strict_types=1);
 header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../config/http.php';
+require_once __DIR__ . '/../config/institutions.php';
 
 corsHeaders();
 requireMethod('POST');
@@ -73,10 +74,17 @@ if (preg_match('/^(\d)\1+$/', $cpf)) {
 }
 
 // Validar instituição
-$allowedInstitutions = ['UTFPR', 'CESUL', 'UNIPAR', 'outros'];
-if (!in_array($institution, $allowedInstitutions, true)) {
+if (!in_array($institution, ALLOWED_INSTITUTIONS, true)) {
     http_response_code(422);
     echo json_encode(['success' => false, 'message' => 'Instituição inválida.']);
+    exit;
+}
+
+// Ensino médio: o nome da escola é obrigatório
+$school = normalizeSchool($institution, $data['school'] ?? '');
+if ($school === false) {
+    http_response_code(422);
+    echo json_encode(['success' => false, 'message' => 'Informe o nome da escola.']);
     exit;
 }
 
@@ -109,14 +117,15 @@ try {
     }
 
     $insert = $pdo->prepare(
-        'INSERT INTO users (name, cpf, email, institution, password_hash)
-         VALUES (:name, :cpf, :email, :institution, :password_hash)'
+        'INSERT INTO users (name, cpf, email, institution, school, password_hash)
+         VALUES (:name, :cpf, :email, :institution, :school, :password_hash)'
     );
     $insert->execute([
         ':name'          => $name,
         ':cpf'           => $cpf,
         ':email'         => $email,
         ':institution'   => $institution,
+        ':school'        => $school,
         ':password_hash' => $passwordHash,
     ]);
     $userId = (int) $pdo->lastInsertId();

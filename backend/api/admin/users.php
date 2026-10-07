@@ -5,6 +5,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
+require_once __DIR__ . '/../../config/institutions.php';
 
 corsHeaders();
 requireCsrf();
@@ -113,7 +114,7 @@ function syncCredentialActivities(
 if ($method === 'GET') {
     try {
         $users = $pdo->query(
-            'SELECT u.id, u.name, u.email, u.cpf, u.institution, u.participant_type, u.created_at,
+            'SELECT u.id, u.name, u.email, u.cpf, u.institution, u.school, u.participant_type, u.created_at,
                     r.status AS reg_status, r.lote_id, r.lote_index, l.name AS lote_name
              FROM users u
              LEFT JOIN registrations r ON r.user_id = u.id
@@ -176,6 +177,10 @@ if ($method === 'POST') {
     if (!in_array($type, ['participant', 'volunteer', 'staff'], true)) {
         jsonResponse(422, false, 'Tipo de participante inválido.');
     }
+    $school = normalizeSchool($instit, $data['school'] ?? '');
+    if ($school === false) {
+        jsonResponse(422, false, 'Informe o nome da escola.');
+    }
 
     try {
         $dup = $pdo->prepare('SELECT id FROM users WHERE email = :email OR cpf = :cpf LIMIT 1');
@@ -185,13 +190,14 @@ if ($method === 'POST') {
         }
 
         $pdo->prepare(
-            'INSERT INTO users (name, cpf, email, institution, password_hash, participant_type)
-             VALUES (:name, :cpf, :email, :institution, :hash, :type)'
+            'INSERT INTO users (name, cpf, email, institution, school, password_hash, participant_type)
+             VALUES (:name, :cpf, :email, :institution, :school, :hash, :type)'
         )->execute([
             ':name'  => $name,
             ':cpf'   => $cpf,
             ':email' => $email,
             ':institution' => $instit,
+            ':school' => $school,
             ':hash'  => password_hash($password, PASSWORD_BCRYPT),
             ':type'  => $type,
         ]);
@@ -250,15 +256,19 @@ if ($method === 'PUT') {
     if ($password !== '' && strlen($password) < 8) {
         jsonResponse(422, false, 'Senha deve ter no mínimo 8 caracteres.');
     }
+    $school = normalizeSchool($instit, $data['school'] ?? '');
+    if ($school === false) {
+        jsonResponse(422, false, 'Informe o nome da escola.');
+    }
 
     try {
         $pdo->prepare(
             'UPDATE users SET name = :name, email = :email, cpf = :cpf,
-                institution = :institution, participant_type = :type, updated_at = NOW()
+                institution = :institution, school = :school, participant_type = :type, updated_at = NOW()
              WHERE id = :id'
         )->execute([
             ':name' => $name, ':email' => $email, ':cpf' => $cpf,
-            ':institution' => $instit, ':type' => $type, ':id' => $id,
+            ':institution' => $instit, ':school' => $school, ':type' => $type, ':id' => $id,
         ]);
 
         if ($password !== '') {
