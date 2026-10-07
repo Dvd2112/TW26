@@ -165,6 +165,7 @@ const sponsorTiers = [
 export default function HomePage() {
   const [hasRegistration, setHasRegistration] = useState(false);
   const [hackathon, setHackathon] = useState(null);
+  const [hasHackathonInvite, setHasHackathonInvite] = useState(false);
 
   useEffect(() => {
     axios
@@ -174,7 +175,10 @@ export default function HomePage() {
 
     axios
       .get('/TW26/backend/api/hackathon.php')
-      .then((res) => setHackathon(res.data?.settings ?? null))
+      .then((res) => {
+        setHackathon(res.data?.settings ?? null);
+        setHasHackathonInvite((res.data?.invites ?? []).length > 0);
+      })
       .catch(() => setHackathon(null));
   }, []);
 
@@ -246,7 +250,7 @@ export default function HomePage() {
             { icon: '📍', label: 'Local', value: 'Sebrae Francisco Beltrão' },
           ]}
           status={hackathonStatus}
-          cta={{ label: hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
+          cta={{ label: hasHackathonInvite ? 'Verificar convite' : hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
         />
 
         <Highlights

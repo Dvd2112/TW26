@@ -137,6 +137,14 @@ export default function Oficinas() {
                 <p className={styles.meta}>📅 {formatActivitySchedule(activity)}</p>
                 {activity.location && <p className={styles.meta}>📍 {activity.location}</p>}
 
+                {!activity.is_open && (
+                  <p className={styles.meta}>
+                    {activity.has_early_access
+                      ? '⭐ Acesso antecipado do 1º lote'
+                      : `🔒 Abre para todos em ${new Date(activity.general_opens_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}`}
+                  </p>
+                )}
+
                 <div className={styles.footer}>
                   <span className={styles.spots}>
                     {activity.capacity === null
@@ -155,11 +163,11 @@ export default function Oficinas() {
                       size="small"
                       type="primary"
                       loading={busy}
-                      disabled={activity.is_full}
+                      disabled={activity.is_full || !activity.can_enroll}
                       onClick={() => enroll(activity.id)}
                       style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}
                     >
-                      {activity.is_full ? 'Lotada' : 'Inscrever'}
+                      {activity.is_full ? 'Lotada' : !activity.can_enroll ? 'Em breve' : 'Inscrever'}
                     </Button>
                   ) : (
                     <a href="?page=login">
