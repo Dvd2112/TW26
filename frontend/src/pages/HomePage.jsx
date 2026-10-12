@@ -7,6 +7,7 @@ import Numbers from '../views/Numbers/Numbers';
 import Highlights from '../views/Highlights/Highlights';
 import Edition2026 from '../views/Edition2026/Edition2026';
 import HackathonPromo from '../views/HackathonPromo/HackathonPromo';
+import OficinasPromo from '../views/OficinasPromo/OficinasPromo';
 import PreSaveBanner from '../views/PreSaveBanner/PreSaveBanner';
 import Sponsors from '../views/Sponsors/Sponsors';
 import FooterSection from '../views/FooterSection/FooterSection';
@@ -24,6 +25,7 @@ import logoVorbi from '../assets/sponsors/vorbi.png';
 const navLinks = [
   { label: 'O que você encontra', href: '#vision' },
   { label: 'Ideathon GovTech', href: '#hackathon' },
+  { label: 'Oficinas', href: '#oficinas' },
   { label: 'Destaques', href: '#highlights' },
   { label: 'Edição 2026', href: '#edition2026' },
   { label: 'Patrocinadores', href: '#sponsors' },
@@ -253,9 +255,21 @@ export default function HomePage() {
           cta={{ label: hasHackathonInvite ? 'Verificar convite' : hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
         />
 
+        <OficinasPromo
+          id="oficinas"
+          tag="// 04 – Oficinas e Atividades"
+          title="Programação da TechWeek"
+          subtitle="Veja as oficinas, workshops e palestras que já estão abertas. Para garantir sua vaga, crie sua conta e faça a inscrição."
+          enrollCta={hasRegistration
+            ? { label: 'Inscrever-se', href: '?page=oficinas' }
+            : { label: 'Se inscrever', href: '?page=register' }}
+          loginCta={hasRegistration ? null : { label: 'Entrar', href: '?page=login' }}
+          cta={{ label: 'Ver página completa de oficinas →', href: '?page=oficinas' }}
+        />
+
         <Highlights
           id="highlights"
-          tag="// 04 – Destaques"
+          tag="// 05 – Destaques"
           title="O Tipo de Experiência Que Faz Ficar"
           subtitle="Mais do que acompanhar uma programação, você entra em uma semana desenhada para estimular presença, conversa e construção de trajetória."
           highlights={highlights}
@@ -263,7 +277,7 @@ export default function HomePage() {
 
         <Edition2026
           id="edition2026"
-          tag="// 05 – A Edição 2026"
+          tag="// 06 – A Edição 2026"
           title="Como a TechWeek 2026 Ganha Ritmo"
           subtitle="A programação se distribui ao longo de vários dias, criando um fluxo em que conteúdo, conexão e experimentação se reforçam mutuamente."
           timeline={timeline}
@@ -276,7 +290,7 @@ export default function HomePage() {
 
         <Sponsors
           id="sponsors"
-          tag="// 06 – Patrocinadores"
+          tag="// 07 – Patrocinadores"
           title="Quem Torna a TechWeek Possível"
           subtitle="Empresas que acreditam no potencial da tecnologia da região e caminham junto com a comunidade."
           tiers={sponsorTiers}
@@ -289,6 +303,7 @@ export default function HomePage() {
           ['#vision', 'O que você encontra'],
           ['#numbers', 'O que esperar'],
           ['#hackathon', 'Ideathon GovTech'],
+          ['#oficinas', 'Oficinas'],
           ['#highlights', 'Destaques'],
           ['#edition2026', 'A edição'],
           ['#sponsors', 'Patrocinadores'],

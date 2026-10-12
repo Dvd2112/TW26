@@ -64,7 +64,8 @@ export default function AdminActivitiesTab() {
     try {
       v = await form.validateFields();
     } catch {
-      return; // campos inválidos: o antd já destaca os erros no formulário
+      message.error('Verifique os campos destacados no formulário.');
+      return;
     }
     const payload = {
       title: v.title, type: v.type, description: v.description,

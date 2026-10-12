@@ -25,6 +25,10 @@ function getDbConnection(): PDO
         PDO::ATTR_STRINGIFY_FETCHES  => false,
     ]);
 
+    // Horários do formulário chegam sem fuso (horário de Brasília); sem isto o
+    // Postgres em UTC os gravaria como UTC e a tela mostraria 3h a menos.
+    $pdo->exec("SET TIME ZONE 'America/Sao_Paulo'");
+
     return $pdo;
 }
 endif;
