@@ -12,7 +12,8 @@ corsHeaders();
 requireCsrf();
 
 $pdo  = getDbConnection();
-$user = requireAnyPermission(['super_admin', 'registration_admin']);
+// hackathon_viewer: somente leitura (GET). Qualquer escrita exige super_admin/registration_admin.
+$user = requireAnyPermission(['super_admin', 'registration_admin', 'hackathon_viewer']);
 
 const MAX_QR_BYTES = 2 * 1024 * 1024; // 2MB
 const ALLOWED_QR_MIMES = [
@@ -79,7 +80,17 @@ if ($method === 'GET') {
         }
         unset($team);
 
-        jsonResponse(200, true, 'ok', ['settings' => $settings, 'teams' => $teams]);
+        $individuals = $pdo->query(
+            'SELECT id, name, cpf, email, phone, birth_date, career_outlook, future_plans, created_at
+             FROM hackathon_individuals ORDER BY created_at DESC'
+        )->fetchAll();
+        foreach ($individuals as &$ind) {
+            $ind['id']  = (int) $ind['id'];
+            $ind['cpf'] = substr($ind['cpf'], 0, 3) . '.***.***-' . substr($ind['cpf'], 9, 2);
+        }
+        unset($ind);
+
+        jsonResponse(200, true, 'ok', ['settings' => $settings, 'teams' => $teams, 'individuals' => $individuals]);
     } catch (Exception $e) {
         error_log('[TW26] admin/hackathon GET: ' . $e->getMessage());
         jsonResponse(500, false, 'Erro ao carregar o hackathon.');
@@ -89,6 +100,7 @@ if ($method === 'GET') {
 if ($method !== 'POST') {
     jsonResponse(405, false, 'Método não permitido.');
 }
+requireAnyPermission(['super_admin', 'registration_admin']);
 
 /* ─── POST (multipart): enviar/substituir o QR do PIX ────────────────────── */
 if (isset($_FILES['qr'])) {

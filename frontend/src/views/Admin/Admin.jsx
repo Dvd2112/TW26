@@ -24,7 +24,7 @@ const ADMIN_TABS = [
   { key: 'checkin', label: 'Credenciamento', perms: ['super_admin', 'credentialer'], render: (active) => <CheckinTab visible={active === 'checkin'} /> },
   { key: 'registrations', label: 'Inscrições', perms: ['super_admin', 'registration_admin'], render: () => <RegistrationsTab /> },
   { key: 'lotes', label: 'Lotes', perms: ['super_admin', 'registration_admin'], render: () => <LotesTab /> },
-  { key: 'hackathon', label: 'Ideathon GovTech', perms: ['super_admin', 'registration_admin'], render: () => <HackathonTab /> },
+  { key: 'hackathon', label: 'Ideathon GovTech', perms: ['super_admin', 'registration_admin', 'hackathon_viewer'], render: (_active, perms) => <HackathonTab readOnly={!perms.some((p) => p === 'super_admin' || p === 'registration_admin')} /> },
   { key: 'volunteers', label: 'Voluntários', perms: ['super_admin', 'registration_admin'], render: () => <VolunteersTab /> },
   { key: 'financeiro', label: 'Financeiro', perms: ['super_admin'], render: () => <FinanceiroTab /> },
   { key: 'activities', label: 'Oficinas', perms: ['super_admin', 'content_admin'], render: () => <AdminActivitiesTab /> },
@@ -66,6 +66,7 @@ export default function Admin() {
   const tabs = ADMIN_TABS.filter((t) => t.perms.some((p) => perms.includes(p)));
   // Credenciador puro vê só o credenciamento; o subtítulo acompanha.
   const onlyCheckin = tabs.length === 1 && tabs[0].key === 'checkin';
+  const onlyHackathon = tabs.length === 1 && tabs[0].key === 'hackathon';
   const current = activeKey ?? tabs[0]?.key;
 
   return (
@@ -77,6 +78,8 @@ export default function Admin() {
             title="Gestão TechWeek 2026"
             subtitle={onlyCheckin
               ? 'Registre a presença dos participantes nas atividades designadas a você.'
+              : onlyHackathon
+              ? 'Acompanhe as equipes e inscrições do Ideathon (somente visualização).'
               : 'Inscrições, lotes, financeiro, oficinas, usuários e relatórios.'}
             center
           />

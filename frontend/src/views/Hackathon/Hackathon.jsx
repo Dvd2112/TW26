@@ -7,10 +7,14 @@ import styles from '../../styles/Hackathon.module.css';
 import TeamForm from './TeamForm';
 import TeamCard from './TeamCard';
 import InvitesCard from './InvitesCard';
+import IndividualForm from './IndividualForm';
+import IndividualCard from './IndividualCard';
 
 export default function Hackathon({ tag, title, subtitle, information = [] }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState(false);
+  // 'team' (padrão) | 'individual' — ?mode=individual abre a inscrição individual
+  const [mode, setMode] = useState(() => (new URLSearchParams(window.location.search).get('mode') === 'individual' ? 'individual' : 'team'));
 
   const load = useCallback(
     () => axios.get('/TW26/backend/api/hackathon.php').then((res) => setData(res.data)).catch(() => setError(true)),
@@ -57,7 +61,39 @@ export default function Hackathon({ tag, title, subtitle, information = [] }) {
 
         {data.team && <TeamCard team={data.team} settings={s} onDone={load} />}
 
-        {data.logged_in && !data.team && s.registrations_open && !s.is_full && (
+        {data.individual && !data.team && <IndividualCard onDone={load} />}
+
+        {data.logged_in && !data.team && !data.individual && s.registrations_open && !s.is_full && (
+          <div className={styles.card}>
+            <h3 className={styles.cardTitle}>Como você quer participar?</h3>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                ['team', 'Em equipe', 'Inscreva o seu grupo (3 a 6 pessoas)'],
+                ['individual', 'Individual', 'Sem equipe? A organização aloca você'],
+              ].map(([value, label, hint]) => (
+                <Button
+                  key={value}
+                  size="large"
+                  type={mode === value ? 'primary' : 'default'}
+                  onClick={() => setMode(value)}
+                  style={{
+                    flex: '1 1 220px', height: 'auto', padding: '12px 16px', whiteSpace: 'normal',
+                    ...(mode === value ? { background: '#5E0087', border: 'none' } : { borderColor: '#5E0087' }),
+                  }}
+                >
+                  <strong style={{ display: 'block' }}>{label}</strong>
+                  <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>{hint}</span>
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {data.logged_in && !data.team && !data.individual && s.registrations_open && mode === 'individual' && (
+          <IndividualForm identity={data.identity} onDone={load} />
+        )}
+
+        {data.logged_in && !data.team && !data.individual && s.registrations_open && !s.is_full && mode === 'team' && (
           <TeamForm settings={s} identity={data.identity} onDone={load} />
         )}
       </>

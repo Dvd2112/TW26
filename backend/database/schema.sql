@@ -321,6 +321,21 @@ CREATE INDEX IF NOT EXISTS idx_hackathon_members_team  ON hackathon_members(team
 CREATE INDEX IF NOT EXISTS idx_hackathon_members_cpf   ON hackathon_members(cpf);
 CREATE INDEX IF NOT EXISTS idx_hackathon_members_email ON hackathon_members(email);
 
+-- Inscrição individual no hackathon (sem equipe; alocada pela organização).
+CREATE TABLE IF NOT EXISTS hackathon_individuals (
+    id             SERIAL      PRIMARY KEY,
+    user_id        INTEGER     NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    name           TEXT        NOT NULL,
+    cpf            TEXT        NOT NULL, -- só dígitos
+    email          TEXT        NOT NULL, -- minúsculas
+    phone          TEXT        NOT NULL,
+    birth_date     DATE        NOT NULL,
+    lgpd_consent   BOOLEAN     NOT NULL DEFAULT FALSE,
+    career_outlook TEXT,
+    future_plans   TEXT,
+    created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ─── indexes ──────────────────────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_users_email          ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_cpf            ON users(cpf);

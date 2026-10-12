@@ -23,5 +23,10 @@ VALUES
         'credentialer',
         'Credenciador',
         'Valida presença e realiza check-in de participantes no evento.'
+    ),
+    (
+        'hackathon_viewer',
+        'Visualizador do Hackathon',
+        'Apenas visualiza equipes e inscrições individuais do hackathon; não executa nenhuma ação.'
     )
 ON CONFLICT (slug) DO NOTHING;

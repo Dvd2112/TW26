@@ -5,16 +5,16 @@ import { PAYMENT_LABELS, PAYMENT_COLORS, REG_LABELS } from './constants';
 
 export default function RegistrationCard({ registration, payment, pix, proofFile, setProofFile, paying, confirmPayment }) {
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${!registration || registration.can_choose_lote ? styles.cardHighlight : ''}`}>
       <h3 className={styles.cardTitle}>Inscrição</h3>
       {!registration ? (
         <>
           <p className={styles.line}>
-            Você ainda não concluiu sua inscrição. Complete agora para garantir sua vaga.
+            Você ainda não concluiu sua inscrição. Garanta agora a sua vaga na TechWeek 2026.
           </p>
           <a href="?page=register&step=3">
-            <Button type="primary" style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}>
-              Completar inscrição
+            <Button type="primary" size="large" block className={styles.ctaBig}>
+              Quero me inscrever
             </Button>
           </a>
         </>
@@ -26,7 +26,7 @@ export default function RegistrationCard({ registration, payment, pix, proofFile
                 Esta inscrição não está mais ativa. Escolha um novo lote para continuar sua inscrição.
               </p>
               <a href="?page=register&step=3">
-                <Button type="primary" style={{ background: '#8A00C4', border: 'none', fontWeight: 700 }}>
+                <Button type="primary" size="large" block className={styles.ctaBig}>
                   Escolher lote
                 </Button>
               </a>

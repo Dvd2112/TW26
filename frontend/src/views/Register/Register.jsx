@@ -106,7 +106,8 @@ function Step2() {
         school: values.institution === 'ensino_medio' ? values.school : undefined,
         password: values.password,
       });
-      goToStep(3);
+      sessionStorage.removeItem(STORAGE_KEY);
+      window.location.search = 'page=conta';
     } catch (err) {
       const msg = err.response?.data?.message ?? 'Erro ao finalizar inscrição. Tente novamente.';
       message.error(msg);
@@ -319,7 +320,7 @@ function Step3() {
             <p className={styles.successText} style={{ textAlign: 'center', margin: '0 auto' }}>
               Nenhum lote aberto no momento para o seu perfil e instituição.
             </p>
-            <a href="?page=account">
+            <a href="?page=conta">
               <Button block style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', marginTop: 16 }}>
                 Ir para Minha Conta
               </Button>
@@ -366,7 +367,7 @@ function Step3() {
       <motion.div className={styles.formCard} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
         <p className={styles.stepLabel}>Etapa 3 de 3</p>
         <p className={styles.successText} style={{ textAlign: 'center' }}>{errorMsg}</p>
-        <a href="?page=account">
+        <a href="?page=conta">
           <Button block style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', marginTop: 16 }}>
             Ir para Minha Conta
           </Button>
@@ -460,9 +461,9 @@ function Step3() {
           </>
         )}
 
-        <a href="./">
+        <a href="?page=conta">
           <Button style={{ color: '#8A00C4', borderColor: '#8A00C4', background: 'transparent', fontWeight: 600 }}>
-            Voltar para a página inicial
+            Ir para Minha Conta
           </Button>
         </a>
       </motion.div>
