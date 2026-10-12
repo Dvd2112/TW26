@@ -161,6 +161,7 @@ if ($method === 'GET') {
             'invites'      => [],
             'price_for_me' => null,
             'identity'     => null,
+            'individual'   => null,
         ];
 
         if ($user === null) {
@@ -172,6 +173,11 @@ if ($method === 'GET') {
         $membership = findMyMembership($pdo, (int) $user['id']);
 
         $response['price_for_me'] = hackathonPriceFor($pdo, (int) $user['id'], $settings);
+
+        $stmt = $pdo->prepare('SELECT created_at FROM hackathon_individuals WHERE user_id = :uid');
+        $stmt->execute([':uid' => (int) $user['id']]);
+        $ind = $stmt->fetch();
+        $response['individual'] = $ind === false ? null : ['created_at' => $ind['created_at']];
 
         if ($membership !== null) {
             // Regra/preço podem ter mudado desde o aceite: reavalia enquanto não pagou.
@@ -377,12 +383,77 @@ try {
         foreach ($members as $m) {
             insertMember($pdo, $teamId, $m, false, null);
         }
+        $pdo->prepare('DELETE FROM hackathon_individuals WHERE user_id = :uid')->execute([':uid' => $uid]);
 
         $pdo->commit();
         appLog('hackathon.team_created', ['user_id' => $uid, 'team_id' => $teamId, 'size' => $size]);
         sendInvites($members, $teamName, $me['name']);
 
         jsonResponse(201, true, 'Equipe inscrita! Os integrantes receberam o convite para aceitar o vínculo.');
+    }
+
+    /* ── inscrição individual (sem equipe) ── */
+    if ($action === 'register_individual') {
+        if (!$settings['registrations_open']) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'As inscrições do Ideathon estão fechadas.');
+        }
+        if ($membership !== null) {
+            $pdo->rollBack();
+            jsonResponse(409, false, 'Você já faz parte de uma equipe do Ideathon.');
+        }
+
+        [$person, $personError] = cleanMemberInput($data['person'] ?? null);
+        if ($person === null) {
+            $pdo->rollBack();
+            jsonResponse(422, false, $personError);
+        }
+        if ($person['cpf'] !== $me['cpf'] || $person['email'] !== $me['email']) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'Os dados de CPF e e-mail devem ser os da sua conta.');
+        }
+
+        $careerOptions = ['empreendendo', 'grande_empresa', 'academia_pesquisa', 'setor_publico', 'outro'];
+        $careerOutlook = trim((string) ($data['career_outlook'] ?? ''));
+        $futurePlans   = htmlspecialchars(strip_tags(trim((string) ($data['future_plans'] ?? ''))), ENT_QUOTES, 'UTF-8');
+        if (empty($data['lgpd_consent'])) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'É necessário concordar com os termos de privacidade para participar.');
+        }
+        if (!in_array($careerOutlook, $careerOptions, true)) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'Selecione como você se imagina no mercado daqui a 5 anos.');
+        }
+        if (mb_strlen($futurePlans) > 2000) {
+            $pdo->rollBack();
+            jsonResponse(422, false, 'O texto sobre planos futuros pode ter até 2.000 caracteres.');
+        }
+
+        $stmt = $pdo->prepare(
+            'INSERT INTO hackathon_individuals (user_id, name, cpf, email, phone, birth_date, lgpd_consent, career_outlook, future_plans)
+             VALUES (:uid, :name, :cpf, :email, :phone, :birth, TRUE, :career, :plans)
+             ON CONFLICT (user_id) DO NOTHING'
+        );
+        $stmt->execute([
+            ':uid' => $uid, ':name' => $person['name'], ':cpf' => $person['cpf'], ':email' => $person['email'],
+            ':phone' => $person['phone'], ':birth' => $person['birth_date'], ':career' => $careerOutlook,
+            ':plans' => $futurePlans !== '' ? $futurePlans : null,
+        ]);
+        if ($stmt->rowCount() === 0) {
+            $pdo->rollBack();
+            jsonResponse(409, false, 'Você já está inscrito individualmente no Ideathon.');
+        }
+
+        $pdo->commit();
+        appLog('hackathon.individual_registered', ['user_id' => $uid]);
+        jsonResponse(201, true, 'Inscrição individual realizada! A organização vai alocar você em uma equipe.');
+    }
+
+    /* ── cancelar inscrição individual ── */
+    if ($action === 'cancel_individual') {
+        $pdo->prepare('DELETE FROM hackathon_individuals WHERE user_id = :uid')->execute([':uid' => $uid]);
+        $pdo->commit();
+        jsonResponse(200, true, 'Inscrição individual cancelada.');
     }
 
     /* ── responder convite ── */
@@ -426,6 +497,7 @@ try {
             "UPDATE hackathon_members SET invite_status = 'accepted', user_id = :uid, responded_at = :now WHERE id = :id"
         )->execute([':uid' => $uid, ':now' => $now, ':id' => $memberId]);
         hackathonApplyPrice($pdo, $memberId, $uid, $settings);
+        $pdo->prepare('DELETE FROM hackathon_individuals WHERE user_id = :uid')->execute([':uid' => $uid]);
         $pdo->commit();
 
         appLog('hackathon.invite_accepted', ['user_id' => $uid, 'member_id' => $memberId]);

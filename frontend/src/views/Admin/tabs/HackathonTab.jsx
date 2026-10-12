@@ -9,7 +9,7 @@ const API = '/TW26/backend/api/admin/hackathon.php';
 const INVITE_LABELS = { pending: 'Convite pendente', accepted: 'Aceito', rejected: 'Rejeitado' };
 const INVITE_COLORS = { pending: 'gold', accepted: 'green', rejected: 'red' };
 
-function SettingsCard({ settings, onSaved }) {
+function SettingsCard({ settings, onSaved, readOnly }) {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
 
@@ -35,7 +35,7 @@ function SettingsCard({ settings, onSaved }) {
       <Form form={form} layout="vertical" onFinish={save} requiredMark={false}>
         <Space size="large" wrap align="start">
           <Form.Item name="registrations_open" label="Inscrições abertas" valuePropName="checked">
-            <Switch />
+            <Switch disabled={readOnly} />
           </Form.Item>
         </Space>
 
@@ -45,22 +45,23 @@ function SettingsCard({ settings, onSaved }) {
             <Input value="De 3 a 6 pessoas" disabled style={{ width: 180 }} />
           </Form.Item>
           <Form.Item name="max_teams" label="Limite de equipes" tooltip="Vazio = sem limite.">
-            <InputNumber min={1} style={{ width: 130 }} placeholder="Sem limite" />
+            <InputNumber min={1} style={{ width: 130 }} placeholder="Sem limite" disabled={readOnly} />
           </Form.Item>
         </Space>
 
-        <Button type="primary" htmlType="submit" loading={saving} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>
+        {!readOnly && <Button type="primary" htmlType="submit" loading={saving} style={{ background: '#8A00C4', borderColor: '#8A00C4' }}>
           Salvar configurações
-        </Button>
+        </Button>}
       </Form>
 
     </Card>
   );
 }
 
-export default function HackathonTab() {
+export default function HackathonTab({ readOnly = false }) {
   const [settings, setSettings] = useState(null);
   const [teams, setTeams] = useState([]);
+  const [individuals, setIndividuals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [search, setSearch] = useState('');
@@ -70,6 +71,7 @@ export default function HackathonTab() {
       .then((res) => {
         setSettings(res.data.settings);
         setTeams(res.data.teams ?? []);
+        setIndividuals(res.data.individuals ?? []);
       })
       .catch((err) => message.error(err.response?.data?.message ?? 'Erro ao carregar o hackathon.'))
       .finally(() => setLoading(false));
@@ -130,7 +132,7 @@ export default function HackathonTab() {
         outro: 'Outro',
       }[v] ?? '—'),
     },
-    {
+    ...(readOnly ? [] : [{
       title: 'Ações',
       key: 'actions',
       render: (_, t) => (
@@ -143,12 +145,12 @@ export default function HackathonTab() {
           <Button size="small" danger loading={acting}>Excluir</Button>
         </Popconfirm>
       ),
-    },
+    }]),
   ];
 
   return (
     <div>
-      {settings && <SettingsCard settings={settings} onSaved={load} />}
+      {settings && <SettingsCard settings={settings} onSaved={load} readOnly={readOnly} />}
       {settings && !settings.registrations_open && (
         <Alert type="info" showIcon style={{ marginBottom: 16 }} message="As inscrições do Ideathon estão fechadas: só quem já tem equipe consegue aceitar convites e pagar." />
       )}
@@ -167,6 +169,26 @@ export default function HackathonTab() {
             expandedRowRender: (t) => (
               <ResponsiveTable rowKey="id" dataSource={t.members} columns={memberColumns} pagination={false} size="small" />
             ),
+          }}
+        />
+      </Card>
+      <Card title={`Inscrições individuais (${individuals.length})`} style={{ marginTop: 16 }}>
+        <ResponsiveTable
+          rowKey="id"
+          dataSource={individuals}
+          columns={[
+            { title: 'Nome', dataIndex: 'name', key: 'name' },
+            { title: 'E-mail', dataIndex: 'email', key: 'email' },
+            { title: 'CPF', dataIndex: 'cpf', key: 'cpf' },
+            { title: 'Telefone', dataIndex: 'phone', key: 'phone' },
+            { title: 'Nascimento', dataIndex: 'birth_date', key: 'birth_date' },
+          ]}
+          loading={loading}
+          pagination={{ pageSize: 10 }}
+          size="small"
+          expandable={{
+            rowExpandable: (i) => Boolean(i.future_plans),
+            expandedRowRender: (i) => <p style={{ margin: 0 }}>{i.future_plans}</p>,
           }}
         />
       </Card>

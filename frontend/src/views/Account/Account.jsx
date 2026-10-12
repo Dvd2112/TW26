@@ -10,6 +10,7 @@ import RegistrationCard from './RegistrationCard';
 import VolunteerCard from './VolunteerCard';
 import EnrollmentsCard from './EnrollmentsCard';
 import HackathonInviteCard from './HackathonInviteCard';
+import HackathonCard from './HackathonCard';
 
 function loadData(setData, setError) {
   return axios
@@ -26,6 +27,7 @@ export default function Account() {
   const [error, setError] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [hackathonInvites, setHackathonInvites] = useState([]);
+  const [hackathonEnrolled, setHackathonEnrolled] = useState(false); // equipe ou individual
   const [paying, setPaying] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [proofFile, setProofFile] = useState(null);
@@ -43,7 +45,10 @@ export default function Account() {
     loadData(setData, setError).then(loadEnrollments);
     axios
       .get('/TW26/backend/api/hackathon.php')
-      .then((res) => setHackathonInvites(res.data?.invites ?? []))
+      .then((res) => {
+        setHackathonInvites(res.data?.invites ?? []);
+        setHackathonEnrolled(Boolean(res.data?.individual || res.data?.team));
+      })
       .catch(() => setHackathonInvites([]));
   }, []);
 
@@ -172,8 +177,7 @@ export default function Account() {
         subtitle="Acompanhe sua inscrição, pagamento e oficinas na TechWeek 2026."
         center
       />      <div className={styles.grid}>
-        <ProfileCard user={user} />
-        <CheckinCard user={user} />
+        <div className={styles.heroRow}>
         <RegistrationCard
           registration={registration}
           payment={payment}
@@ -183,6 +187,10 @@ export default function Account() {
           paying={paying}
           confirmPayment={confirmPayment}
         />
+        {!hackathonEnrolled && hackathonInvites.length === 0 && <HackathonCard />}
+        </div>
+        <ProfileCard user={user} />
+        <CheckinCard user={user} />
         {hackathonInvites.length > 0 && <HackathonInviteCard invites={hackathonInvites} />}
         <VolunteerCard />
         <EnrollmentsCard
