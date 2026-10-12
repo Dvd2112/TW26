@@ -1,0 +1,121 @@
+.section {
+  padding: var(--section-padding);
+  background: #000;
+}
+
+.wrapper {
+  max-width: var(--max-width);
+  width: 100%;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 40px;
+}
+
+.card {
+  background: var(--color-card);
+  border: 1px solid #1a1a1a;
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tag {
+  align-self: flex-start;
+}
+
+.cardTitle {
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 4px 0 0;
+}
+
+.meta {
+  color: #aaa;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.desc {
+  color: #d9d9d9;
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+
+.spots {
+  color: var(--color-green);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.login {
+  color: #d9d9d9;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.login:hover {
+  color: #fff;
+}
+
+.enroll {
+  color: var(--color-neon);
+  border: 1px solid var(--color-neon);
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.enroll:hover {
+  background: var(--color-neon);
+  color: #fff;
+}
+
+.empty {
+  color: #d9d9d9;
+  text-align: center;
+  grid-column: 1 / -1;
+}
+
+.ctaRow {
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.cta {
+  color: var(--color-green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cta:hover {
+  text-decoration: underline;
+}
