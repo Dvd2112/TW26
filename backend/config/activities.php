@@ -73,3 +73,37 @@ function saveEarlyLotes(PDO $pdo, int $activityId, array $loteIds): void
     }
 }
 endif;
+
+if (!function_exists('autoEnrollPaidUser')):
+/**
+ * Inscreve um usuário recém-pago em todas as atividades com auto_enroll_paid.
+ * Chamar dentro da transação que confirma o pagamento. Idempotente.
+ */
+function autoEnrollPaidUser(PDO $pdo, int $userId): int
+{
+    $stmt = $pdo->prepare(
+        "INSERT INTO activity_enrollments (user_id, activity_id)
+         SELECT CAST(:uid AS INTEGER), a.id FROM activities a
+         WHERE a.auto_enroll_paid
+         ON CONFLICT (user_id, activity_id) DO NOTHING"
+    );
+    $stmt->execute([':uid' => $userId]);
+    return $stmt->rowCount();
+}
+endif;
+
+if (!function_exists('autoEnrollPaidInActivity')):
+/** Inscreve todos os participantes já pagos na atividade. Idempotente; retorna quantos entraram. */
+function autoEnrollPaidInActivity(PDO $pdo, int $activityId): int
+{
+    $stmt = $pdo->prepare(
+        "INSERT INTO activity_enrollments (user_id, activity_id)
+         SELECT DISTINCT r.user_id, CAST(:aid AS INTEGER)
+         FROM registrations r
+         WHERE r.payment_status = 'paid' AND r.status <> 'cancelled'
+         ON CONFLICT (user_id, activity_id) DO NOTHING"
+    );
+    $stmt->execute([':aid' => $activityId]);
+    return $stmt->rowCount();
+}
+endif;

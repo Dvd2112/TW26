@@ -7,6 +7,7 @@ require_once __DIR__ . '/../../config/http.php';
 require_once __DIR__ . '/../../config/auth.php';
 require_once __DIR__ . '/../../config/mailer.php';
 require_once __DIR__ . '/../../config/lotes.php';
+require_once __DIR__ . '/../../config/activities.php';
 
 corsHeaders();
 requireCsrf();
@@ -103,7 +104,7 @@ if ($method === 'POST') {
         $stmt = $pdo->prepare(
             'SELECT p.id, p.registration_id, p.status AS payment_status, p.amount,
                     (p.proof_path IS NOT NULL) AS has_proof,
-                    r.status AS registration_status,
+                    r.status AS registration_status, r.user_id,
                     u.name AS user_name, u.email AS user_email,
                     l.name AS lote_name
              FROM payments p
@@ -145,6 +146,9 @@ if ($method === 'POST') {
 
             // Pagou: entra na numeração do lote (1, 2, 3...)
             $loteIndex = assignLoteIndex($pdo, (int) $pay['registration_id']);
+
+            // Palestras com auto-inscrição de pagos
+            autoEnrollPaidUser($pdo, (int) $pay['user_id']);
 
             $pdo->commit();
 

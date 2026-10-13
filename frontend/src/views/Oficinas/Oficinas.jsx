@@ -67,7 +67,13 @@ export default function Oficinas() {
       message.success('Inscrição confirmada!');
       reload();
     } catch (err) {
-      message.error(err.response?.data?.message ?? 'Erro ao se inscrever.');
+      const text = err.response?.data?.message ?? 'Erro ao se inscrever.';
+      // 409 = conflito de horário, atividade lotada ou já inscrito: aviso, não falha
+      if (err.response?.status === 409) {
+        message.warning(text, 6);
+      } else {
+        message.error(text);
+      }
     } finally {
       setBusy(false);
     }

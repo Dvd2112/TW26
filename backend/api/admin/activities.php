@@ -27,7 +27,9 @@ if ($method === 'GET') {
         // Lista de inscritos por atividade
         if (isset($_GET['enrollments'])) {
             $rows = $pdo->query(
-                'SELECT e.activity_id, u.id AS user_id, u.name, u.email, e.enrolled_at
+                'SELECT e.activity_id, u.id AS user_id, u.name, u.email, e.enrolled_at,
+                        (SELECT at.checked_in_at FROM activity_attendance at
+                          WHERE at.activity_id = e.activity_id AND at.user_id = e.user_id) AS attended_at
                  FROM activity_enrollments e
                  JOIN users u ON u.id = e.user_id
                  ORDER BY e.activity_id, u.name'
@@ -54,6 +56,7 @@ if ($method === 'GET') {
             $activity['attended'] = (int) $activity['attended'];
             $activity['capacity'] = $activity['capacity'] !== null ? (int) $activity['capacity'] : null;
             $activity['is_published'] = dbBool($activity['is_published']);
+            $activity['auto_enroll_paid'] = dbBool($activity['auto_enroll_paid']);
         }
         unset($activity);
         $lotes = $pdo->query('SELECT id, name FROM lotes ORDER BY order_index, id')->fetchAll();
@@ -100,12 +103,15 @@ if ($method === 'POST') {
         jsonResponse(422, false, $early);
     }
 
+    // Só palestras: inscreve todos os pagos agora e quem pagar depois.
+    $autoEnroll = $type === 'palestra' && ($data['auto_enroll_paid'] ?? false) === true;
+
     try {
         $pdo->beginTransaction();
         $ins = $pdo->prepare(
             'INSERT INTO activities (title, type, description, speaker_name, speaker_bio,
-                                     location, capacity, start_at, end_at, is_published, published_at, early_window_minutes)
-             VALUES (:title, :type, :desc, :speaker, :bio, :location, :capacity, :start, :end, :pub, CASE WHEN :pub2 THEN NOW() END, :early_min)
+                                     location, capacity, start_at, end_at, is_published, published_at, early_window_minutes, auto_enroll_paid)
+             VALUES (:title, :type, :desc, :speaker, :bio, :location, :capacity, :start, :end, :pub, CASE WHEN :pub2 THEN NOW() END, :early_min, :auto)
              RETURNING id'
         );
         $ins->execute([
@@ -121,10 +127,20 @@ if ($method === 'POST') {
             ':pub'      => $published,
             ':pub2'     => $published,
             ':early_min' => $early['minutes'],
+            ':auto'     => $autoEnroll ? 'true' : 'false',
         ]);
-        saveEarlyLotes($pdo, (int) $ins->fetchColumn(), $early['lotes']);
+        $newId = (int) $ins->fetchColumn();
+        saveEarlyLotes($pdo, $newId, $early['lotes']);
+
+        $autoEnrolled = $autoEnroll ? autoEnrollPaidInActivity($pdo, $newId) : 0;
+
         $pdo->commit();
-        jsonResponse(201, true, 'Atividade criada.');
+        jsonResponse(
+            201,
+            true,
+            $autoEnrolled > 0 ? "Atividade criada e {$autoEnrolled} participante(s) pago(s) inscrito(s)." : 'Atividade criada.',
+            ['auto_enrolled' => $autoEnrolled]
+        );
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
@@ -212,6 +228,9 @@ if ($method === 'PUT') {
         jsonResponse(422, false, $early);
     }
 
+    // Só palestras: inscreve todos os pagos agora e quem pagar depois.
+    $autoEnroll = $type === 'palestra' && ($data['auto_enroll_paid'] ?? false) === true;
+
     try {
         $pdo->beginTransaction();
 
@@ -237,6 +256,7 @@ if ($method === 'PUT') {
                  start_at = :start, end_at = :end, is_published = :pub,
                  published_at = CASE WHEN :pub2 THEN (CASE WHEN :restart THEN NOW() ELSE COALESCE(published_at, NOW()) END) END,
                  early_window_minutes = :early_min,
+                 auto_enroll_paid = :auto,
                  updated_at = NOW()
              WHERE id = :id'
         )->execute([
@@ -253,11 +273,18 @@ if ($method === 'PUT') {
             ':pub2'     => $published,
             ':restart'  => $restart ? 'true' : 'false',
             ':early_min' => $early['minutes'],
+            ':auto'     => $autoEnroll ? 'true' : 'false',
             ':id'       => $id,
         ]);
         saveEarlyLotes($pdo, $id, $early['lotes']);
+        $autoEnrolled = $autoEnroll ? autoEnrollPaidInActivity($pdo, $id) : 0;
         $pdo->commit();
-        jsonResponse(200, true, 'Atividade atualizada.');
+        jsonResponse(
+            200,
+            true,
+            $autoEnrolled > 0 ? "Atividade atualizada e {$autoEnrolled} participante(s) pago(s) inscrito(s)." : 'Atividade atualizada.',
+            ['auto_enrolled' => $autoEnrolled]
+        );
     } catch (Exception $e) {
         if ($pdo->inTransaction()) {
             $pdo->rollBack();
