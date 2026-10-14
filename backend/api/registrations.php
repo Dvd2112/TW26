@@ -6,6 +6,7 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../config/http.php';
 require_once __DIR__ . '/../config/auth.php';
 require_once __DIR__ . '/../config/lotes.php';
+require_once __DIR__ . '/../config/activities.php';
 
 corsHeaders();
 requireMethod('POST');
@@ -138,6 +139,7 @@ try {
     // Índice no lote só nasce quando a pessoa paga (aqui: inscrição gratuita)
     if ($isFree) {
         assignLoteIndex($pdo, $regId);
+        autoEnrollPaidUser($pdo, (int) $user['id']);
     }
 
     $pdo->commit();

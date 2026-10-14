@@ -138,6 +138,8 @@ CREATE TABLE IF NOT EXISTS activities (
     published_at      TIMESTAMPTZ, -- quando foi publicada (base da janela de acesso antecipado)
     -- minutos de antecedência dos lotes em activity_early_lotes; NULL = aberta a todos ao publicar
     early_window_minutes INTEGER CHECK (early_window_minutes IS NULL OR early_window_minutes > 0),
+    -- TRUE = todo participante com pagamento confirmado é inscrito automaticamente (palestras)
+    auto_enroll_paid  BOOLEAN     NOT NULL DEFAULT FALSE,
     -- código divulgado na sala; o participante inscrito digita para marcar presença
     attendance_code   TEXT        NOT NULL
                           DEFAULT upper(substr(md5(random()::text || clock_timestamp()::text), 1, 6)),

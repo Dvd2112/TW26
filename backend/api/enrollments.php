@@ -53,7 +53,8 @@ if ($method === 'POST') {
         $pdo->beginTransaction();
 
         $stmt = $pdo->prepare(
-            'SELECT id, capacity, is_published FROM activities WHERE id = :id FOR UPDATE'
+            'SELECT id, capacity, is_published, type, start_at, end_at
+             FROM activities WHERE id = :id FOR UPDATE'
         );
         $stmt->execute([':id' => $activityId]);
         $activity = $stmt->fetch();
@@ -83,6 +84,34 @@ if ($method === 'POST') {
         if ($dup->fetch() !== false) {
             $pdo->rollBack();
             jsonResponse(409, false, 'Você já está inscrito nesta atividade.');
+        }
+
+        // Impede inscrição em oficinas que ocupam o mesmo horário (trava por usuário
+        // para que dois cliques/abas simultâneos não furem a checagem).
+        if (in_array($activity['type'], ['oficina', 'workshop'], true)
+            && $activity['start_at'] !== null && $activity['end_at'] !== null) {
+            $pdo->prepare('SELECT pg_advisory_xact_lock(:uid)')->execute([':uid' => $user['id']]);
+
+            $conflict = $pdo->prepare(
+                "SELECT a.title
+                 FROM activity_enrollments e
+                 JOIN activities a ON a.id = e.activity_id
+                 WHERE e.user_id = :uid
+                   AND a.type IN ('oficina', 'workshop')
+                   AND a.start_at < :end_at
+                   AND a.end_at   > :start_at
+                 LIMIT 1"
+            );
+            $conflict->execute([
+                ':uid'      => $user['id'],
+                ':start_at' => $activity['start_at'],
+                ':end_at'   => $activity['end_at'],
+            ]);
+            $conflicting = $conflict->fetchColumn();
+            if ($conflicting !== false) {
+                $pdo->rollBack();
+                jsonResponse(409, false, 'Esta oficina ocupa o mesmo horário de "' . $conflicting . '", na qual você já está inscrito.');
+            }
         }
 
         if ($activity['capacity'] !== null) {

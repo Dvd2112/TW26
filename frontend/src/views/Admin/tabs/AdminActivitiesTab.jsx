@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Modal, Form, Input, InputNumber, Select, Tag, Row, Col, Space, Popconfirm, message, DatePicker, TimePicker } from 'antd';
+import { Card, Button, Modal, Form, Input, InputNumber, Select, Tag, Row, Col, Space, Popconfirm, message, DatePicker, TimePicker, Switch } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import styles from '../../../styles/Admin.module.css';
@@ -7,6 +7,7 @@ import { ACTIVITY_TYPE_LABELS } from '../shared/constants';
 import { filterRows, combineDateTime, formatActivitySchedule } from '../shared/utils';
 import SearchInput from '../shared/SearchInput';
 import ResponsiveTable from '../shared/ResponsiveTable';
+import ActivityEnrollments from './ActivityEnrollments';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -38,7 +39,7 @@ export default function AdminActivitiesTab() {
   const openNew = () => {
     setEditing(null);
     form.resetFields();
-    form.setFieldsValue({ type: 'oficina', is_published: '0', early_lote_ids: [] });
+    form.setFieldsValue({ type: 'oficina', is_published: '0', early_lote_ids: [], auto_enroll_paid: true });
     setOpen(true);
   };
 
@@ -51,6 +52,7 @@ export default function AdminActivitiesTab() {
       speaker_name: act.speaker_name, location: act.location,
       capacity: act.capacity, is_published: act.is_published ? '1' : '0',
       early_lote_ids: act.early_lote_ids ?? [],
+      auto_enroll_paid: !!act.auto_enroll_paid,
       early_hours: act.early_window_minutes ? Math.floor(act.early_window_minutes / 60) : null,
       early_minutes: act.early_window_minutes ? act.early_window_minutes % 60 : null,
       start_date: start, start_time: start,
@@ -78,14 +80,16 @@ export default function AdminActivitiesTab() {
         : null,
       start_at: combineDateTime(v.start_date, v.start_time),
       end_at: combineDateTime(v.end_date, v.end_time),
+      auto_enroll_paid: v.type === 'palestra' && !!v.auto_enroll_paid,
     };
     try {
+      let res;
       if (editing) {
-        await axios.put('/TW26/backend/api/admin/activities.php', { id: editing.id, ...payload });
+        res = await axios.put('/TW26/backend/api/admin/activities.php', { id: editing.id, ...payload });
       } else {
-        await axios.post('/TW26/backend/api/admin/activities.php', payload);
+        res = await axios.post('/TW26/backend/api/admin/activities.php', payload);
       }
-      message.success(editing ? 'Atividade atualizada.' : 'Atividade criada.');
+      message.success(res.data?.message ?? (editing ? 'Atividade atualizada.' : 'Atividade criada.'));
       setOpen(false);
       load();
     } catch (err) {
@@ -162,6 +166,11 @@ export default function AdminActivitiesTab() {
         ].join(' '))}
         size="small"
         pagination={false}
+        expandable={{
+          expandedRowRender: (a) => (
+            <ActivityEnrollments rows={enrollments.filter((e) => Number(e.activity_id) === Number(a.id))} />
+          ),
+        }}
         columns={[
           { title: 'Título', dataIndex: 'title' },
           { title: 'Tipo', dataIndex: 'type', render: (v) => ACTIVITY_TYPE_LABELS[v] ?? v },
@@ -270,6 +279,17 @@ export default function AdminActivitiesTab() {
               </Form.Item>
             </Col>
           </Row>
+          <Form.Item noStyle shouldUpdate={(a, b) => a.type !== b.type}>
+            {({ getFieldValue }) => getFieldValue('type') === 'palestra' && (
+              <Form.Item
+                name="auto_enroll_paid"
+                label="Inscrever automaticamente os participantes com pagamento confirmado (os atuais e quem pagar depois)"
+                valuePropName="checked"
+              >
+                <Switch />
+              </Form.Item>
+            )}
+          </Form.Item>
           <Form.Item name="description" label="Descrição">
             <TextArea rows={3} />
           </Form.Item>
