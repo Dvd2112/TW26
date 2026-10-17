@@ -16,6 +16,8 @@ const REPORT_PERMISSIONS = [
     'users'         => ['super_admin'],
     'activities'    => ['super_admin', 'content_admin'],
     'financeiro'    => ['super_admin'],
+    'hackathon'     => ['super_admin', 'registration_admin'],
+    'hackathon_chamada' => ['super_admin', 'registration_admin'],
 ];
 
 const REPORT_MAX_ROWS = 10000;
@@ -24,6 +26,8 @@ const REPORT_REG_STATUS  = ['pending' => 'Pendente', 'confirmed' => 'Confirmado'
 const REPORT_PAY_STATUS  = ['unpaid' => 'Não pago', 'awaiting_confirmation' => 'Em confirmação', 'paid' => 'Pago', 'refunded' => 'Reembolsado'];
 const REPORT_USER_TYPES  = ['participant' => 'Normal', 'volunteer' => 'Voluntário', 'staff' => 'Staff'];
 const REPORT_INSTITUTIONS = ['ensino_medio' => 'Ensino Médio', 'outros' => 'Outros'];
+const REPORT_HACK_INVITE = ['pending' => 'Pendente', 'accepted' => 'Aceito', 'rejected' => 'Recusado'];
+const REPORT_HACK_PAY    = ['free' => 'Isento', 'unpaid' => 'Não pago', 'awaiting_confirmation' => 'Em confirmação', 'paid' => 'Pago'];
 const REPORT_ACT_TYPES   = ['palestra' => 'Palestra', 'workshop' => 'Workshop', 'oficina' => 'Oficina'];
 
 function reportMaskCpf(string $cpf): string
@@ -35,6 +39,26 @@ function reportMaskCpf(string $cpf): string
 function reportInstitution(?string $v): string
 {
     return $v === null ? '' : (REPORT_INSTITUTIONS[$v] ?? $v);
+}
+
+/** (46) 99999-9999; se o tamanho não bater, devolve como veio. */
+/** CPF completo (123.456.789-00). Só a lista de chamada usa: precisa conferir identidade no papel. */
+function reportFormatCpf(string $cpf): string
+{
+    $d = preg_replace('/\D/', '', $cpf) ?? '';
+    return strlen($d) === 11
+        ? sprintf('%s.%s.%s-%s', substr($d, 0, 3), substr($d, 3, 3), substr($d, 6, 3), substr($d, 9, 2))
+        : $cpf;
+}
+
+function reportFormatPhone(?string $phone): string
+{
+    $d = preg_replace('/\D/', '', (string) $phone) ?? '';
+    return match (strlen($d)) {
+        11 => sprintf('(%s) %s-%s', substr($d, 0, 2), substr($d, 2, 5), substr($d, 7)),
+        10 => sprintf('(%s) %s-%s', substr($d, 0, 2), substr($d, 2, 4), substr($d, 6)),
+        default => (string) $phone,
+    };
 }
 
 function reportYesNo(mixed $v): string
@@ -563,6 +587,172 @@ function reportFinanceiro(PDO $pdo): array
     ];
 }
 
+/** Inscritos do hackathon: integrantes de equipes e inscritos individuais (sem equipe), uma linha por pessoa. */
+function reportHackathon(PDO $pdo): array
+{
+    $where = [];
+    $params = [];
+    reportIn('modality', reportList('modality', ['team', 'individual']), 'mod', $where, $params);
+    // Convite, pagamento e liderança só existem para integrantes de equipe.
+    reportIn('invite_status', reportList('invite_status', array_keys(REPORT_HACK_INVITE)), 'invite', $where, $params);
+    reportIn('payment_status', reportList('payment_status', array_keys(REPORT_HACK_PAY)), 'pay', $where, $params);
+    if (($v = reportBool('is_leader')) !== null) { $where[] = 'is_leader = ' . ($v ? 'true' : 'false'); }
+    reportDateRange('created_at', $where, $params, 'created');
+    reportSearch(['team', 'name', 'email'], $where, $params);
+
+    [$rows, $truncated] = reportFetch($pdo,
+        'SELECT * FROM (
+             SELECT \'team\' AS modality, m.id, t.name AS team, m.name, m.cpf, m.email, m.phone,
+                    m.is_leader, m.invite_status, m.payment_status, m.amount, m.paid_at, t.created_at,
+                    (SELECT count(*) FROM hackathon_members x WHERE x.team_id = t.id AND x.invite_status = \'accepted\') AS team_size
+             FROM hackathon_members m
+             JOIN hackathon_teams t ON t.id = m.team_id
+             UNION ALL
+             SELECT \'individual\', i.id, NULL, i.name, i.cpf, i.email, i.phone,
+                    NULL, NULL, NULL, NULL, NULL, i.created_at, NULL
+             FROM hackathon_individuals i
+         ) h'
+        . reportWhere($where) . ' ORDER BY modality, lower(team), is_leader DESC NULLS LAST, name', $params);
+
+    $teams = [];
+    $individuals = 0;
+    $byInvite = [];
+    $byPay = [];
+    $totalPaid = 0.0;
+    $out = [];
+    foreach ($rows as $r) {
+        $isTeam = $r['modality'] === 'team';
+        if ($isTeam) {
+            $teams[$r['team']] = true;
+            $byInvite[$r['invite_status']] = ($byInvite[$r['invite_status']] ?? 0) + 1;
+            $byPay[$r['payment_status']] = ($byPay[$r['payment_status']] ?? 0) + 1;
+            if ($r['payment_status'] === 'paid') {
+                $totalPaid += (float) $r['amount'];
+            }
+        } else {
+            $individuals++;
+        }
+        $out[] = [
+            'modality'       => $isTeam ? 'Equipe' : 'Individual',
+            'team'           => $isTeam ? $r['team'] : 'Sem equipe',
+            'name'           => $r['name'],
+            'is_leader'      => $isTeam ? reportYesNo($r['is_leader']) : '',
+            'cpf'            => reportMaskCpf((string) $r['cpf']),
+            'email'          => $r['email'],
+            'phone'          => $r['phone'] ?? '',
+            'invite_status'  => $isTeam ? (REPORT_HACK_INVITE[$r['invite_status']] ?? $r['invite_status']) : '',
+            'payment_status' => $isTeam ? (REPORT_HACK_PAY[$r['payment_status']] ?? $r['payment_status']) : '',
+            'amount'         => $isTeam ? (float) $r['amount'] : null,
+            'paid_at'        => $r['paid_at'],
+            'team_size'      => $isTeam ? (int) $r['team_size'] : null,
+            'created_at'     => $r['created_at'],
+        ];
+    }
+
+    return [
+        'title'   => 'Relatório de inscritos do hackathon',
+        'columns' => [
+            ['key' => 'modality', 'title' => 'Modalidade'],
+            ['key' => 'team', 'title' => 'Equipe'],
+            ['key' => 'name', 'title' => 'Nome'],
+            ['key' => 'is_leader', 'title' => 'Líder'],
+            ['key' => 'cpf', 'title' => 'CPF'],
+            ['key' => 'email', 'title' => 'E-mail'],
+            ['key' => 'phone', 'title' => 'Telefone'],
+            ['key' => 'invite_status', 'title' => 'Convite'],
+            ['key' => 'payment_status', 'title' => 'Pagamento'],
+            ['key' => 'amount', 'title' => 'Valor', 'type' => 'money'],
+            ['key' => 'paid_at', 'title' => 'Pago em', 'type' => 'datetime'],
+            ['key' => 'team_size', 'title' => 'Aceitos na equipe', 'type' => 'int'],
+            ['key' => 'created_at', 'title' => 'Inscrito em', 'type' => 'datetime'],
+        ],
+        'rows'    => $out,
+        'summary' => [
+            ['label' => 'Total de inscritos', 'value' => count($out), 'type' => 'int'],
+            ['label' => 'Equipes', 'value' => count($teams), 'type' => 'int'],
+            ['label' => 'Em equipe', 'value' => count($out) - $individuals, 'type' => 'int'],
+            ['label' => 'Individuais (sem equipe)', 'value' => $individuals, 'type' => 'int'],
+            ['label' => 'Convites aceitos', 'value' => $byInvite['accepted'] ?? 0, 'type' => 'int'],
+            ['label' => 'Convites pendentes', 'value' => $byInvite['pending'] ?? 0, 'type' => 'int'],
+            ['label' => 'Pagos', 'value' => $byPay['paid'] ?? 0, 'type' => 'int'],
+            ['label' => 'Isentos', 'value' => $byPay['free'] ?? 0, 'type' => 'int'],
+            ['label' => 'Total arrecadado', 'value' => $totalPaid, 'type' => 'money'],
+        ],
+        'truncated' => $truncated,
+    ];
+}
+
+/**
+ * Lista de chamada do hackathon: nome, CPF, telefone e coluna em branco p/ assinatura,
+ * agrupada por equipe (individuais por último). Sem filtro de convite entram aceitos e
+ * pendentes (marcados no nome); quem recusou só aparece se o filtro pedir.
+ */
+function reportHackathonChamada(PDO $pdo): array
+{
+    $where = [];
+    $params = [];
+    reportIn('modality', reportList('modality', ['team', 'individual']), 'mod', $where, $params);
+    $invite = reportList('invite_status', array_keys(REPORT_HACK_INVITE)) ?? ['accepted', 'pending'];
+    // Individuais não têm convite: ficam fora só se o filtro de convite exclui "aceito" explicitamente.
+    $inviteWhere = [];
+    reportIn('invite_status', $invite, 'invite', $inviteWhere, $params);
+    $where[] = '(modality = \'individual\' OR ' . $inviteWhere[0] . ')';
+    reportSearch(['team', 'name'], $where, $params);
+
+    [$rows, $truncated] = reportFetch($pdo,
+        'SELECT * FROM (
+             SELECT \'team\' AS modality, m.id, t.name AS team, m.name, m.cpf, m.phone, m.is_leader, m.invite_status
+             FROM hackathon_members m
+             JOIN hackathon_teams t ON t.id = m.team_id
+             UNION ALL
+             SELECT \'individual\', i.id, NULL, i.name, i.cpf, i.phone, NULL, NULL
+             FROM hackathon_individuals i
+         ) h'
+        . reportWhere($where) . ' ORDER BY (modality = \'individual\'), lower(team), is_leader DESC NULLS LAST, lower(name)', $params);
+
+    $teams = [];
+    $individuals = 0;
+    $out = [];
+    foreach ($rows as $r) {
+        $isTeam = $r['modality'] === 'team';
+        if ($isTeam) {
+            $teams[$r['team']] = true;
+        } else {
+            $individuals++;
+        }
+        $out[] = [
+            'id'        => (int) $r['id'] * 10 + ($isTeam ? 1 : 2), // chave única entre as duas tabelas
+            'team'      => $isTeam ? $r['team'] : 'Sem equipe (inscrição individual)',
+            'name'      => $r['name']
+                . ($isTeam && $r['is_leader'] ? ' (líder)' : '')
+                . ($isTeam && $r['invite_status'] === 'pending' ? ' (convite pendente)' : '')
+                . ($isTeam && $r['invite_status'] === 'rejected' ? ' (convite recusado)' : ''),
+            'cpf'       => reportFormatCpf((string) $r['cpf']),
+            'phone'     => reportFormatPhone($r['phone']),
+            'signature' => '',
+        ];
+    }
+
+    return [
+        'title'    => 'Lista de chamada do hackathon',
+        'group_by' => 'team',
+        'columns'  => [
+            ['key' => 'team', 'title' => 'Equipe', 'pdf' => false],
+            ['key' => 'name', 'title' => 'Nome'],
+            ['key' => 'cpf', 'title' => 'CPF'],
+            ['key' => 'phone', 'title' => 'Telefone'],
+            ['key' => 'signature', 'title' => 'Assinatura', 'type' => 'signature'],
+        ],
+        'rows'    => $out,
+        'summary' => [
+            ['label' => 'Participantes', 'value' => count($out), 'type' => 'int'],
+            ['label' => 'Equipes', 'value' => count($teams), 'type' => 'int'],
+            ['label' => 'Individuais', 'value' => $individuals, 'type' => 'int'],
+        ],
+        'truncated' => $truncated,
+    ];
+}
+
 // ─── Despacho ────────────────────────────────────────────────────────────────
 
 $type = (string) ($_GET['report'] ?? '');
@@ -591,6 +781,8 @@ try {
         'users'         => reportUsers($pdo),
         'activities'    => reportActivities($pdo),
         'financeiro'    => reportFinanceiro($pdo),
+        'hackathon'     => reportHackathon($pdo),
+        'hackathon_chamada' => reportHackathonChamada($pdo),
     };
     jsonResponse(200, true, 'ok', $report + ['generated_at' => date('c')]);
 } catch (PDOException $e) {

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Tag } from 'antd';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import DayCarousel from '../../components/DayCarousel/DayCarousel';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from '../../styles/OficinasPromo.module.css';
 
@@ -51,13 +52,14 @@ export default function OficinasPromo({
       <div className={styles.wrapper}>
         <SectionTitle tag={tag} title={title} subtitle={subtitle} center />
 
-        <div className={styles.grid}>
-          {loading ? (
-            <p className={styles.empty}>Carregando atividades...</p>
-          ) : activities.length === 0 ? (
-            <p className={styles.empty}>{emptyText}</p>
-          ) : (
-            activities.map((activity, i) => (
+        {loading ? (
+          <p className={styles.empty}>Carregando atividades...</p>
+        ) : activities.length === 0 ? (
+          <p className={styles.empty}>{emptyText}</p>
+        ) : (
+          <DayCarousel
+            activities={activities}
+            renderCard={(activity, i) => (
               <motion.div
                 className={styles.card}
                 key={activity.id}
@@ -91,9 +93,9 @@ export default function OficinasPromo({
                   </span>
                 </div>
               </motion.div>
-            ))
-          )}
-        </div>
+            )}
+          />
+        )}
 
         {cta && (
           <div className={styles.ctaRow}>
