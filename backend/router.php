@@ -40,6 +40,13 @@ if (str_starts_with($uri, '/TW26/backend/')) {
         exit;
     }
 
+    // Só api/ é público; bin/, config/, vendor/, database/ e assets/ não
+    // (espelha o nginx de produção).
+    if (!str_starts_with($relative, 'api/')) {
+        http_response_code(404);
+        exit;
+    }
+
     $file = $root . '/' . $relative;
     $real = realpath($file);
 

@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Script de manutenção: só roda pela linha de comando, nunca por HTTP.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 require_once __DIR__ . '/../config/database.php';
 
 /** @return never */

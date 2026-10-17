@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button, Tag, message } from 'antd';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import DayCarousel from '../../components/DayCarousel/DayCarousel';
 import SectionTitle from '../../components/SectionTitle/SectionTitle';
 import styles from '../../styles/Oficinas.module.css';
 
@@ -114,13 +115,14 @@ export default function Oficinas() {
           </p>
         )}
 
-        <div className={styles.grid}>
-          {loading ? (
-            <p className={styles.empty}>Carregando atividades...</p>
-          ) : activities.length === 0 ? (
-            <p className={styles.empty}>Nenhuma atividade publicada no momento.</p>
-          ) : (
-            activities.map((activity, i) => (
+        {loading ? (
+          <p className={styles.empty}>Carregando atividades...</p>
+        ) : activities.length === 0 ? (
+          <p className={styles.empty}>Nenhuma atividade publicada no momento.</p>
+        ) : (
+          <DayCarousel
+            activities={activities}
+            renderCard={(activity, i) => (
               <motion.div
                 className={styles.card}
                 key={activity.id}
@@ -184,9 +186,9 @@ export default function Oficinas() {
                   )}
                 </div>
               </motion.div>
-            ))
-          )}
-        </div>
+            )}
+          />
+        )}
       </div>
     </section>
   );

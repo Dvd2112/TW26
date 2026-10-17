@@ -15,6 +15,10 @@ const INSTITUTIONS = toOptions(INSTITUTION_LABELS);
 const PAYMENT_OPTIONS = toOptions({
   unpaid: 'Não pago', awaiting_confirmation: 'Em confirmação', paid: 'Pago', refunded: 'Reembolsado',
 });
+const HACK_INVITE_OPTIONS = toOptions({ pending: 'Pendente', accepted: 'Aceito', rejected: 'Recusado' });
+const HACK_PAYMENT_OPTIONS = toOptions({
+  free: 'Isento', unpaid: 'Não pago', awaiting_confirmation: 'Em confirmação', paid: 'Pago',
+});
 const PERMISSION_OPTIONS = toOptions({
   super_admin: 'Super admin', content_admin: 'Admin de conteúdo',
   registration_admin: 'Admin de inscrições', credentialer: 'Credenciador',
@@ -70,6 +74,25 @@ const REPORTS = {
       { name: 'is_published', label: 'Publicada', kind: 'select', options: YES_NO },
       { name: 'early_access', label: 'Acesso antecipado', kind: 'select', options: YES_NO },
       { name: 'q', label: 'Título, palestrante ou local', kind: 'text' },
+    ],
+  },
+  hackathon: {
+    label: 'Hackathon (inscritos)',
+    filters: [
+      { name: 'range', label: 'Período da inscrição', kind: 'range' },
+      { name: 'modality', label: 'Modalidade', kind: 'select', multiple: true, options: [{ value: 'team', label: 'Equipe' }, { value: 'individual', label: 'Individual (sem equipe)' }] },
+      { name: 'invite_status', label: 'Convite (equipes)', kind: 'select', multiple: true, options: HACK_INVITE_OPTIONS },
+      { name: 'payment_status', label: 'Pagamento (equipes)', kind: 'select', multiple: true, options: HACK_PAYMENT_OPTIONS },
+      { name: 'is_leader', label: 'Líder (equipes)', kind: 'select', options: YES_NO },
+      { name: 'q', label: 'Equipe, nome ou e-mail', kind: 'text' },
+    ],
+  },
+  hackathon_chamada: {
+    label: 'Hackathon (lista de chamada)',
+    filters: [
+      { name: 'modality', label: 'Modalidade', kind: 'select', multiple: true, options: [{ value: 'team', label: 'Equipe' }, { value: 'individual', label: 'Individual (sem equipe)' }] },
+      { name: 'invite_status', label: 'Convite (padrão: aceitos e pendentes)', kind: 'select', multiple: true, options: HACK_INVITE_OPTIONS },
+      { name: 'q', label: 'Equipe ou nome', kind: 'text' },
     ],
   },
   financeiro: {
@@ -179,16 +202,50 @@ async function downloadPdf(report, filename) {
     margin: { left: margin, right: margin },
   });
 
+  const pdfColumns = report.columns.filter((c) => c.pdf !== false);
+  const signIndex = pdfColumns.findIndex((c) => c.type === 'signature');
+  const toCells = (row) => pdfColumns.map((c) => String(display(c, row[c.key])));
+
+  // Com `group_by`, cada grupo ganha uma linha de título (nome + total) e numeração própria.
+  const numbered = Boolean(report.group_by);
+  const offset = numbered ? 1 : 0;
+  let body;
+  if (numbered) {
+    const groups = [];
+    report.rows.forEach((row) => {
+      const key = row[report.group_by];
+      if (groups.at(-1)?.key !== key) groups.push({ key, rows: [] });
+      groups.at(-1).rows.push(row);
+    });
+    body = groups.flatMap((g) => [
+      [{ content: `${g.key} — ${g.rows.length} ${g.rows.length === 1 ? 'participante' : 'participantes'}`, colSpan: pdfColumns.length + offset, styles: { fontStyle: 'bold', fillColor: [232, 214, 245], textColor: 20 } }],
+      ...g.rows.map((row, i) => [String(i + 1), ...toCells(row)]),
+    ]);
+  } else {
+    body = report.rows.map(toCells);
+  }
+
   autoTable(doc, {
     startY: doc.lastAutoTable.finalY + 14,
-    head: [report.columns.map((c) => c.title)],
-    body: report.rows.map((row) => report.columns.map((c) => String(display(c, row[c.key])))),
-    theme: 'striped',
-    styles: { fontSize: report.columns.length > 10 ? 6.5 : 8, cellPadding: 3, overflow: 'linebreak' },
+    head: [[...(numbered ? ['Nº'] : []), ...pdfColumns.map((c) => c.title)]],
+    body,
+    theme: numbered ? 'grid' : 'striped',
+    styles: {
+      fontSize: pdfColumns.length > 10 ? 6.5 : 8,
+      cellPadding: 3,
+      overflow: 'linebreak',
+      minCellHeight: signIndex >= 0 ? 24 : 0,
+      valign: 'middle',
+    },
     headStyles: { fillColor: [138, 0, 196] },
-    columnStyles: Object.fromEntries(
-      report.columns.map((c, i) => [i, ['money', 'int', 'percent'].includes(c.type) ? { halign: 'right' } : {}]),
-    ),
+    columnStyles: {
+      ...(numbered ? { 0: { cellWidth: 24, halign: 'center' } } : {}),
+      ...Object.fromEntries(
+        pdfColumns.map((c, i) => [i + offset, c.type === 'signature'
+          ? { cellWidth: 220 }
+          : (['money', 'int', 'percent'].includes(c.type) ? { halign: 'right' } : {})]),
+      ),
+    },
     margin: { left: margin, right: margin, bottom: 30 },
     showHead: 'everyPage',
   });

@@ -104,6 +104,11 @@ systemctl enable nginx "php${PHP_VERSION}-fpm" postgresql
 systemctl restart "php${PHP_VERSION}-fpm"
 
 chown -R "${DEPLOY_USER}:${DEPLOY_USER}" "${REPO_PATH}"
+# .env com segredos: dono = deploy, grupo = www-data (php-fpm), sem acesso a outros
+if [ -f "${REPO_PATH}/backend/.env" ]; then
+  chgrp www-data "${REPO_PATH}/backend/.env"
+  chmod 640 "${REPO_PATH}/backend/.env"
+fi
 usermod -a -G www-data "${DEPLOY_USER}"
 
 # Permite que o usuário de deploy (usado pelo CD via SSH) recarregue o

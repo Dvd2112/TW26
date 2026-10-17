@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+// Script de manutenção: só roda pela linha de comando, nunca por HTTP.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(404);
+    exit;
+}
+
 /**
  * Cria/atualiza um usuário PARTICIPANTE de teste, com inscrição e pagamento,
  * para testar a visão do inscrito (Minha Conta) localmente sem passar pelo

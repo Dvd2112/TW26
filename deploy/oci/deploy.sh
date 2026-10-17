@@ -25,6 +25,14 @@ chgrp www-data storage storage/comprovantes storage/qrcodes \
   || echo "!! aviso: não consegui aplicar o grupo www-data em storage/ (o usuário de deploy está no grupo www-data?)"
 chmod 2775 storage storage/comprovantes storage/qrcodes
 
+echo "==> backend/.env: legível só pelo dono e pelo php-fpm (grupo www-data)"
+# Segredos (DB, SMTP, senha do admin) não podem ficar legíveis por outros usuários da VM.
+if [ -f "${REPO_PATH}/backend/.env" ]; then
+  chgrp www-data "${REPO_PATH}/backend/.env" \
+    || echo "!! aviso: não consegui aplicar o grupo www-data no .env (o usuário de deploy está no grupo www-data?)"
+  chmod 640 "${REPO_PATH}/backend/.env"
+fi
+
 echo "==> banco: migrations pendentes"
 # Aplica backend/database/migrations/*.sql em ordem, uma vez cada. Os arquivos
 # já aplicados ficam registrados em schema_migrations. Todas as migrations são
@@ -53,6 +61,15 @@ done
 echo "==> backend: composer install"
 cd "${REPO_PATH}/backend"
 composer install --no-dev --no-progress --prefer-dist
+
+echo "==> backend: arquivos .php sem leitura para 'outros' (só dono + php-fpm)"
+# O código-fonte não deve ser legível por outros usuários da VM. Roda DEPOIS do
+# composer install (que recria vendor/) e a cada deploy (git reset recria arquivos
+# com permissão padrão). Diretórios ficam 750 para o grupo www-data poder entrar.
+find "${REPO_PATH}/backend" -type d -exec chgrp www-data {} + -exec chmod 750 {} + \
+  || echo "!! aviso: não consegui ajustar diretórios do backend"
+find "${REPO_PATH}/backend" -type f -name '*.php' -exec chgrp www-data {} + -exec chmod 640 {} + \
+  || echo "!! aviso: não consegui ajustar os .php do backend"
 
 echo "==> frontend: build"
 cd "${REPO_PATH}/frontend"
