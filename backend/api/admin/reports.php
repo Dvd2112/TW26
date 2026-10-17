@@ -736,6 +736,7 @@ function reportHackathonChamada(PDO $pdo): array
     return [
         'title'    => 'Lista de chamada do hackathon',
         'group_by' => 'team',
+        'header_logos' => true, // PDF com logos TechWeek e Sebrae no cabeçalho
         'columns'  => [
             ['key' => 'team', 'title' => 'Equipe', 'pdf' => false],
             ['key' => 'name', 'title' => 'Nome'],

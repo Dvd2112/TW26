@@ -5,6 +5,8 @@ import dayjs from 'dayjs';
 import axios from 'axios';
 import styles from '../../../styles/Admin.module.css';
 import ResponsiveTable from '../shared/ResponsiveTable';
+import logoTechWeek from '../../../assets/TW26 BRANCO/LOGO HORIZONTAL.png';
+import logoSebrae from '../../../assets/Logo Sebrae/Sebrae.svg';
 import { TYPE_LABELS, REG_LABELS, ACTIVITY_TYPE_LABELS, INSTITUTION_LABELS } from '../shared/constants';
 
 const { RangePicker } = DatePicker;
@@ -174,6 +176,51 @@ function downloadCsv(report, filename) {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * Carrega a imagem e recorta as bordas transparentes (os arquivos dos logos têm muita margem vazia).
+ * Devolve PNG + proporção, ou null se a imagem não carregar (o PDF sai sem o logo).
+ */
+async function loadCroppedLogo(src, renderWidth = 1200) {
+  try {
+    const img = await new Promise((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = reject;
+      el.src = src;
+    });
+    const ratio = (img.naturalHeight || img.height) / (img.naturalWidth || img.width) || 1;
+    const w = Math.min(renderWidth, img.naturalWidth || renderWidth);
+    const h = Math.round((w * ratio));
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    let minX = w; let minY = h; let maxX = -1; let maxY = -1;
+    for (let y = 0; y < h; y += 1) {
+      for (let x = 0; x < w; x += 1) {
+        if (data[(y * w + x) * 4 + 3] > 16) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return null;
+    const cw = maxX - minX + 1;
+    const ch = maxY - minY + 1;
+    const out = document.createElement('canvas');
+    out.width = cw;
+    out.height = ch;
+    out.getContext('2d').drawImage(canvas, minX, minY, cw, ch, 0, 0, cw, ch);
+    return { dataUrl: out.toDataURL('image/png'), aspect: cw / ch };
+  } catch {
+    return null;
+  }
+}
+
 /** PDF A4 paisagem: cabeçalho, filtros aplicados, resumo e tabela. jsPDF é carregado só ao exportar. */
 async function downloadPdf(report, filename) {
   const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
@@ -181,15 +228,40 @@ async function downloadPdf(report, filename) {
   const margin = 36;
   const width = doc.internal.pageSize.getWidth();
 
-  doc.setFont('helvetica', 'bold').setFontSize(16).text(`TechWeek 2026 — ${report.title}`, margin, 40);
+  // Faixa preta (os logos TW26 são brancos, feitos p/ fundo escuro) com o logo da Sebrae num quadro branco.
+  // Desenhada na 1ª página e repetida (com título compacto) em todas as seguintes.
+  const band = 58;
+  let top = 0;
+  let drawBand = () => {};
+  if (report.header_logos) {
+    const [tw, sebrae] = await Promise.all([loadCroppedLogo(logoTechWeek), loadCroppedLogo(logoSebrae)]);
+    const logoH = 34;
+    top = band;
+    drawBand = () => {
+      doc.setFillColor(0, 0, 0).rect(0, 0, width, band, 'F');
+      if (tw) doc.addImage(tw.dataUrl, 'PNG', margin, (band - logoH) / 2, logoH * tw.aspect, logoH);
+      if (sebrae) {
+        const padX = 10;
+        const sh = 30;
+        const sw = sh * sebrae.aspect;
+        const boxW = sw + padX * 2;
+        const boxX = width - margin - boxW;
+        doc.setFillColor(255, 255, 255).roundedRect(boxX, (band - sh) / 2 - 6, boxW, sh + 12, 4, 4, 'F');
+        doc.addImage(sebrae.dataUrl, 'PNG', boxX + padX, (band - sh) / 2, sw, sh);
+      }
+    };
+    drawBand();
+  }
+
+  doc.setTextColor(0).setFont('helvetica', 'bold').setFontSize(16).text(`TechWeek 2026 — ${report.title}`, margin, top + 40);
   doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(90);
-  doc.text(`Gerado em ${datetime(report.generated_at)}`, margin, 56);
+  doc.text(`Gerado em ${datetime(report.generated_at)}`, margin, top + 56);
   const filters = report.applied.length
     ? report.applied.map((f) => `${f.label}: ${f.text}`).join('  |  ')
     : 'Sem filtros (todos os registros)';
   const filterLines = doc.splitTextToSize(`Filtros aplicados: ${filters}`, width - margin * 2);
-  doc.text(filterLines, margin, 70);
-  const afterFilters = 70 + filterLines.length * 11;
+  doc.text(filterLines, margin, top + 70);
+  const afterFilters = top + 70 + filterLines.length * 11;
 
   autoTable(doc, {
     startY: afterFilters + 6,
@@ -246,8 +318,14 @@ async function downloadPdf(report, filename) {
           : (['money', 'int', 'percent'].includes(c.type) ? { halign: 'right' } : {})]),
       ),
     },
-    margin: { left: margin, right: margin, bottom: 30 },
+    margin: { left: margin, right: margin, bottom: 30, top: report.header_logos ? band + 34 : 40 },
     showHead: 'everyPage',
+    didDrawPage: () => {
+      if (!report.header_logos || doc.internal.getCurrentPageInfo().pageNumber === 1) return;
+      drawBand();
+      doc.setTextColor(0).setFont('helvetica', 'bold').setFontSize(11)
+        .text(`TechWeek 2026 — ${report.title}`, margin, band + 22);
+    },
   });
 
   const pages = doc.getNumberOfPages();
