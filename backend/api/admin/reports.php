@@ -15,6 +15,7 @@ const REPORT_PERMISSIONS = [
     'lotes'         => ['super_admin', 'registration_admin'],
     'users'         => ['super_admin'],
     'activities'    => ['super_admin', 'content_admin'],
+    'activity_attendees' => ['super_admin', 'content_admin'],
     'financeiro'    => ['super_admin'],
     'hackathon'     => ['super_admin', 'registration_admin'],
     'hackathon_chamada' => ['super_admin', 'registration_admin'],
@@ -28,6 +29,7 @@ const REPORT_USER_TYPES  = ['participant' => 'Normal', 'volunteer' => 'Voluntár
 const REPORT_INSTITUTIONS = ['ensino_medio' => 'Ensino Médio', 'outros' => 'Outros'];
 const REPORT_HACK_INVITE = ['pending' => 'Pendente', 'accepted' => 'Aceito', 'rejected' => 'Recusado'];
 const REPORT_HACK_PAY    = ['free' => 'Isento', 'unpaid' => 'Não pago', 'awaiting_confirmation' => 'Em confirmação', 'paid' => 'Pago'];
+const REPORT_ATT_METHODS = ['scan' => 'QR (credenciador)', 'manual' => 'Código (credenciador)', 'self' => 'Código da sala'];
 const REPORT_ACT_TYPES   = ['palestra' => 'Palestra', 'workshop' => 'Workshop', 'oficina' => 'Oficina'];
 
 function reportMaskCpf(string $cpf): string
@@ -491,6 +493,91 @@ function reportActivities(PDO $pdo): array
     ];
 }
 
+/** Inscritos e presentes por atividade: uma linha por participante em cada atividade selecionada. */
+function reportActivityAttendees(PDO $pdo): array
+{
+    $where = [];
+    $params = [];
+    reportIn('a.id', reportList('activity_id', null, true), 'act', $where, $params);
+    reportIn('a.type', reportList('activity_type', array_keys(REPORT_ACT_TYPES)), 'type', $where, $params);
+    reportDateRange('a.start_at', $where, $params, 'start');
+    if (($v = reportEnum('presence', ['present', 'absent'])) !== null) {
+        $where[] = $v === 'present' ? 't.id IS NOT NULL' : 't.id IS NULL';
+    }
+    reportSearch(['u.name', 'u.email'], $where, $params);
+
+    // Inscrição OU presença: quem foi credenciado sem inscrição também entra.
+    [$rows, $truncated] = reportFetch($pdo,
+        'SELECT a.id AS activity_id, a.title, a.type, a.location, a.start_at,
+                u.id AS user_id, u.name, u.email, u.cpf, u.institution, u.school,
+                e.enrolled_at, t.checked_in_at, t.method
+         FROM (SELECT user_id, activity_id FROM activity_enrollments
+               UNION SELECT user_id, activity_id FROM activity_attendance) p
+         JOIN activities a ON a.id = p.activity_id
+         JOIN users u ON u.id = p.user_id
+         LEFT JOIN activity_enrollments e ON e.user_id = p.user_id AND e.activity_id = p.activity_id
+         LEFT JOIN activity_attendance t ON t.user_id = p.user_id AND t.activity_id = p.activity_id'
+        . reportWhere($where) . ' ORDER BY a.start_at NULLS LAST, a.id, lower(u.name)', $params);
+
+    $activities = [];
+    $enrolled = 0;
+    $attended = 0;
+    $out = [];
+    foreach ($rows as $r) {
+        $activities[$r['activity_id']] = true;
+        $isEnrolled = $r['enrolled_at'] !== null;
+        $isPresent = $r['checked_in_at'] !== null;
+        $enrolled += $isEnrolled ? 1 : 0;
+        $attended += $isPresent ? 1 : 0;
+        $out[] = [
+            'id'            => (int) $r['activity_id'] * 1000000 + (int) $r['user_id'], // chave única da linha
+            'activity'      => $r['title'],
+            'type'          => REPORT_ACT_TYPES[$r['type']] ?? $r['type'],
+            'location'      => $r['location'] ?? '',
+            'start_at'      => $r['start_at'],
+            'name'          => $r['name'],
+            'email'         => $r['email'],
+            'cpf'           => reportMaskCpf((string) $r['cpf']),
+            'institution'   => reportInstitution($r['institution']),
+            'school'        => $r['school'] ?? '',
+            'enrolled'      => reportYesNo($isEnrolled),
+            'enrolled_at'   => $r['enrolled_at'],
+            'present'       => reportYesNo($isPresent),
+            'checked_in_at' => $r['checked_in_at'],
+            'method'        => REPORT_ATT_METHODS[$r['method']] ?? '',
+        ];
+    }
+
+    return [
+        'title'    => 'Relatório de inscritos e presentes por atividade',
+        'group_by' => 'activity',
+        'columns'  => [
+            ['key' => 'activity', 'title' => 'Atividade', 'pdf' => false],
+            ['key' => 'type', 'default' => false, 'title' => 'Tipo'],
+            ['key' => 'location', 'default' => false, 'title' => 'Local'],
+            ['key' => 'start_at', 'default' => false, 'title' => 'Início', 'type' => 'datetime'],
+            ['key' => 'name', 'title' => 'Nome'],
+            ['key' => 'email', 'title' => 'E-mail'],
+            ['key' => 'cpf', 'default' => false, 'title' => 'CPF'],
+            ['key' => 'institution', 'default' => false, 'title' => 'Instituição'],
+            ['key' => 'school', 'default' => false, 'title' => 'Escola'],
+            ['key' => 'enrolled', 'title' => 'Inscrito'],
+            ['key' => 'enrolled_at', 'default' => false, 'title' => 'Inscrito em', 'type' => 'datetime'],
+            ['key' => 'present', 'title' => 'Presente'],
+            ['key' => 'checked_in_at', 'default' => false, 'title' => 'Presença em', 'type' => 'datetime'],
+            ['key' => 'method', 'default' => false, 'title' => 'Forma de presença'],
+        ],
+        'rows'    => $out,
+        'summary' => [
+            ['label' => 'Atividades', 'value' => count($activities), 'type' => 'int'],
+            ['label' => 'Inscrições', 'value' => $enrolled, 'type' => 'int'],
+            ['label' => 'Presenças', 'value' => $attended, 'type' => 'int'],
+            ['label' => 'Presença (%)', 'value' => $enrolled > 0 ? round($attended / $enrolled * 100, 1) : 0, 'type' => 'percent'],
+        ],
+        'truncated' => $truncated,
+    ];
+}
+
 /** Prestação de contas: livro-caixa unificado (inscrições pagas + receitas extras + despesas). */
 function reportFinanceiro(PDO $pdo): array
 {
@@ -780,6 +867,7 @@ try {
         'lotes'         => reportLotes($pdo),
         'users'         => reportUsers($pdo),
         'activities'    => reportActivities($pdo),
+        'activity_attendees' => reportActivityAttendees($pdo),
         'financeiro'    => reportFinanceiro($pdo),
         'hackathon'     => reportHackathon($pdo),
         'hackathon_chamada' => reportHackathonChamada($pdo),

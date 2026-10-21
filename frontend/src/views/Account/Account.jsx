@@ -26,6 +26,7 @@ export default function Account() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [hackathonInvites, setHackathonInvites] = useState([]);
   const [hackathonEnrolled, setHackathonEnrolled] = useState(false); // equipe ou individual
   const [paying, setPaying] = useState(false);
@@ -41,8 +42,13 @@ export default function Account() {
     .then((res) => setEnrollments(res.data.enrollments ?? []))
     .catch(() => setEnrollments([]));
 
+  const loadMaterials = () => axios
+    .get('/TW26/backend/api/materials.php')
+    .then((res) => setMaterials(res.data.materials ?? []))
+    .catch(() => setMaterials([]));
+
   useEffect(() => {
-    loadData(setData, setError).then(loadEnrollments);
+    loadData(setData, setError).then(loadEnrollments).then(loadMaterials);
     axios
       .get('/TW26/backend/api/hackathon.php')
       .then((res) => {
@@ -195,6 +201,7 @@ export default function Account() {
         <VolunteerCard />
         <EnrollmentsCard
           enrollments={enrollments}
+          materials={materials}
           codes={codes}
           setCodes={setCodes}
           checkingIn={checkingIn}

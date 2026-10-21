@@ -8,6 +8,7 @@ import { filterRows, combineDateTime, formatActivitySchedule } from '../shared/u
 import SearchInput from '../shared/SearchInput';
 import ResponsiveTable from '../shared/ResponsiveTable';
 import ActivityEnrollments from './ActivityEnrollments';
+import ActivityMaterials from './ActivityMaterials';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -168,7 +169,10 @@ export default function AdminActivitiesTab() {
         pagination={false}
         expandable={{
           expandedRowRender: (a) => (
-            <ActivityEnrollments rows={enrollments.filter((e) => Number(e.activity_id) === Number(a.id))} />
+            <>
+              <ActivityEnrollments activityId={a.id} onChange={load} rows={enrollments.filter((e) => Number(e.activity_id) === Number(a.id))} />
+              <ActivityMaterials activityId={a.id} enrolledCount={enrolledCount(a.id)} />
+            </>
           ),
         }}
         columns={[

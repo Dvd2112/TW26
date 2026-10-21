@@ -23,9 +23,9 @@ import logoMaxisCard from '../assets/sponsors/maxis-card.png';
 import logoVorbi from '../assets/sponsors/vorbi.png';
 
 const navLinks = [
+  { label: 'Programação', href: '#oficinas' },
   { label: 'O que você encontra', href: '#vision' },
   { label: 'Ideathon GovTech', href: '#hackathon' },
-  { label: 'Oficinas', href: '#oficinas' },
   { label: 'Destaques', href: '#highlights' },
   { label: 'Edição 2026', href: '#edition2026' },
   { label: 'Patrocinadores', href: '#sponsors' },
@@ -216,12 +216,24 @@ export default function HomePage() {
           ]}
           subtitle="A TechWeek 2026 reúne quem quer aprender com profundidade, conhecer gente boa, enxergar o mercado com mais clareza e quem tem repertório para compartilhar no palco."
           actions={heroActions}
-          pills={['Talks', 'Workshops', 'Networking', 'Ideathon GovTech', 'Mercado tech']}
+          pills={['Talks', 'Workshops', 'Networking', 'Programação', 'Mercado tech']}
+        />
+
+        <OficinasPromo
+          id="oficinas"
+          tag="// 01 – Oficinas e Atividades"
+          title="Programação da TechWeek"
+          subtitle="Veja as oficinas, workshops e palestras que já estão abertas. Para garantir sua vaga, crie sua conta e faça a inscrição."
+          enrollCta={hasRegistration
+            ? { label: 'Inscrever-se', href: '?page=oficinas' }
+            : { label: 'Se inscrever', href: '?page=register' }}
+          loginCta={hasRegistration ? null : { label: 'Entrar', href: '?page=login' }}
+          cta={{ label: 'Ver página completa de oficinas →', href: '?page=oficinas' }}
         />
 
         <Vision
           id="vision"
-          tag="// 01 – O Que Você Encontra"
+          tag="// 02 – O Que Você Encontra"
           title="Uma Edição Feita Para Quem Quer Sair Melhor"
           subtitle="A TechWeek combina conhecimento, comunidade e intensidade para entregar uma experiência útil para estudantes, profissionais, palestrantes e pessoas que querem se aproximar do ecossistema tech."
           pillars={pillars}
@@ -230,7 +242,7 @@ export default function HomePage() {
 
         <Numbers
           id="numbers"
-          tag="// 02 – O Que Esperar"
+          tag="// 03 – O Que Esperar"
           title="Uma Semana Que Vale Colocar na Agenda"
           subtitle="A edição 2026 está sendo montada para equilibrar profundidade de conteúdo, energia de comunidade e oportunidade prática."
           stats={stats}
@@ -238,7 +250,7 @@ export default function HomePage() {
 
         <HackathonPromo
           id="hackathon"
-          tag="// 03 – Ideathon - Jornada GovTech"
+          tag="// 04 – Ideathon - Jornada GovTech"
           title="Ideathon"
           brand="GovTech"
           subtitle="Uma jornada de ideação para criar soluções inovadoras para desafios reais do poder público de Francisco Beltrão."
@@ -253,18 +265,6 @@ export default function HomePage() {
           ]}
           status={hackathonStatus}
           cta={{ label: hasHackathonInvite ? 'Verificar convite' : hackathonOpen ? 'Inscrever minha equipe' : 'Ver detalhes da inscrição', href: '?page=hackathon' }}
-        />
-
-        <OficinasPromo
-          id="oficinas"
-          tag="// 04 – Oficinas e Atividades"
-          title="Programação da TechWeek"
-          subtitle="Veja as oficinas, workshops e palestras que já estão abertas. Para garantir sua vaga, crie sua conta e faça a inscrição."
-          enrollCta={hasRegistration
-            ? { label: 'Inscrever-se', href: '?page=oficinas' }
-            : { label: 'Se inscrever', href: '?page=register' }}
-          loginCta={hasRegistration ? null : { label: 'Entrar', href: '?page=login' }}
-          cta={{ label: 'Ver página completa de oficinas →', href: '?page=oficinas' }}
         />
 
         <Highlights

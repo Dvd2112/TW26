@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, Button, Select, Input, DatePicker, Row, Col, Space, Statistic, Alert, Tag, message } from 'antd';
+import { Card, Button, Select, Input, DatePicker, Row, Col, Space, Statistic, Alert, Tag, Checkbox, message } from 'antd';
 import { DownloadOutlined, FilePdfOutlined, FileSearchOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import axios from 'axios';
@@ -76,6 +76,16 @@ const REPORTS = {
       { name: 'q', label: 'Título, palestrante ou local', kind: 'text' },
     ],
   },
+  activity_attendees: {
+    label: 'Oficinas (inscritos e presentes)',
+    filters: [
+      { name: 'day', label: 'Dia da atividade', kind: 'day' },
+      { name: 'activity_id', label: 'Atividades (várias; vazio = todas do filtro)', kind: 'select', multiple: true, dynamic: 'activities' },
+      { name: 'activity_type', label: 'Tipo', kind: 'select', multiple: true, options: toOptions(ACTIVITY_TYPE_LABELS) },
+      { name: 'presence', label: 'Presença', kind: 'select', options: [{ value: 'present', label: 'Presentes' }, { value: 'absent', label: 'Ausentes' }] },
+      { name: 'q', label: 'Nome ou e-mail', kind: 'text' },
+    ],
+  },
   hackathon: {
     label: 'Hackathon (inscritos)',
     filters: [
@@ -133,7 +143,7 @@ function csvValue(col, v) {
 const isEmpty = (v) => v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
 
 /** Descreve os filtros usados (rótulo + valores legíveis) para exibir no relatório e no CSV. */
-function describeFilters(def, values, lotes) {
+function describeFilters(def, values, lotes, activities) {
   return def.filters.flatMap((f) => {
     const v = values[f.name];
     if (isEmpty(v)) return [];
@@ -142,8 +152,9 @@ function describeFilters(def, values, lotes) {
       const text = [from && `a partir de ${from.format('DD/MM/YYYY')}`, to && `até ${to.format('DD/MM/YYYY')}`].filter(Boolean).join(' ');
       return text ? [{ label: f.label, text }] : [];
     }
+    if (f.kind === 'day') return [{ label: f.label, text: v.format('DD/MM/YYYY') }];
     if (f.kind === 'select') {
-      const options = f.dynamic === 'lotes' ? lotes : f.options;
+      const options = f.dynamic === 'lotes' ? lotes : f.dynamic === 'activities' ? activities : f.options;
       const picked = [].concat(v).map((x) => options.find((o) => o.value === x)?.label ?? x);
       return [{ label: f.label, text: picked.join(', ') }];
     }
@@ -264,6 +275,8 @@ export default function ReportsTab({ perms = [] }) {
   const [kind, setKind] = useState(null);
   const [values, setValues] = useState({});
   const [lotes, setLotes] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [shownKeys, setShownKeys] = useState([]);
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
   const [exportingPdf, setExportingPdf] = useState(false);
@@ -289,6 +302,18 @@ export default function ReportsTab({ perms = [] }) {
       .catch(() => {});
   }, [perms]);
 
+  // Atividades alimentam o filtro do relatório de oficinas.
+  useEffect(() => {
+    if (!perms.some((p) => p === 'super_admin' || p === 'content_admin')) return;
+    axios.get('/TW26/backend/api/admin/activities.php')
+      .then((res) => setActivities((res.data.activities ?? []).map((a) => ({
+        value: String(a.id),
+        label: `${a.title}${a.start_at ? ` — ${dayjs(a.start_at).format('DD/MM HH:mm')}` : ''}`,
+        day: a.start_at ? dayjs(a.start_at).format('YYYY-MM-DD') : null,
+      }))))
+      .catch(() => {});
+  }, [perms]);
+
   const changeKind = (k) => {
     setKind(k);
     setValues({});
@@ -300,7 +325,9 @@ export default function ReportsTab({ perms = [] }) {
   const params = useMemo(() => {
     const p = { report: kind };
     Object.entries(values).forEach(([name, v]) => {
-      if (name === 'range') {
+      if (name === 'day') {
+        if (v) { p.from = v.format('YYYY-MM-DD'); p.to = p.from; }
+      } else if (name === 'range') {
         if (v?.[0]) p.from = v[0].format('YYYY-MM-DD');
         if (v?.[1]) p.to = v[1].format('YYYY-MM-DD');
       } else if (!isEmpty(v)) {
@@ -313,7 +340,10 @@ export default function ReportsTab({ perms = [] }) {
   const generate = () => {
     setLoading(true);
     axios.get('/TW26/backend/api/admin/reports.php', { params })
-      .then((res) => setReport({ ...res.data, applied: describeFilters(REPORTS[kind], values, lotes) }))
+      .then((res) => {
+        setReport({ ...res.data, applied: describeFilters(REPORTS[kind], values, lotes, activities) });
+        setShownKeys(res.data.columns.filter((c) => c.default !== false).map((c) => c.key));
+      })
       .catch((err) => {
         setReport(null);
         message.error(err.response?.data?.message ?? 'Erro ao gerar o relatório.');
@@ -321,9 +351,15 @@ export default function ReportsTab({ perms = [] }) {
       .finally(() => setLoading(false));
   };
 
+  // Colunas escolhidas pelo usuário: valem para a tabela, o CSV e o PDF.
+  const shown = useMemo(
+    () => (report ? { ...report, columns: report.columns.filter((c) => shownKeys.includes(c.key)) } : null),
+    [report, shownKeys],
+  );
+
   const exportPdf = () => {
     setExportingPdf(true);
-    downloadPdf(report, `relatorio-${kind}-${dayjs().format('YYYYMMDD-HHmm')}.pdf`)
+    downloadPdf(shown, `relatorio-${kind}-${dayjs().format('YYYYMMDD-HHmm')}.pdf`)
       .catch(() => message.error('Erro ao gerar o PDF.'))
       .finally(() => setExportingPdf(false));
   };
@@ -332,7 +368,7 @@ export default function ReportsTab({ perms = [] }) {
   if (available.length === 0) return <p className={styles.muted}>Você não tem acesso a nenhum relatório.</p>;
 
   const def = REPORTS[kind];
-  const columns = report?.columns.map((c) => ({
+  const columns = shown?.columns.map((c) => ({
     title: c.title,
     dataIndex: c.key,
     render: (v) => display(c, v),
@@ -344,7 +380,14 @@ export default function ReportsTab({ perms = [] }) {
     if (f.kind === 'range') {
       return <RangePicker {...common} placeholder={['De', 'Até']} format="DD/MM/YYYY" value={values.range ?? null} onChange={(v) => setValue('range', v)} />;
     }
+    if (f.kind === 'day') {
+      return <DatePicker {...common} format="DD/MM/YYYY" value={values.day ?? null} onChange={(v) => setValue('day', v)} />;
+    }
     if (f.kind === 'select') {
+      const day = values.day?.format('YYYY-MM-DD');
+      const options = f.dynamic === 'lotes' ? lotes
+        : f.dynamic === 'activities' ? activities.filter((a) => !day || a.day === day)
+          : f.options;
       return (
         <Select
           {...common}
@@ -352,7 +395,7 @@ export default function ReportsTab({ perms = [] }) {
           mode={f.multiple ? 'multiple' : undefined}
           maxTagCount="responsive"
           optionFilterProp="label"
-          options={f.dynamic === 'lotes' ? lotes : f.options}
+          options={options}
           value={values[f.name] ?? (f.multiple ? [] : undefined)}
           onChange={(v) => setValue(f.name, v)}
         />
@@ -389,15 +432,15 @@ export default function ReportsTab({ perms = [] }) {
           <Button onClick={() => { setValues({}); setReport(null); }}>Limpar filtros</Button>
           <Button
             icon={<DownloadOutlined />}
-            disabled={!report || report.rows.length === 0}
-            onClick={() => downloadCsv(report, `relatorio-${kind}-${dayjs().format('YYYYMMDD-HHmm')}.csv`)}
+            disabled={!report || report.rows.length === 0 || shownKeys.length === 0}
+            onClick={() => downloadCsv(shown, `relatorio-${kind}-${dayjs().format('YYYYMMDD-HHmm')}.csv`)}
           >
             Exportar CSV
           </Button>
           <Button
             icon={<FilePdfOutlined />}
             loading={exportingPdf}
-            disabled={!report || report.rows.length === 0}
+            disabled={!report || report.rows.length === 0 || shownKeys.length === 0}
             onClick={exportPdf}
           >
             Exportar PDF
@@ -421,6 +464,16 @@ export default function ReportsTab({ perms = [] }) {
                   </Tag>
                 ))}
             </div>
+            {report.columns.length > 1 && (
+              <div style={{ marginBottom: 16 }}>
+                <div className={styles.muted} style={{ marginBottom: 4 }}>Colunas exibidas (tabela, CSV e PDF):</div>
+                <Checkbox.Group
+                  value={shownKeys}
+                  onChange={setShownKeys}
+                  options={report.columns.map((c) => ({ value: c.key, label: c.title }))}
+                />
+              </div>
+            )}
             <Row gutter={[16, 16]}>
               {report.summary.map((s) => (
                 <Col xs={12} md={6} key={s.label}>
