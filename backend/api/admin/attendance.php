@@ -113,6 +113,34 @@ if ($method === 'POST') {
     $activityId = (int) ($data['activity_id'] ?? 0);
     requireActivityInScope($scope, $activityId);
 
+    // Presença em lote: todos os inscritos que ainda não têm presença.
+    if (($data['all'] ?? false) === true) {
+        try {
+            $bulk = $pdo->prepare(
+                "INSERT INTO activity_attendance (user_id, activity_id, method, checked_in_by)
+                 SELECT e.user_id, e.activity_id, 'manual', :by
+                 FROM activity_enrollments e
+                 WHERE e.activity_id = :aid
+                 ON CONFLICT (user_id, activity_id) DO NOTHING"
+            );
+            $bulk->execute([':by' => (int) $user['id'], ':aid' => $activityId]);
+            $count = $bulk->rowCount();
+
+            appLog('attendance.bulk', [
+                'activity_id' => $activityId,
+                'count'       => $count,
+                'by'          => (int) $user['id'],
+            ]);
+
+            jsonResponse(201, true, $count > 0
+                ? "Presença registrada para $count inscrito(s)."
+                : 'Todos os inscritos já tinham presença.', ['count' => $count]);
+        } catch (Exception $e) {
+            error_log('[TW26] admin/attendance POST all: ' . $e->getMessage());
+            jsonResponse(500, false, 'Erro interno ao registrar as presenças.');
+        }
+    }
+
     $code = normalizeAttendanceCode($data['code'] ?? '');
     if ($code === '') {
         jsonResponse(422, false, 'Informe o código do participante.');

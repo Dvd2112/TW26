@@ -1,7 +1,9 @@
 import { Button, Tag, Input, Space } from 'antd';
+import { DownloadOutlined } from '@ant-design/icons';
+import downloadFile from '../../utils/downloadFile';
 import styles from '../../styles/Account.module.css';
 
-export default function EnrollmentsCard({ enrollments, codes, setCodes, checkingIn, cancelling, submitCode, cancelEnrollment }) {
+export default function EnrollmentsCard({ enrollments, materials = [], codes, setCodes, checkingIn, cancelling, submitCode, cancelEnrollment }) {
   return (
     <div className={styles.card}>
       <h3 className={styles.cardTitle}>Minhas Oficinas</h3>
@@ -43,6 +45,14 @@ export default function EnrollmentsCard({ enrollments, codes, setCodes, checking
                       Presença
                     </Button>
                   </Space.Compact>
+                )}
+                {materials.some((m) => Number(m.activity_id) === Number(act.id)) && (
+                  <Button
+                    icon={<DownloadOutlined />}
+                    onClick={() => downloadFile(`/TW26/backend/api/materials.php?download_activity=${act.id}`, 'materiais.zip')}
+                  >
+                    Baixar material
+                  </Button>
                 )}
                 <Button
                   size="small"

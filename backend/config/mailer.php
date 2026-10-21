@@ -246,6 +246,66 @@ Equipe Jornada GovTech
 }
 endif;
 
+if (!function_exists('sendActivityMaterialsEmails')):
+/**
+ * Avisa os inscritos de uma atividade que há material novo (slides etc.).
+ * Reaproveita uma conexão SMTP para todos; falha de um destinatário não
+ * interrompe os demais.
+ *
+ * @param list<array{email: string, name: string}> $recipients
+ * @param list<string> $materialTitles títulos em texto puro (sem HTML)
+ * @return array{sent: int, failed: int}
+ */
+function sendActivityMaterialsEmails(array $recipients, string $activityTitle, array $materialTitles): array
+{
+    $link = rtrim(env('APP_URL', 'https://techweekfb.com.br'), '/') . '/TW26/?page=account';
+    $linkSafe     = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+    $activitySafe = htmlspecialchars($activityTitle, ENT_QUOTES, 'UTF-8');
+    $items = '';
+    foreach ($materialTitles as $t) {
+        $items .= '<li style="margin:0 0 6px;">' . htmlspecialchars($t, ENT_QUOTES, 'UTF-8') . '</li>';
+    }
+    $textItems = implode("\n", array_map(fn (string $t) => "- $t", $materialTitles));
+
+    $mail = createMailer();
+    $mail->SMTPKeepAlive = true;
+    $mail->isHTML(true);
+    $mail->Subject = '[TechWeek 2026] Novo material: ' . $activityTitle;
+
+    $sent = 0;
+    $failed = 0;
+    foreach ($recipients as $r) {
+        $nameSafe = htmlspecialchars($r['name'], ENT_QUOTES, 'UTF-8');
+        $body = <<<HTML
+<p style="margin:0 0 16px;font-size:22px;font-weight:600;color:#ffffff;">Olá, {$nameSafe}!</p>
+<p style="margin:0 0 16px;font-size:15px;color:#d9d9d9;line-height:1.7;">
+  Há material novo disponível em <strong style="color:#bf40ff;">{$activitySafe}</strong>:
+</p>
+<ul style="margin:0 0 24px;padding-left:20px;font-size:15px;color:#d9d9d9;line-height:1.7;">{$items}</ul>
+<p style="margin:0 0 24px;">
+  <a href="{$linkSafe}" style="display:inline-block;background:#8a00c4;color:#ffffff;font-weight:700;text-decoration:none;padding:12px 24px;border-radius:8px;">
+    Acessar em Minha Conta
+  </a>
+</p>
+HTML;
+        try {
+            $mail->clearAddresses();
+            $mail->addAddress($r['email'], $r['name']);
+            $mail->Body    = buildEmailShell('Material da atividade', $body);
+            $mail->AltBody = "Olá, {$r['name']}!\n\nHá material novo em \"$activityTitle\":\n$textItems\n\nAcesse em: $link\n";
+            $mail->send();
+            $sent++;
+        } catch (MailException $e) {
+            $failed++;
+            error_log('[TW26] materiais e-mail: ' . $e->getMessage());
+        }
+    }
+    $mail->smtpClose();
+
+    return ['sent' => $sent, 'failed' => $failed];
+}
+endif;
+
 // ─── layout compartilhado (cores do software: preto + roxo) ───────────────────
 
 if (!function_exists('buildEmailShell')):

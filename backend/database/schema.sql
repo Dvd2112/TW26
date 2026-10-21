@@ -180,6 +180,19 @@ CREATE TABLE IF NOT EXISTS activity_attendance (
     UNIQUE (user_id, activity_id)
 );
 
+-- ─── activity_materials ──────────────────────────────────────────────────────
+-- Slides/apostilas da atividade. file_path = nome gerado pelo servidor em storage/materiais/.
+CREATE TABLE IF NOT EXISTS activity_materials (
+    id            SERIAL      PRIMARY KEY,
+    activity_id   INTEGER     NOT NULL REFERENCES activities(id) ON DELETE CASCADE,
+    title         TEXT        NOT NULL,
+    original_name TEXT        NOT NULL,
+    file_path     TEXT        NOT NULL UNIQUE,
+    size_bytes    INTEGER     NOT NULL,
+    uploaded_by   INTEGER              REFERENCES users(id) ON DELETE SET NULL,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- ─── activity_credentialers ──────────────────────────────────────────────────
 -- Quais atividades cada credenciador pode credenciar. Sem nenhuma linha o
 -- credenciador não credencia nada (default deny); super_admin ignora a tabela.
@@ -348,6 +361,7 @@ CREATE INDEX IF NOT EXISTS idx_payments_reg         ON payments(registration_id)
 CREATE INDEX IF NOT EXISTS idx_payments_status      ON payments(status);
 CREATE INDEX IF NOT EXISTS idx_enrollments_user     ON activity_enrollments(user_id);
 CREATE INDEX IF NOT EXISTS idx_enrollments_activity ON activity_enrollments(activity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_materials_activity ON activity_materials(activity_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_activity    ON activity_attendance(activity_id);
 CREATE INDEX IF NOT EXISTS idx_attendance_user        ON activity_attendance(user_id);
 CREATE INDEX IF NOT EXISTS idx_act_credentialers_user ON activity_credentialers(user_id);
